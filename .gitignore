@@ -1,0 +1,6 @@
+# Ignore all generated files 
+cataclysm
+cataclysm.exe
+.deps/
+obj/
+save/
