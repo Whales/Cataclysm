@@ -29,7 +29,7 @@ $(TARGET): $(ODIR) $(DDIR) $(OBJS)
 	$(CXX) -o $(TARGET) $(CFLAGS) $(OBJS) $(LDFLAGS) 
 
 $(ODIR):
-	mkdir $(ODIR)
+	@mkdir $(ODIR)
 
 $(DDIR):
 	@mkdir $(DDIR)
