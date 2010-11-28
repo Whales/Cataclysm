@@ -345,12 +345,12 @@ bool query_yn(const char *mes, ...)
  char ch;
  do
   ch = getch();
- while (ch != 'Y' && ch != 'N');
+ while (ch != 'Y' && ch != 'N' && ch != 'y' && ch != 'n');
  werase(w);
  wrefresh(w);
  delwin(w);
  refresh();
- if (ch == 'Y')
+ if (ch == 'Y' || ch == 'y')
   return true;
  return false;
 }
