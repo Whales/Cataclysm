@@ -1,5 +1,6 @@
 #include "game.h"
 #include "output.h"
+#include "keypress.h"
 
 #define LESS(a, b) ((a)<(b)?(a):(b))
 
