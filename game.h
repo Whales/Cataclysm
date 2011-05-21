@@ -33,6 +33,36 @@ struct mission_type;
 class map;
 class player;
 
+/* Windows lacks the nanosleep() function. The following code was stuffed 
+   together from GNUlib (http://www.gnu.org/software/gnulib/), which is 
+   licensed under the GPLv3. */
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+/* Windows platforms.  */
+
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
+struct timespec
+{
+  time_t tv_sec;
+  long int tv_nsec;
+};
+
+#   ifdef __cplusplus
+}
+#   endif
+
+enum { BILLION = 1000 * 1000 * 1000 };
+
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+
+int
+nanosleep (const struct timespec *requested_delay,
+           struct timespec *remaining_delay);
+#endif
+
 class game
 {
  public:

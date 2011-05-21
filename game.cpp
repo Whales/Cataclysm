@@ -23,25 +23,6 @@ moncat_id mt_to_mc(mon_id type);	// Pick the moncat that contains type
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 /* Windows platforms.  */
 
-#   ifdef __cplusplus
-extern "C" {
-#   endif
-
-struct timespec
-{
-  time_t tv_sec;
-  long int tv_nsec;
-};
-
-#   ifdef __cplusplus
-}
-#   endif
-
-enum { BILLION = 1000 * 1000 * 1000 };
-
-# define WIN32_LEAN_AND_MEAN
-# include <windows.h>
-
 /* The Win32 function Sleep() has a resolution of about 15 ms and takes
    at least 5 ms to execute.  We use this function for longer time periods.
    Additionally, we use busy-looping over short time periods, to get a
