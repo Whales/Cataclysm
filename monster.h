@@ -9,6 +9,7 @@
 class map;
 class player;
 class game;
+class item;
 
 class monster {
  public:
@@ -57,15 +58,21 @@ class monster {
  void hit_monster(game *g, int i);
  bool hurt(int dam); 	// Deals this dam damage; returns true if we dead
  int  armor();		// Natural armor, plus any worn armor
+ int  dodge();		// Natural dodge, or 0 if we're occupied
+ int  dodge_roll();	// For the purposes of comparing to player::hit_roll()
  void die(game *g);
 
 // Other
  bool make_fungus(game *g);	// Makes this monster into a fungus version
 				// Returns false if no such monster exists
  void make_friendly();
+ void add_item(item it);	// Add an item to inventory
+
+// VALUES
  int posx, posy;
  int wandx, wandy; // Wander destination - Just try to move in that direction
  int wandf;	   // Urge to wander - Increased by sound, decrements each move
+ std::vector<item> inv; // Inventory
 
 // If we were spawned by the map, store our origin for later use
  int spawnmapx, spawnmapy, spawnposx, spawnposy;

@@ -8,7 +8,6 @@
 void mattack::antqueen(game *g, monster *z)
 {
  std::vector<point> egg_points;
- z->moves = -200;			// It takes a while
  z->sp_timeout = z->type->sp_freq;	// Reset timer
 // Count up all adjacent tiles the contain at least one egg.
  for (int x = z->posx - 1; x <= z->posx + 1; x++) {
@@ -89,11 +88,6 @@ void mattack::shockstorm(game *g, monster *z)
  z->moves = -50;			// It takes a while
  z->sp_timeout = z->type->sp_freq;	// Reset timer
  g->add_msg("A bolt of electricity arcs towards you!");
-/*    -1  0  1
- * -1 -2 -1  0
- *  0 -1  0  1
- *  1  0  1  2
- */
  int tarx = g->u.posx + rng(-1, 1) + rng(-1, 1),// 3 in 9 chance of direct hit,
      tary = g->u.posy + rng(-1, 1) + rng(-1, 1);// 4 in 9 chance of near hit
  if (!g->m.sees(z->posx, z->posy, tarx, tary, -1, t))
@@ -152,9 +146,9 @@ void mattack::resurrect(game *g, monster *z)
 {
  std::vector<point> corpses;
  int junk;
-// Find all corposes that we can see within 6 tiles.
- for (int x = z->posx - 6; x <= z->posx + 6; x++) {
-  for (int y = z->posy - 6; y <= z->posy + 6; y++) {
+// Find all corposes that we can see within 4 tiles.
+ for (int x = z->posx - 4; x <= z->posx + 4; x++) {
+  for (int y = z->posy - 4; y <= z->posy + 4; y++) {
    if (g->is_empty(x, y) && g->m.sees(z->posx, z->posy, x, y, -1, junk)) {
     for (int i = 0; i < g->m.i_at(x, y).size(); i++) {
      if (g->m.i_at(x, y)[i].type->id == itm_corpse)
@@ -181,7 +175,7 @@ void mattack::resurrect(game *g, monster *z)
     mon.speed = int(mon.speed * .8);	// Raised corpses are slower
     mon.hp    = int(mon.hp    * .7);	// Raised corpses are weaker
     g->m.i_rem(x, y, n);
-    n = g->m.i_at(x, y).size();
+    n = g->m.i_at(x, y).size();	// Only one body raised per tile
     g->z.push_back(mon);
    }
   }
@@ -399,7 +393,8 @@ void mattack::fungus(game *g, monster *z)
   g->add_msg("Spores are released from the %s!", z->name().c_str());
  for (int i = -1; i <= 1; i++) {
   for (int j = -1; j <= 1; j++) {
-   if (i == 0 && j == 0) j++;	// No need to check 0, 0
+   if (i == 0 && j == 0)
+    j++;	// No need to check 0, 0
    sporex = z->posx + i;
    sporey = z->posy + j;
    mondex = g->mon_at(sporex, sporey);
@@ -421,6 +416,52 @@ void mattack::fungus(game *g, monster *z)
  }
  if (moncount >= 7)	// If we're surrounded by monsters, go dormant
   z->poly(g->mtypes[mon_fungaloid_dormant]);
+}
+
+void mattack::leap(game *g, monster *z)
+{
+ int linet;
+ if (!g->sees_u(z->posx, z->posy, linet))
+  return;	// Only leap if we can see you!
+
+ std::vector<point> options;
+ int dx = 0, dy = 0, best = 0;
+ if (g->u.posx > z->posx)
+  dx = 1;
+ else if (g->u.posx < z->posx)
+  dx = -1;
+ if (g->u.posy > z->posy)
+  dy = 1;
+ else if (g->u.posy < z->posy)
+  dy = -1;
+
+ if (z->is_fleeing(g->u)) { // Leaping away from the player
+  dx *= -1;
+  dy *= -1;
+ }
+
+ for (int x = z->posx + dx * 3; x != z->posx - dx * 4; x -= dx) {
+  for (int y = z->posy + dy * 3; y != z->posy - dy * 4; y -= dy) {
+   if (g->is_empty(x, y) && rl_dist(z->posx, z->posy, x, y) >= best &&
+       g->m.sees(z->posx, z->posy, x, y, g->light_level(), linet)       ) {
+    options.push_back( point(x, y) );
+    best = rl_dist(z->posx, z->posy, x, y);
+   }
+  }
+ }
+
+ if (options.size() == 0)
+  return; // Nowhere to leap!
+
+ z->moves -= 150;
+ z->sp_timeout = z->type->sp_freq;	// Reset timer
+ point chosen = options[rng(0, options.size() - 1)];
+ bool seen = g->u_see(z, linet); // We can see them jump...
+ z->posx = chosen.x;
+ z->posy = chosen.y;
+ seen |= g->u_see(z, linet); // ... or we can see them land
+ if (seen)
+  g->add_msg("The %s leaps!", z->name().c_str());
 }
 
 void mattack::plant(game *g, monster *z)

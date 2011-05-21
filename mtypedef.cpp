@@ -29,7 +29,7 @@ item_chance, HP, sp_freq, death, sp_att, desc))
 // PLEASE NOTE: The description is AT MAX 4 lines of 46 characters each.
 
 // FOREST ANIMALS
-mon("squirrel",		'w',	c_ltgray,	MS_TINY,	FLESH,
+mon("squirrel",		'r',	c_ltgray,	MS_TINY,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_SMELLS)|mfb(MF_ANIMAL)|
 	 mfb(MF_WARM)|mfb(MF_FUR)),
 //	frq dif  agr spd msk mdi m## cut dge arm itm  HP special freq
@@ -38,7 +38,7 @@ mon("squirrel",		'w',	c_ltgray,	MS_TINY,	FLESH,
 A small woodland animal."
 );
 
-mon("rabbit",		'w',	c_white,	MS_TINY,	FLESH,
+mon("rabbit",		'r',	c_white,	MS_TINY,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_SMELLS)|mfb(MF_ANIMAL)|
 	 mfb(MF_WARM)|mfb(MF_FUR)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
@@ -141,12 +141,23 @@ mon("giant bee",	'a',	c_yellow,	MS_SMALL,	FLESH,
 	(mfb(MF_SMELLS)|mfb(MF_VENOM)|mfb(MF_FLIES)|mfb(MF_STUMBLES)|
 	 mfb(MF_ANIMAL)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	  2, 15,  4,140,  7,  1,  6,  5,  7,  5,-50, 20,  0,
+	  2, 15,  4,140,  4,  1,  1,  5,  6,  5,-50, 20,  0,
 	&mdeath::normal,	&mattack::none, "\
 A honey bee the size of a small dog. It\n\
 buzzes angrily through the air, dagger-\n\
 sized sting pointed forward."
 );
+
+mon("giant wasp",	'a', 	c_red,		MS_MEDIUM,	FLESH,
+	(mfb(MF_SMELLS)|mfb(MF_POISON)|mfb(MF_VENOM)|mfb(MF_FLIES)),
+//	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
+	  2, 18,  5,150,  6,  1,  3,  7,  7,  7,-40, 35, 0,
+	&mdeath::normal,	&mattack::none, "\
+An evil-looking, slender-bodied wasp with\n\
+a vicious sting on its abdomen."
+);
+
+// GIANT WORMS
 
 mon("graboid",		'S',	c_red,		MS_HUGE,	FLESH,
 	(mfb(MF_DIGS)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_ATTACKMON)|
@@ -187,7 +198,7 @@ mon("zombie",		'Z',	c_ltgreen,	MS_MEDIUM,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_SMELLS)|mfb(MF_STUMBLES)|
          mfb(MF_WARM)|mfb(MF_BASHES)|mfb(MF_POISON)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	 70,  3,  5, 70,  8,  1,  5,  0,  1,  0, 40, 50,  0,
+	 90,  3,  5, 70,  8,  1,  5,  0,  1,  0, 40, 50,  0,
 	&mdeath::normal,	&mattack::none, "\
 A human body, stumbling slowly forward on\n\
 uncertain legs, possessed with an\n\
@@ -198,7 +209,7 @@ mon("shrieker zombie",	'Z',	c_magenta,	MS_MEDIUM,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_SMELLS)|mfb(MF_STUMBLES)|
 	 mfb(MF_WARM)|mfb(MF_BASHES)|mfb(MF_POISON)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	  4,  8,  4, 95,  9,  1,  2,  0,  4,  0, 45, 50, 10,
+	  4, 10,  4, 95,  9,  1,  2,  0,  4,  0, 45, 50, 10,
 	&mdeath::normal,	&mattack::shriek, "\
 This zombie's jaw has been torn off, leaving\n\
 a gaping hole from mid-neck up."
@@ -230,7 +241,7 @@ mon("fast zombie",	'Z',	c_ltred,	MS_MEDIUM,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_SMELLS)|mfb(MF_STUMBLES)|
 	 mfb(MF_WARM)|mfb(MF_BASHES)|mfb(MF_POISON)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	  6,  9,  5,150, 10,  1,  4,  3,  4,  0, 45, 40,  0,
+	  6, 12,  5,150, 10,  1,  4,  3,  4,  0, 45, 40,  0,
 	&mdeath::normal,	&mattack::none, "\
 This deformed, sinewy zombie stays close\n\
 to the ground, loping forward faster than\n\
@@ -241,7 +252,7 @@ mon("zombie brute",	'Z',	c_red,		MS_MEDIUM,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_SMELLS)|mfb(MF_WARM)|mfb(MF_BASHES)|
 	 mfb(MF_POISON)|mfb(MF_LEATHER)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	  4, 15,  5,115,  9,  4,  4,  2,  0,  8, 60, 80,  0,
+	  4, 25,  5,115,  9,  4,  4,  2,  0,  8, 60, 80,  0,
 	&mdeath::normal,	&mattack::none, "\
 A hideous beast of a zombie, bulging with\n\
 distended muscles on both arms and legs."
@@ -251,7 +262,7 @@ mon("zombie hulk",	'Z',	c_blue,		MS_HUGE,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_SMELLS)|mfb(MF_WARM)|mfb(MF_BASHES)|
 	 mfb(MF_DESTROYS)|mfb(MF_POISON)|mfb(MF_ATTACKMON)|mfb(MF_LEATHER)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	  1, 30,  5,130, 9,  4,  8,  0,  0,  12, 80,260,  0,
+	  1, 50,  5,130, 9,  4,  8,  0,  0,  12, 80,260,  0,
 	&mdeath::normal,	&mattack::none, "\
 A zombie that has somehow grown to the size\n\
 of 6 men, with arms as wide as a trash can."
@@ -272,7 +283,7 @@ mon("boomer",		'Z',	c_pink,		MS_LARGE,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_STUMBLES)|mfb(MF_WARM)|
 	 mfb(MF_BASHES)|mfb(MF_POISON)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	  6,  7,  5, 55,  7,  2,  4,  0,  1,  0, 35, 40,  20,
+	  6,  5,  5, 55,  7,  2,  4,  0,  1,  0, 35, 40,  20,
 	&mdeath::boomer,	&mattack::boomer, "\
 A bloated zombie sagging with fat. It emits a\n\
 horrible odor, and putrid, pink sludge drips\n\
@@ -382,7 +393,7 @@ mon("spore",		'o',	c_ltgray,	MS_TINY,	VEGGY,
 	(mfb(MF_STUMBLES)|mfb(MF_POISON)|mfb(MF_NOHEAD)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
 	  0,  1, -5,100,  0,  0,  0,  0,  6,  0,  0,  5, 50,
-	&mdeath::normal,	&mattack::plant, "\
+	&mdeath::disintegrate,	&mattack::plant, "\
 A wispy spore, about the size of a fist,\n\
 wafting on the breeze."
 );
@@ -390,7 +401,7 @@ wafting on the breeze."
 // BLOBS & SLIMES &c
 mon("blob",		'O',	c_dkgray,	MS_MEDIUM,	LIQUID,
 	(mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_NOHEAD)|
-	 mfb(MF_POISON)),
+	 mfb(MF_POISON)|mfb(MF_ACIDPROOF)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
 	 10, 19,  5, 85,  9,  2,  4,  0,  0,  0,  0, 85, 30,
 	&mdeath::blobsplit,	&mattack::formblob, "\
@@ -401,7 +412,7 @@ oil."
 
 mon("small blob",	'o',	c_dkgray,	MS_SMALL,	LIQUID,
 	(mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_NOHEAD)|
-	 mfb(MF_POISON)),
+	 mfb(MF_POISON)|mfb(MF_ACIDPROOF)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
 	  1,  2,  5, 50,  6,  1,  4,  0,  0,  0,  0, 50, 0,
 	&mdeath::blobsplit,	&mattack::none, "\
@@ -472,6 +483,58 @@ scampers quickly across the ground, squeaking\n\
 hungrily."
 );
 
+// SWAMP CREATURES
+mon("giant mosquito",	'y',	c_ltgray,	MS_SMALL,	FLESH,
+	(mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_STUMBLES)|mfb(MF_VENOM)|
+	 mfb(MF_FLIES)),
+//	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
+	 30,  6,  3,140,  8,  2,  2,  2,  5,  0,  0, 20, 0,
+	&mdeath::normal,	&mattack::none, "\
+An enormous mosquito, fluttering erratically,\n\
+its face dominated by a long, spear-tipped\n\
+proboscis."
+);
+
+mon("giant dragonfly",	'y',	c_ltgreen,	MS_SMALL,	FLESH,
+	(mfb(MF_SEES)|mfb(MF_SMELLS)|mfb(MF_FLIES)),
+//	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
+	  6, 13,  4,155, 12,  1,  3,  6,  5,  6,-20, 70, 0,
+	&mdeath::normal,	&mattack::none, "\
+A ferocious airborne predator, flying swiftly\n\
+through the air, its mouth a cluster of fangs."
+);
+
+mon("giant centipede",	'a',	c_ltgreen,	MS_MEDIUM,	FLESH,
+	(mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_POISON)|mfb(MF_VENOM)),
+//	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
+	  7,  9,  4,120, 10,  1,  3,  5,  2,  8,-30, 60, 0,
+	&mdeath::normal,	&mattack::none, "\
+A meter-long centipede, moving swiftly on\n\
+dozens of thin legs, a pair of venomous\n\
+pincers attached to its head."
+);
+
+mon("giant frog",	'F',	c_green,	MS_LARGE,	FLESH,
+	(mfb(MF_SEES)|mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_SWIMS)|
+	 mfb(MF_LEATHER)),
+//	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
+	  5, 10,  3, 90,  8,  2,  3,  0,  2,  4,  0, 70, 5,
+	&mdeath::normal,	&mattack::leap, "\
+A thick-skinned green frog.  It eyes you\n\
+much as you imagine it might eye an insect."
+);
+
+mon("giant slug",	'S',	c_yellow,	MS_HUGE,	FLESH,
+	(mfb(MF_SEES)|mfb(MF_SMELLS)|mfb(MF_BASHES)|mfb(MF_ACIDPROOF)|
+	 mfb(MF_ACIDTRAIL)),
+//	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
+	  4, 16,  4, 50,  7,  1,  5,  1,  0,  5,  0,190, 10,
+	&mdeath::normal,	&mattack::acid, "\
+A gigantic slug, the size of a small car.\n\
+It moves slowly, dribbling acidic goo from\n\
+its fang-lined mouth."
+);
+
 // NETHER WORLD INHABITANTS
 mon("flying polyp",	'H',	c_dkgray,	MS_HUGE,	FLESH,
 	(mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_NOHEAD)|
@@ -482,6 +545,7 @@ mon("flying polyp",	'H',	c_dkgray,	MS_HUGE,	FLESH,
 An amorphous mass of twisting black flesh\n\
 that flies through the air swiftly."
 );
+
 mon("hunting horror",	'h',	c_dkgray,	MS_SMALL,	MNULL,
 	(mfb(MF_SEES)|mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_NOHEAD)|
 	 mfb(MF_HARDTOSHOOT)|mfb(MF_FLIES)|mfb(MF_PLASTIC)|mfb(MF_SUNDEATH)),
@@ -493,6 +557,7 @@ bat-like wings. Its form continually\n\
 shifts and changes, twitching and\n\
 writhing."
 );
+
 mon("Mi-go",		'H',	c_pink,		MS_MEDIUM,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_WARM)|
 	 mfb(MF_BASHES)|mfb(MF_POISON)),
@@ -504,6 +569,7 @@ creature with numerous pairs of clawed\n\
 appendages and a head covered with waving\n\
 antennae."
 );
+
 mon("yugg",		'H',	c_white,	MS_HUGE,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_BASHES)|
 	 mfb(MF_DESTROYS)|mfb(MF_POISON)|mfb(MF_VENOM)|mfb(MF_DIGS)),
@@ -515,6 +581,7 @@ beneath the earth. Poking from the\n\
 ground is a bulbous head dominated by a\n\
 pink mouth, lined with rows of fangs."
 );
+
 mon("gelatinous blob", 'O',	c_ltgray,	MS_LARGE,	LIQUID,
 	(mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_PLASTIC)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
@@ -524,6 +591,7 @@ A shapeless blob the size of a cow.  It\n\
 oozes slowly across the ground, small\n\
 chunks falling off of its sides."
 );
+
 mon("flaming eye",	'E',	c_red,		MS_MEDIUM,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_WARM)|mfb(MF_FLIES)|mfb(MF_FIREY)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
@@ -533,6 +601,7 @@ An eyeball the size of an easy chair and\n\
 covered in rolling blue flames. It floats\n\
 through the air."
 );
+
 mon("kreck",		'h',	c_ltred,	MS_SMALL,	FLESH,
 	(mfb(MF_SEES)|mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_WARM)|mfb(MF_BASHES)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
@@ -543,6 +612,7 @@ twisted red flesh and a distended neck. It\n\
 scampers across the ground, panting and\n\
 grunting."
 );
+
 mon("blank body",	'h',	c_white,	MS_MEDIUM,	FLESH,
 	(mfb(MF_SMELLS)|mfb(MF_HEARS)|mfb(MF_WARM)|mfb(MF_ANIMAL)|
 	 mfb(MF_SUNDEATH)),

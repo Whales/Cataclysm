@@ -14,24 +14,40 @@ class mdeath;
 
 enum mon_id {
 mon_null = 0,
+// Wildlife
 mon_squirrel, mon_rabbit, mon_deer, mon_wolf, mon_bear,
+// Friendly animals
 mon_dog,
+// Ants
 mon_ant_larva, mon_ant, mon_ant_soldier, mon_ant_queen, mon_ant_fungus,
-mon_bee,
+// Bees
+mon_bee, mon_wasp,
+// Worms
 mon_graboid, mon_worm, mon_halfworm,
+// Zombies
 mon_zombie, mon_zombie_shrieker, mon_zombie_spitter, mon_zombie_electric,
  mon_zombie_fast, mon_zombie_brute, mon_zombie_hulk, mon_zombie_fungus,
  mon_boomer, mon_boomer_fungus, mon_skeleton, mon_zombie_necro,
  mon_zombie_scientist,
+// Triffids
 mon_triffid, mon_triffid_young, mon_triffid_queen,
+// Fungaloids
 mon_fungaloid, mon_fungaloid_dormant, mon_spore,
+// Blobs
 mon_blob, mon_blob_small,
+// Sewer mutants
 mon_chud, mon_one_eye, mon_crawler,
+// Sewer animals
 mon_sewer_fish, mon_sewer_snake, mon_sewer_rat,
+// Swamp monsters
+mon_mosquito, mon_dragonfly, mon_centipede, mon_frog, mon_slug,
+// Subspace monsters
 mon_flying_polyp, mon_hunting_horror, mon_mi_go, mon_yugg, mon_gelatin,
  mon_flaming_eye, mon_kreck, mon_blank,
+// Robots
 mon_eyebot, mon_manhack, mon_skitterbot, mon_secubot, mon_molebot, mon_tripod,
  mon_chickenbot, mon_tankbot, mon_turret,
+// Hallucinations
 mon_hallu_zom, mon_hallu_bee, mon_hallu_ant, mon_hallu_mom,
 num_monsters
 };
@@ -49,7 +65,7 @@ MS_HUGE		// TAAAANK
 // And comment them well. ;)
 // mfb(n) converts a flag to its appropriate position in mtype's bitfield
 #ifndef mfb
-#define mfb(n) int(pow(2,(int)n))
+#define mfb(n) long(pow(2,(long)n))
 #endif
 enum m_flags {
 MF_SEES,	// It can see you (and will run/follow)
@@ -73,9 +89,10 @@ MF_ANIMAL,	// Is an "animal" for purposes of the Animal Empath trait
 MF_PLASTIC,	// Absorbs physical damage to a great degree
 MF_SUNDEATH,	// Dies in full sunlight
 MF_ACIDPROOF,	// Immune to acid
+MF_ACIDTRAIL,	// Leaves a trail of acid
 MF_FIREY,	// Burns stuff and is immune to fire
 MF_SHOCK,	// Shocks the player if they attack w/out gloves
-MF_ELECTRONIC,	// E.g. a robot; affected by emp blasts, and other stuff
+MF_ELECTRONIC,	// e.g. a robot; affected by emp blasts, and other stuff
 MF_FUR,		// May produce fur when butchered.
 MF_LEATHER,	// May produce leather when butchered
 MF_IMMOBILE,	// Doesn't move (e.g. turrets)
@@ -97,7 +114,7 @@ struct mtype {
  int difficulty;// Used all over; 30 min + (diff-3)*30 min = earlist appearance
  signed char agro;		// How likely to attack; -5 to 5
 
- unsigned int speed;		// Speed; human = 100
+ unsigned int  speed;		// Speed; human = 100
  unsigned char melee_skill;	// Melee skill; should be 0 to 5
  unsigned char melee_dice;	// Number of dice on melee hit
  unsigned char melee_sides;	// Number of sides those dice have
@@ -144,7 +161,7 @@ struct mtype {
         material pmat, unsigned pflags, unsigned char pfreq, unsigned int pdiff,
         signed char pagro, unsigned int pspeed, unsigned char pml_skill,
         unsigned char pml_dice, unsigned char pml_sides, unsigned char pml_cut,
-        unsigned char pdodge, unsigned char parmor, unsigned char pitem_chance,
+        unsigned char pdodge, unsigned char parmor, signed char pitem_chance,
         int php, unsigned char psp_freq,
         void (mdeath::*pdies)      (game *, monster *),
         void (mattack::*psp_attack)(game *, monster *),

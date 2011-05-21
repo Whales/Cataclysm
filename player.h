@@ -7,31 +7,39 @@
 #include "skill.h"
 #include "bionics.h"
 #include "trap.h"
+#include "morale.h"
 #include <vector>
 #include <string>
 
 class monster;
 class game;
 class trap;
+class mission;
 
 class player {
 public:
  player();
  ~player();
- bool create(game *g, character_type type);
- int random_good_trait(character_type type);
- int random_bad_trait (character_type type);
- void normalize(game *g);	// Starting set up of HP and inventory
 
- virtual bool is_npc() { return false; }
- nc_color color();	// What color to draw us as
+// newcharacter.cpp 
+ bool create(game *g, character_type type);
+ int  random_good_trait(character_type type);
+ int  random_bad_trait (character_type type);
+ void normalize(game *g);	// Starting set up of HP and inventory
+// </newcharacter.cpp>
+
+ virtual bool is_npc() { return false; }	// Overloaded for NPCs in npc.h
+ nc_color color();				// What color to draw us as
 
  virtual void load_info(std::string data);	// Load from file matching name
  virtual std::string save_info();		// Save to file matching name
- void disp_info(game *g);	// '@' key; extending character info
+
+ void disp_info(game *g);	// '@' key; extended character info
+ void disp_morale();		// '%' key; morale info
  void disp_status(WINDOW* w);	// The constant data in the lower right
 
  void reset();	// Resets movement points, stats, and applies pain, effects, etc
+ void update_morale();	// Ticks down morale counters and removes them
  int  current_speed(); // Returns the number of movement points we get each turn
  int  swim_speed();	// Our speed when swimming
 
@@ -51,15 +59,28 @@ public:
  bool is_in_sunlight(game *g);
  bool has_two_arms();
  bool can_wear_boots();
- bool is_armed();	// Whether we're wielding something; true for bionics
- bool avoid_trap(trap * tr);
+ bool is_armed();	// True if we're wielding something; true for bionics
+ bool unarmed_attack(); // False if we're wielding something; true for bionics
+ bool avoid_trap(trap *tr);
 
  void pause();		// '.' command; pauses & reduces recoil
+ int  hit_roll(); // Our basic hit roll, compared to our target's dodge roll
  int  hit_mon(game *g, monster *z); // Handles hitting a monster up to its death
 // hit_player returns false on a miss, and modifies bp, hitdam, and hitcut
  bool hit_player(player &p, body_part &bp, int &hitdam, int &hitcut);
  int  dodge();		//Returns the players's dodge, modded by clothing etc
- int  throw_range(char ch);	// Range of throwing item; -1:DNE 0:Can't throw
+ int  dodge_roll();	// For comparison to hit_roll()
+
+ int throw_range(int index);	// Range of throwing item; -1:ERR 0:Can't throw
+ int base_damage	(bool real_life = true);
+ int base_to_hit	(bool real_life = true);
+ int ranged_dex_mod	(bool real_life = true);
+ int ranged_per_mod	(bool real_life = true);
+ int throw_dex_mod	(bool real_life = true);
+
+ int comprehension_percent(skill s, bool real_life = true);
+ int read_speed		(bool real_life = true);
+ int convince_score(); // Skill at convincing NPCs of stuff
 
 // Converts bphurt to a hp_part (if side == 0, the left), then does/heals dam
 // hit() processes damage through armor
@@ -69,7 +90,8 @@ public:
 // hurt() doesn't--effects of disease, what have you
  void hurt  (game *g, body_part bphurt, int side, int  dam);
 
- void heal(body_part bpheal, int side, int dam);
+ void heal(body_part healed, int side, int dam);
+ void heal(hp_part healed, int dam);
  void healall(int dam);
  void hurtall(int dam);
 
@@ -86,18 +108,20 @@ public:
  int  disease_level(dis_type type);
 
  void add_addiction(add_type type, int strength);
- bool has_addiction(add_type type);
  void rem_addiction(add_type type);
+ bool has_addiction(add_type type);
  int  addiction_level(add_type type);
 
  void suffer(game *g);
  void vomit(game *g);
  
- bool eat(game *g, char let);	// Eat item; returns false on fail
- bool wield(game *g, char let);	// Wield item; returns false on fail
+ int  lookup_item(char let);
+ bool eat(game *g, int index);	// Eat item; returns false on fail
+ virtual bool wield(game *g, int index);// Wield item; returns false on fail
  bool wear(game *g, char let);	// Wear item; returns false on fail
  bool takeoff(game *g, char let);// Take off item; returns false on fail
  void use(game *g, char let);	// Use a tool
+ bool install_bionics(game *g, it_bionic* type);	// Install bionics
  void read(game *g, char let);	// Read a book
  void try_to_sleep(game *g);	// '$' command; adds DIS_LYING_DOWN
  bool can_sleep(game *g);	// Checked each turn during DIS_LYING_DOWN
@@ -113,9 +137,10 @@ public:
 
  int weight_carried();
  int volume_carried();
- int weight_capacity();
+ int weight_capacity(bool real_life = true);
  int volume_capacity();
  int morale_level();	// Modified by traits, &c
+ void add_morale(morale_type type, int bonus = -1, int duration = -1);
 
  void sort_inv();	// Sort inventory by type
  std::string weapname(bool charges = true);
@@ -149,6 +174,10 @@ public:
 // ---------------VALUES-----------------
  int posx, posy;
  player_activity activity;
+ std::vector<mission> active_missions;
+ std::vector<mission> completed_missions;
+ std::vector<mission> failed_missions;
+ int active_mission;
  
  std::string name;
  bool male;
@@ -156,10 +185,10 @@ public:
  std::vector<bionic> my_bionics;
 // Current--i.e. modified by disease, pain, etc.
  int str_cur, dex_cur, int_cur, per_cur;
-// Normal--i.e. unmodified by disease
+// Maximum--i.e. unmodified by disease
  int str_max, dex_max, int_max, per_max;
  int power_level, max_power_level;
- int hunger, thirst, fatigue, health, morale;
+ int hunger, thirst, fatigue, health;
  bool underwater;
  bool can_dodge;
  int oxygen;
@@ -169,6 +198,8 @@ public:
  int cash;
  int moves;
  int hp_cur[num_hp_parts], hp_max[num_hp_parts];
+
+ std::vector<morale_point> morale;
 
  int sklevel[num_skill_types];
  int skexercise[num_skill_types];

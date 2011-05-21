@@ -11,6 +11,7 @@
 #include "settlement.h"
 #include "game.h"
 #include "npc.h"
+#include "keypress.h"
 
 #define STREETCHANCE 2
 #define NUM_FOREST 250
@@ -133,6 +134,18 @@ oter_id& overmap::ter(int x, int y)
  return t[x][y];
 }
 
+std::vector<mongroup> overmap::monsters_at(int x, int y)
+{
+ std::vector<mongroup> ret;
+ if (x < 0 || x >= OMAPX || y < 0 || y >= OMAPY)
+  return ret;
+ for (int i = 0; i < zg.size(); i++) {
+  if (trig_dist(x, y, zg[i].posx, zg[i].posy) <= zg[i].radius)
+   ret.push_back(zg[i]);
+ }
+ return ret;
+}
+
 bool& overmap::seen(int x, int y)
 {
  if (x < 0 || x >= OMAPX || y < 0 || y >= OMAPY) {
@@ -173,6 +186,20 @@ void overmap::add_note(int x, int y, std::string message)
  }
  if (message.length() > 0)
   notes.push_back(om_note(x, y, notes.size(), message));
+}
+
+point overmap::find_note(point origin, std::string text)
+{
+ int closest = 9999;
+ point ret(-1, -1);
+ for (int i = 0; i < notes.size(); i++) {
+  if (notes[i].text.find(text) != std::string::npos &&
+      rl_dist(origin.x, origin.y, notes[i].x, notes[i].y) < closest) {
+   closest = rl_dist(origin.x, origin.y, notes[i].x, notes[i].y);
+   ret = point(notes[i].x, notes[i].y);
+  }
+ }
+ return ret;
 }
 
 void overmap::generate(game *g, overmap* north, overmap* east, overmap* south,
@@ -489,7 +516,7 @@ void overmap::make_tutorial()
 point overmap::find_closest(point origin, oter_id type, int type_range,
                             int &dist, bool must_be_seen)
 {
- int max = dist;
+ int max = (dist == 0 ? OMAPX / 2 : dist);
  for (dist = 0; dist <= max; dist++) {
   for (int x = origin.x - dist; x <= origin.x + dist; x++) {
    for (int y = origin.y - dist; y <= origin.y + dist; y++) {
@@ -502,12 +529,275 @@ point overmap::find_closest(point origin, oter_id type, int type_range,
  return point(-1, -1);
 }
 
+point overmap::choose_point(game *g)
+{
+ timeout(BLINK_SPEED);	// Enable blinking!
+ WINDOW* w_map = newwin(25, 80, 0, 0);
+ bool legend = true, blink = true, note_here = false, npc_here = false;
+ std::string note_text, npc_name;
+ int cursx = (g->levx + 1) / 2, cursy = (g->levy + 1) / 2;
+ int origx = cursx, origy = cursy;
+ char ch;
+ overmap hori, vert, diag;
+ point ret(-1, -1);
+ point target(-1, -1);
+ if (g->u.active_mission >= 0 &&
+     g->u.active_mission < g->u.active_missions.size())
+  target = g->u.active_missions[g->u.active_mission].target;
+ do {
+  int omx, omy;
+  bool see, target_drawn;
+  oter_id cur_ter;
+  nc_color ter_color;
+  long ter_sym;
+/* First, determine if we're close enough to the edge to need to load an
+ * adjacent overmap, and load it/them. */
+  if (cursx < 25) {
+   hori = overmap(g, posx - 1, posy, posz);
+   if (cursy < 12)
+    diag = overmap(g, posx - 1, posy - 1, posz);
+   if (cursy > OMAPY - 14)
+    diag = overmap(g, posx - 1, posy + 1, posz);
+  }
+  if (cursx > OMAPX - 26) {
+   hori = overmap(g, posx + 1, posy, posz);
+   if (cursy < 12)
+    diag = overmap(g, posx + 1, posy - 1, posz);
+   if (cursy > OMAPY - 14)
+    diag = overmap(g, posx + 1, posy + 1, posz);
+  }
+  if (cursy < 12)
+   vert = overmap(g, posx, posy - 1, posz);
+  if (cursy > OMAPY - 14)
+   vert = overmap(g, posx, posy + 1, posz);
+
+// Now actually draw the map
+  for (int i = -25; i < 25; i++) {
+   for (int j = -12; j <= (ch == 'j' ? 13 : 12); j++) {
+    target_drawn = false;
+    omx = cursx + i;
+    omy = cursy + j;
+    see = false;
+    npc_here = false;
+    if (omx >= 0 && omx < OMAPX && omy >= 0 && omy < OMAPY) { // It's in-bounds
+     cur_ter = ter(omx, omy);
+     see = seen(omx, omy);
+     if (note_here = has_note(omx, omy))
+      note_text = note(omx, omy);
+     for (int n = 0; n < npcs.size(); n++) {
+      if ((npcs[n].mapx + 1) / 2 == omx && (npcs[n].mapy + 1) / 2 == omy) {
+       npc_here = true;
+       npc_name = npcs[n].name;
+       n = npcs.size();
+      } else {
+       npc_here = false;
+       npc_name = "";
+      }
+     }
+// <Out of bounds placement>
+    } else if (omx < 0) {
+     omx += OMAPX;
+     if (omy < 0 || omy >= OMAPY) {
+      omy += (omy < 0 ? OMAPY : 0 - OMAPY);
+      cur_ter = diag.ter(omx, omy);
+      see = diag.seen(omx, omy);
+      if (note_here = diag.has_note(omx, omy))
+       note_text = diag.note(omx, omy);
+     } else {
+      cur_ter = hori.ter(omx, omy);
+      see = hori.seen(omx, omy);
+      if (note_here = hori.has_note(omx, omy))
+       note_text = hori.note(omx, omy);
+     }
+    } else if (omx >= OMAPX) {
+     omx -= OMAPX;
+     if (omy < 0 || omy >= OMAPY) {
+      omy += (omy < 0 ? OMAPY : 0 - OMAPY);
+      cur_ter = diag.ter(omx, omy);
+      see = diag.seen(omx, omy);
+      if (note_here = diag.has_note(omx, omy))
+       note_text = diag.note(omx, omy);
+     } else {
+      cur_ter = hori.ter(omx, omy);
+      see = hori.seen(omx, omy);
+      if (note_here = hori.has_note(omx, omy))
+       note_text = hori.note(omx, omy);
+     }
+    } else if (omy < 0) {
+     omy += OMAPY;
+     cur_ter = vert.ter(omx, omy);
+     see = vert.seen(omx, omy);
+     if (note_here = vert.has_note(omx, omy))
+      note_text = vert.note(omx, omy);
+    } else if (omy >= OMAPY) {
+     omy -= OMAPY;
+     cur_ter = vert.ter(omx, omy);
+     see = vert.seen(omx, omy);
+     if (note_here = vert.has_note(omx, omy))
+      note_text = vert.note(omx, omy);
+    } else
+     debugmsg("No data loaded! omx: %d omy: %d", omx, omy);
+// </Out of bounds replacement>
+    if (see) {
+     if (note_here && blink) {
+      ter_color = c_yellow;
+      ter_sym = 'N';
+     } else if (omx == origx && omy == origy && blink) {
+      ter_color = g->u.color();
+      ter_sym = '@';
+     } else if (npc_here && blink) {
+      ter_color = c_pink;
+      ter_sym = '@';
+     } else if (omx == target.x && omy == target.y && blink) {
+      ter_color = c_red;
+      ter_sym = '*';
+     } else {
+      if (cur_ter >= num_ter_types || cur_ter < 0)
+       debugmsg("Bad ter %d (%d, %d)", cur_ter, omx, omy);
+      ter_color = oterlist[cur_ter].color;
+      ter_sym = oterlist[cur_ter].sym;
+     }
+    } else { // We haven't explored this tile yet
+     ter_color = c_dkgray;
+     ter_sym = '#';
+    }
+    if (j == 0 && i == 0)
+     mvwputch_hi (w_map, 12,     25,     ter_color, ter_sym);
+    else
+     mvwputch    (w_map, 12 + j, 25 + i, ter_color, ter_sym);
+   }
+  }
+  if (target.x != -1 && target.y != -1 && blink &&
+      (target.x < cursx - 25 || target.x > cursx + 25  ||
+       target.y < cursy - 12 || target.y > cursy + 12    )) {
+   switch (direction_from(cursx, cursy, target.x, target.y)) {
+    case NORTH:      mvwputch(w_map,  0, 25, c_red, '^');       break;
+    case NORTHEAST:  mvwputch(w_map,  0, 49, c_red, LINE_OOXX); break;
+    case EAST:       mvwputch(w_map, 12, 49, c_red, '>');       break;
+    case SOUTHEAST:  mvwputch(w_map, 24, 49, c_red, LINE_XOOX); break;
+    case SOUTH:      mvwputch(w_map, 24, 25, c_red, 'v');       break;
+    case SOUTHWEST:  mvwputch(w_map, 24,  0, c_red, LINE_XXOO); break;
+    case WEST:       mvwputch(w_map, 12,  0, c_red, '<');       break;
+    case NORTHWEST:  mvwputch(w_map,  0,  0, c_red, LINE_OXXO); break;
+   }
+  }
+  if (has_note(cursx, cursy)) {
+   note_text = note(cursx, cursy);
+   for (int i = 0; i < note_text.length(); i++)
+    mvwputch(w_map, 1, i, c_white, LINE_OXOX);
+   mvwputch(w_map, 1, note_text.length(), c_white, LINE_XOOX);
+   mvwputch(w_map, 0, note_text.length(), c_white, LINE_XOXO);
+   mvwprintz(w_map, 0, 0, c_yellow, note_text.c_str());
+  } else if (npc_here) {
+   for (int i = 0; i < npc_name.length(); i++)
+    mvwputch(w_map, 1, i, c_white, LINE_OXOX);
+   mvwputch(w_map, 1, npc_name.length(), c_white, LINE_XOOX);
+   mvwputch(w_map, 0, npc_name.length(), c_white, LINE_XOXO);
+   mvwprintz(w_map, 0, 0, c_yellow, npc_name.c_str());
+  }
+  if (legend) {
+   cur_ter = ter(cursx, cursy);
+// Draw the vertical line
+   for (int j = 0; j < 25; j++)
+    mvwputch(w_map, j, 51, c_white, LINE_XOXO);
+// Clear the legend
+   for (int i = 51; i < 80; i++) {
+    for (int j = 0; j < 25; j++)
+     mvwputch(w_map, j, i, c_black, 'x');
+   }
+
+   if (seen(cursx, cursy)) {
+    mvwputch(w_map, 1, 51, oterlist[cur_ter].color, oterlist[cur_ter].sym);
+    mvwprintz(w_map, 1, 53, oterlist[cur_ter].color, "%s",
+              oterlist[cur_ter].name.c_str());
+   } else
+    mvwprintz(w_map, 1, 51, c_dkgray, "# Unexplored");
+
+   if (target.x != -1 && target.y != -1) {
+    int distance = rl_dist(origx, origy, target.x, target.y);
+    mvwprintz(w_map, 3, 51, c_white, "Distance to target: %d", distance);
+   }
+   mvwprintz(w_map, 19, 51, c_magenta,           "Use movement keys to pan.  ");
+   mvwprintz(w_map, 20, 51, c_magenta,           "0 - Center map on character");
+   mvwprintz(w_map, 21, 51, c_magenta,           "t - Toggle legend          ");
+   mvwprintz(w_map, 22, 51, c_magenta,           "/ - Search                 ");
+   mvwprintz(w_map, 23, 51, c_magenta,           "N - Add a note             ");
+   mvwprintz(w_map, 24, 51, c_magenta,           "Esc or q - Return to game  ");
+  }
+// Done with all drawing!
+  wrefresh(w_map);
+  ch = input();
+
+  int dirx, diry;
+  if (ch != ERR)
+   blink = true;	// If any input is detected, make the blinkies on
+  get_direction(dirx, diry, ch);
+  if (dirx != -2 && diry != -2) {
+   cursx += dirx;
+   cursy += diry;
+  } else if (ch == '0') {
+   cursx = origx;
+   cursy = origy;
+  } else if (ch == '\n')
+   ret = point(cursx, cursy);
+  else if (ch == KEY_ESCAPE || ch == 'q' || ch == 'Q')
+   ret = point(-1, -1);
+  else if (ch == 'N') {
+   timeout(-1);
+   add_note(cursx, cursy, string_input_popup("Enter note:"));
+   timeout(BLINK_SPEED);
+  } else if (ch == '/') {
+   timeout(-1);
+   std::string term = string_input_popup("Search term:");
+   timeout(BLINK_SPEED);
+   int range = 1;
+   point found = find_note(point(cursx, cursy), term);
+   if (found.x == -1) {	// Didn't find a note
+    for (int i = 0; i < num_ter_types; i++) {
+     if (oterlist[i].name.find(term) != std::string::npos) {
+      if (i == ot_forest || i == ot_hive || i == ot_hiway_ns ||
+          i == ot_bridge_ns)
+       range = 2;
+      else if (i >= ot_road_ns && i < ot_road_nesw_manhole)
+       range = ot_road_nesw_manhole - i + 1;
+      else if (i >= ot_river_center && i < ot_river_nw)
+       range = ot_river_nw - i + 1;
+      else if (i >= ot_house_north && i < ot_lab)
+       range = 4;
+      else if (i == ot_lab)
+       range = 2;
+      int maxdist = OMAPX;
+      found = find_closest(point(cursx,cursy), oter_id(i), range, maxdist,true);
+      i = num_ter_types;
+     }
+    }
+   }
+   if (found.x != -1) {
+    cursx = found.x;
+    cursy = found.y;
+   }
+  }/* else if (ch == 't')  *** Legend always on for now! ***
+   legend = !legend;
+*/
+  else if (ch == ERR)	// Hit timeout on input, so make characters blink
+   blink = !blink;
+ } while (ch != KEY_ESCAPE && ch != 'q' && ch != 'Q' && ch != ' ' && ch != '\n');
+ timeout(-1);
+ werase(w_map);
+ wrefresh(w_map);
+ delwin(w_map);
+ erase();
+ g->refresh_all();
+ return ret;
+}
+ 
+
 void overmap::first_house(int &x, int &y)
 {
  int startx = rng(1, OMAPX - 1);
  int starty = rng(1, OMAPY - 1);
- while (ter(startx, starty) < ot_house_north ||
-        ter(startx, starty) > ot_house_west) {
+ while (ter(startx, starty) < ot_house_base_north ||
+        ter(startx, starty) > ot_house_base_west) {
   startx = rng(1, OMAPX - 1);
   starty = rng(1, OMAPY - 1);
  }
@@ -516,29 +806,6 @@ void overmap::first_house(int &x, int &y)
  y = starty;
 }
   
-/*
- std::vector<point> valid;
- for (x = startx; x != startx - 1 && valid.size() < 10; x++) {
-  for (y = starty; y != starty - 1 && valid.size() < 10; y++) {
-   if (x == OMAPX)
-    x = 0;
-   if (y == OMAPY)
-    y = 0;
-   if (ter(x, y) >= ot_house_north && ter(x, y) <= ot_house_west)
-    valid.push_back(point(x, y));
-  }
- }
- if (valid.size() > 0) {
-  int index = rng(0, valid.size() - 1);
-  x = valid[index].x;
-  y = valid[index].y;
- } else {
-  x = -1;
-  y = -1;
- }
-}
-*/
-
 void overmap::place_forest()
 {
  int x, y;
@@ -603,7 +870,9 @@ void overmap::place_forest()
      swamps--;
     } else if (swamp_chance == 0)
      swamps = SWAMPINESS;
-    if (ter(x, y) == ot_field || ter(x, y) == ot_forest)
+    if (ter(x, y) == ot_field)
+     ter(x, y) = ot_forest;
+    else if (ter(x, y) == ot_forest)
      ter(x, y) = ot_forest_thick;
  
     if (swampy && (ter(x, y-1) == ot_field || ter(x, y-1) == ot_forest))
@@ -1389,6 +1658,8 @@ void overmap::polish(oter_id min, oter_id max)
 
 bool overmap::is_road(int x, int y)
 {
+ if (ter(x, y) == ot_rift || ter(x, y) == ot_hellmouth)
+  return true;
  if (x < 0 || x >= OMAPX || y < 0 || y >= OMAPY) {
   for (int i = 0; i < roads_out.size(); i++) {
    if (abs(roads_out[i].x - x) + abs(roads_out[i].y - y) <= 1)
@@ -1577,6 +1848,22 @@ void overmap::place_mongroups()
   }
  }
 
+// Figure out where swamps are, and place swamp monsters
+ for (int x = 3; x < OMAPX - 3; x += 7) {
+  for (int y = 3; y < OMAPY - 3; y += 7) {
+   int swamp_count = 0;
+   for (int sx = x - 3; sx <= x + 3; sx++) {
+    for (int sy = y - 3; sy <= y + 3; sy++) {
+     if (ter(sx, sy) == ot_forest_water || is_river(ter(sx, sy)))
+      swamp_count++;
+    }
+   }
+   if (swamp_count >= 15) // 30% swamp!
+    zg.push_back(mongroup(mcat_swamp, x * 2, y * 2, 3, rng(500, 2000)));
+  }
+ }
+
+// Place slimepits
  for (int i = 0; i < 15; i++) {
   int x = rng(MAX_GOO_SIZE * 2, OMAPX - MAX_GOO_SIZE * 2);
   int y = rng(MAX_GOO_SIZE * 2, OMAPY - MAX_GOO_SIZE * 2);
@@ -1584,6 +1871,7 @@ void overmap::place_mongroups()
    ter(x, y) = ot_slimepit_down;
  }
 
+// Place a silo or six
  for (int n = 0; n < 6; n++) {
   int x = rng(3, OMAPX - 4);
   int y = rng(3, OMAPY - 4);
@@ -1599,6 +1887,7 @@ void overmap::place_mongroups()
    ter(x, y) = ot_silo;
  }
  
+// Place the "put me anywhere" grounds
  int numgroups = rng(0, 3);
  for (int i = 0; i < numgroups; i++) {
   zg.push_back(
@@ -1618,6 +1907,7 @@ void overmap::place_mongroups()
 	mongroup(mcat_fungi, rng(0, OMAPX * 2 - 1), rng(0, OMAPY * 2 - 1),
 	         rng(20, 30), rng(400, 800)));
  }
+// Forest groups cover the entire map
  zg.push_back(
 	mongroup(mcat_forest, 0, OMAPY, OMAPY,
                  rng(2000, 12000)));

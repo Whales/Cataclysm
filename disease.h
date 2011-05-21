@@ -66,6 +66,42 @@ void dis_effect(game *g, player &p, disease &dis)
  int bonus;
  int junk;
  switch (dis.type) {
+ case DI_COLD:
+  p.moves -= int(dis.duration / 5);
+  p.dex_cur -= int(dis.duration / 80);
+  break;
+
+ case DI_COLD_FACE:
+  p.per_cur -= int(dis.duration / 80);
+  if (dis.duration >= 200 ||
+      (dis.duration >= 100 && one_in(300 - dis.duration)))
+   p.add_disease(DI_FBFACE, 50, g);
+  break;
+
+ case DI_COLD_HANDS:
+  p.dex_cur -= 1 + int(dis.duration / 40);
+  if (dis.duration >= 200 ||
+      (dis.duration >= 100 && one_in(300 - dis.duration)))
+   p.add_disease(DI_FBHANDS, 50, g);
+  break;
+
+ case DI_COLD_LEGS:
+  p.moves -= (dis.duration > 60 ? 30 : int(dis.duration / 2));
+  break;
+
+ case DI_COLD_FEET:
+  p.moves -= (dis.duration > 60 ? 15 : int(dis.duration / 4));
+  if (dis.duration >= 200 ||
+      (dis.duration >= 100 && one_in(300 - dis.duration)))
+   p.add_disease(DI_FBFEET, 50, g);
+  break;
+
+ case DI_HOT:
+  if (rng(0, 500) < dis.duration)
+   p.add_disease(DI_HEATSTROKE, 2, g);
+  p.int_cur -= 1;
+  break;
+   
  case DI_HEATSTROKE:
   p.moves   -= 15;
   p.str_cur -=  2;
@@ -263,15 +299,16 @@ void dis_effect(game *g, player &p, disease &dis)
    p.hunger--;
    p.thirst--;
   }
-  if (rng(2, 80) + rng(0, 100) + rng(0, 120) + rng(0, p.fatigue) <
-      g->light_level() && (one_in(p.fatigue / 10) || p.fatigue < 10)) {
+  if (rng(5, 80) + rng(0, 120) + rng(0, abs(p.fatigue)) +
+      rng(0, abs(p.fatigue * 5)) < g->light_level() &&
+      (p.fatigue < 10 || one_in(p.fatigue / 10))) {
    g->add_msg("The light wakes you up.");
    dis.duration = 1;
   }
   break;
 
  case DI_PKILL1:
-  if (dis.duration <= 70 && dis.duration % 7 == 0 && p.pkill < 35)
+  if (dis.duration <= 70 && dis.duration % 7 == 0 && p.pkill < 15)
    p.pkill++;
   break;
 
@@ -290,10 +327,15 @@ void dis_effect(game *g, player &p, disease &dis)
   break;
 
  case DI_PKILL_L:
-  if (dis.duration % 20 == 0 && p.pkill < 49 &&
+  if (dis.duration % 20 == 0 && p.pkill < 40 &&
       (one_in(p.addiction_level(ADD_PKILLER)) ||
        one_in(p.addiction_level(ADD_PKILLER))   ))
    p.pkill++;
+  break;
+
+ case DI_IODINE:
+  if (p.radiation > 0 && one_in(16))
+   p.radiation--;
   break;
 
  case DI_TOOK_XANAX:
@@ -305,10 +347,10 @@ void dis_effect(game *g, player &p, disease &dis)
 // We get 600 turns, or one hour, of DI_DRUNK for each drink we have (on avg)
 // So, the duration of DI_DRUNK is a good indicator of how much alcohol is in
 //  our system.
-  p.per_cur -= int(dis.duration / 800);
-  p.dex_cur -= int(dis.duration / 800);
-  p.int_cur -= int(dis.duration / 800);
-  p.str_cur -= int(dis.duration / 1000);
+  p.per_cur -= int(dis.duration / 1000);
+  p.dex_cur -= int(dis.duration / 1000);
+  p.int_cur -= int(dis.duration /  700);
+  p.str_cur -= int(dis.duration / 1500);
   if (dis.duration <= 600)
    p.str_cur += 1;
   if (dis.duration > 2000 + 100 * dice(2, 100) && 
@@ -323,11 +365,11 @@ void dis_effect(game *g, player &p, disease &dis)
   break;
 
  case DI_CIG:
-  if (dis.duration >= 200) {	// Smoked too much
-   p.str_cur -= 1;
-   p.dex_cur -= 1;
-   if (dis.duration >= 500 && (one_in(50) ||
-                               (one_in(20) && p.has_trait(PF_WEAKSTOMACH))))
+  if (dis.duration >= 600) {	// Smoked too much
+   p.str_cur--;
+   p.dex_cur--;
+   if (dis.duration >= 1200 && (one_in(50) ||
+                                (p.has_trait(PF_WEAKSTOMACH) && one_in(20))))
     p.vomit(g);
   } else {
    p.dex_cur++;
@@ -337,7 +379,6 @@ void dis_effect(game *g, player &p, disease &dis)
   break;
 
  case DI_HIGH:
-  p.dex_cur--;
   p.int_cur--;
   p.per_cur--;
   break;
@@ -347,7 +388,7 @@ void dis_effect(game *g, player &p, disease &dis)
       ( p.has_trait(PF_POISRESIST) && one_in(900))   ) {
    if (!p.is_npc())
     g->add_msg("You're suddenly wracked with pain!");
-   p.pain += 2;
+   p.pain++;
    p.hurt(g, bp_torso, 0, rng(0, 2) * rng(0, 1));
   }
   p.per_cur--;
@@ -363,8 +404,7 @@ void dis_effect(game *g, player &p, disease &dis)
   if (one_in(300 + bonus)) {
    if (!p.is_npc())
     g->add_msg("You're suddenly wracked with pain and nausea!");
-   p.pain += 2;
-   p.hurt(g, bp_torso, 0, 2);
+   p.hurt(g, bp_torso, 0, 1);
   }
   if ((p.has_trait(PF_WEAKSTOMACH) && one_in(350 + bonus)) ||
       one_in(900 + bonus)) 
@@ -421,13 +461,13 @@ void dis_effect(game *g, player &p, disease &dis)
   break;
 
  case DI_ADRENALINE:
-  if (dis.duration > 400) {	// 20 minutes positive effects
+  if (dis.duration > 150) {	// 5 minutes positive effects
    p.moves += rng(40, 100);
    p.str_cur += 5;
    p.dex_cur += 3;
    p.int_cur -= 8;
    p.per_cur += 1;
-  } else if (dis.duration == 400) {	// 40 minutes come-down
+  } else if (dis.duration == 150) {	// 15 minutes come-down
    if (!p.is_npc())
     g->add_msg("Your adrenaline rush wears off.  You feel AWFUL!");
    p.moves -= 300;
@@ -454,8 +494,8 @@ void dis_effect(game *g, player &p, disease &dis)
   if (dis.duration > 600) {
    p.str_cur += 2;
    p.dex_cur += 2;
-   p.int_cur += 2;
-   p.per_cur += 2;
+   p.int_cur += 3;
+   p.per_cur += 3;
    p.moves += 50;
   } else {
    p.str_cur -= 3;
@@ -551,6 +591,12 @@ std::string dis_name(disease dis)
 {
  switch (dis.type) {
  case DI_NULL:		return "";
+ case DI_COLD:		return "Cold";
+ case DI_COLD_FACE:	return "Cold face";
+ case DI_COLD_HANDS:	return "Cold hands";
+ case DI_COLD_LEGS:	return "Cold legs";
+ case DI_COLD_FEET:	return "Cold feet";
+ case DI_HOT:		return "Hot";
  case DI_HEATSTROKE:	return "Heatstroke";
  case DI_FBFACE:	return "Frostbite - Face";
  case DI_FBHANDS:	return "Frostbite - Hands";
@@ -566,28 +612,27 @@ std::string dis_name(disease dis)
  case DI_FOODPOISON:	return "Food Poisoning";
  case DI_SHAKES:	return "Shakes";
  case DI_DRUNK:
-  if (dis.duration > 2200)
-   return "Wasted";
-  if (dis.duration > 1400)
-   return "Trashed";
-  if (dis.duration > 800)
-   return "Drunk";
-  return "Tipsy";
+  if (dis.duration > 2200) return "Wasted";
+  if (dis.duration > 1400) return "Trashed";
+  if (dis.duration > 800)  return "Drunk";
+                           return "Tipsy";
+
  case DI_CIG:		return "Cigarette";
  case DI_HIGH:		return "High";
  case DI_VISUALS:	return "Hallucinating";
+
  case DI_ADRENALINE:
-  if (dis.duration > 400)
-   return "Adrenaline Rush";
-  return "Adrenaline Comedown";
+  if (dis.duration > 150) return "Adrenaline Rush";
+                          return "Adrenaline Comedown";
+
  case DI_ASTHMA:
-  if (dis.duration > 800)
-   return "Heavy Asthma";
-  return "Asthma";
+  if (dis.duration > 800) return "Heavy Asthma";
+                          return "Asthma";
+
  case DI_METH:
-  if (dis.duration > 600)
-   return "High on Meth";
-  return "Meth Comedown";
+  if (dis.duration > 600) return "High on Meth";
+                          return "Meth Comedown";
+
  case DI_IN_PIT:	return "Stuck in Pit";
  default:		return "";
  }
@@ -595,55 +640,130 @@ std::string dis_name(disease dis)
 
 std::string dis_description(disease dis)
 {
- int strpen, allpen;
+ int strpen, dexpen, intpen, perpen;
  std::stringstream stream;
  switch (dis.type) {
+
  case DI_NULL:
   return "None";
+
+ case DI_COLD:
+  stream << "Your body in general is uncomfortably cold.\n";
+  if (dis.duration >=  5)
+   stream << "Speed -" << int(dis.duration / 5) << "%;";
+  if (dis.duration >= 80)
+   stream << "       Dexterity - " << int(dis.duration / 80);
+  return stream.str();
+
+ case DI_COLD_FACE:
+  stream << "Your face is cold.";
+  if (dis.duration >= 100)
+   stream << "  It may become frostbitten.";
+  stream << "\n";
+  if (dis.duration >=  80)
+   stream << "Perception - " << int(dis.duration / 80);
+  return stream.str();
+
+ case DI_COLD_HANDS:
+  stream << "Your hands are cold.";
+  if (dis.duration >= 100)
+   stream << "  They may become frostbitten.";
+  stream << "\n";
+  if (dis.duration >=  40)
+   stream << "Dexterity - " << int(dis.duration / 40);
+  return stream.str();
+
+ case DI_COLD_LEGS:
+  stream << "Your legs are cold.\n";
+  if (dis.duration >= 2)
+   stream << "Speed -" << (dis.duration > 60 ? 30 : int(dis.duration / 2)) <<
+             "%";
+  return stream.str();
+
+ case DI_COLD_FEET:
+  stream << "Your feet are cold.";
+  if (dis.duration >= 100)
+   stream << "  They may become frostbitten.";
+  stream << "\n";
+  if (dis.duration >= 4)
+   stream << "Speed -" << (dis.duration > 60 ? 15 : int(dis.duration / 4)) <<
+             "%";
+  return stream.str();
+
+ case DI_HOT:		return "\
+You are uncomfortably hot.\n\
+Intelligence - 2\n\
+You may start suffering heatstroke.";
+
  case DI_HEATSTROKE:	return "\
 Speed -15%;     Strength - 2;    Intelligence - 2;     Perception - 1";
+
  case DI_FBFACE:	return "\
 Perception - 2";
+
  case DI_FBHANDS:	return "\
 Dexterity - 2";
+
  case DI_FBFEET:	return "\
 Speed -40%;     Strength - 1";
+
  case DI_SMOKE:		return "\
 Strength - 1;     Dexterity - 1;\n\
 Occasionally you will cough, costing movement and creating noise.\n\
 Loss of health - Torso";
+
  case DI_TEARGAS:	return "\
 Strength - 2;     Dexterity - 2;    Intelligence - 1;    Perception - 4\n\
 Occasionally you will cough, costing movement and creating noise.\n\
 Loss of health - Torso";
+
  case DI_ONFIRE:	return "\
 Loss of health - Entire Body\n\
 Your clothing and other equipment may be consumed by the flames.";
+
  case DI_BOOMERED:	return "\
 Perception - 5\n\
 Range of Sight: 1;     All sight is tinted magenta";
+
  case DI_SPORES:	return "\
 Speed -40%\
 You can feel the tiny spores sinking directly into your flesh.";
+
  case DI_SLIMED:	return "\
 Speed -40%;     Dexterity - 2";
+
  case DI_BLIND:		return "\
 Range of Sight: 0";
+
  case DI_POISON:	return "\
 Perception - 1;    Dexterity - 1;   Strength - 2 IF not resistant\n\
 Occasional pain and/or damage.";
+
  case DI_FOODPOISON:	return "\
 Speed - 35%;     Strength - 3;     Dexterity - 1;     Perception - 1\n\
 Your stomach is extremely upset, and you keep having pangs of pain and nausea.";
+
  case DI_SHAKES:	return "\
 Strength - 1;     Dexterity - 4;";
+
  case DI_DRUNK:
-  strpen = int(dis.duration / 1000);
-  allpen = int(dis.duration / 800);
-  stream << "Strength - " << strpen << ";    Dexterity - " << allpen <<
-            ";    Intelligence - " << allpen << ";    Perception - " << allpen;
+  perpen = int(dis.duration / 1000);
+  dexpen = int(dis.duration / 1000);
+  intpen = int(dis.duration /  700);
+  strpen = int(dis.duration / 1500);
+  if (strpen > 0)
+   stream << "Strength - " << strpen << ";    ";
+  else if (dis.duration <= 600)
+   stream << "Strength + 1;    ";
+  if (dexpen > 0)
+   stream << "Dexterity - " << dexpen << ";    ";
+  if (intpen > 0)
+   stream << "Intelligence - " << intpen << ";    ";
+  if (perpen > 0)
+   stream << "Perception - " << perpen;
   
   return stream.str();
+
  case DI_CIG:
   if (dis.duration > 200)
    return "\
@@ -651,33 +771,40 @@ Strength - 1;     Dexterity - 1\n\
 You smoked too much.";
   return "\
 Dexterity + 1;     Intelligence + 1;     Perception + 1";
+
  case DI_HIGH:
   return "\
-Dexterity - 1;     Intelligence - 1;     Perception - 1";
+Intelligence - 1;     Perception - 1";
+
  case DI_VISUALS:
   return "\
 You can't trust everything that you see.";
+
  case DI_ADRENALINE:
-  if (dis.duration > 400)
+  if (dis.duration > 150)
    return "\
 Speed +80;   Strength + 5;   Dexterity + 3;   Intelligence - 8;   Perception + 1";
   return "\
 Strength - 2;     Dexterity - 1;     Intelligence - 1;     Perception - 1";
+
  case DI_ASTHMA:
   stream<< "Speed - " << int(dis.duration / 5) << "%;     Strength - 2;     " <<
            "Dexterity - 3";
   return stream.str();
+
  case DI_METH:
   if (dis.duration > 600)
    return "\
-Speed +50;   Strength + 2;   Dexterity + 2;   Intelligence + 2;   Perception + 2";
+Speed +50;  Strength + 2;  Dexterity + 2;  Intelligence + 3;  Perception + 3";
    return "\
-Speed -30;   Strength - 3;   Dexterity - 2;   Intelligence - 2";
+Speed -40;   Strength - 3;   Dexterity - 2;   Intelligence - 2";
+
  case DI_IN_PIT:
   return "\
 You're stuck in a pit.  Sight distance is limited and you have to climb out.";
+
  default:
-  return "Who knows?";
+  return "Who knows?  This is probably a bug.";
  }
 }
 

@@ -8,6 +8,7 @@
 
 void draw_recipe_tabs(WINDOW *w, craft_cat tab);
 
+// This function just defines the recipes used throughout the game.
 void game::init_recipes()
 {
  int id = -1;
@@ -40,6 +41,13 @@ void game::init_recipes()
   COMP(itm_rag, 1, NULL);
   COMP(itm_whiskey, 1, itm_vodka, 1, itm_rum, 1, itm_tequila, 1,
        itm_gasoline, 1, NULL);
+
+ RECIPE(itm_pipebomb, CC_WEAPON, sk_mechanics, sk_null, 1, 750);
+  TOOL(itm_hacksaw, -1, NULL);
+  COMP(itm_pipe, 1, NULL);
+  COMP(itm_gasoline, 1, itm_shot_bird, 6, itm_shot_00, 2, itm_shot_slug, 2,
+       NULL);
+  COMP(itm_string_36, 1, itm_string_6, 1, NULL);
 
  RECIPE(itm_shotgun_sawn, CC_WEAPON, sk_gun, sk_null, 1, 500);
   TOOL(itm_hacksaw, -1,  NULL);
@@ -115,14 +123,6 @@ void game::init_recipes()
   COMP(itm_ammonia, 2, NULL);
   COMP(itm_canister_empty, 1, itm_can_food, 1, NULL);
   COMP(itm_superglue, 1, NULL);
-
- RECIPE(itm_landmine, CC_WEAPON, sk_traps, sk_mechanics, 5, 10000);
-  TOOL(itm_screwdriver, -1, NULL);
-  COMP(itm_superglue, 1, NULL);
-  COMP(itm_can_food, 1, itm_steel_chunk, 1, itm_canister_empty, 1, NULL);
-  COMP(itm_nail, 100, itm_bb, 100, NULL);
-  COMP(itm_shot_bird, 30, itm_shot_00, 18, itm_shot_slug, 15, itm_gasoline, 3,
-       itm_grenade, 1, NULL);
 
  RECIPE(itm_mininuke, CC_WEAPON, sk_mechanics, sk_electronics, 10, 40000);
   TOOL(itm_screwdriver, -1, NULL);
@@ -204,23 +204,23 @@ void game::init_recipes()
   COMP(itm_radio, 1, itm_two_way_radio, 1, itm_motor, 1, itm_knife_butter, 2,
        NULL);
 
- RECIPE(itm_amplifier, CC_ELECTRONIC, sk_electronics, sk_null, 2, 4000);
+ RECIPE(itm_amplifier, CC_ELECTRONIC, sk_electronics, sk_null, 1, 4000);
   TOOL(itm_screwdriver, -1, NULL);
-  COMP(itm_flashlight, 1, itm_radio, 1, itm_two_way_radio, 1, itm_geiger, 1,
+  COMP(itm_flashlight, 1, itm_radio, 1, itm_two_way_radio, 1, itm_geiger_off, 1,
        itm_goggles_nv, 1, itm_transponder, 2, NULL);
 
- RECIPE(itm_power_supply, CC_ELECTRONIC, sk_electronics, sk_null, 2, 6500);
+ RECIPE(itm_power_supply, CC_ELECTRONIC, sk_electronics, sk_null, 1, 6500);
   TOOL(itm_screwdriver, -1, NULL);
   TOOL(itm_soldering_iron, 3, NULL);
   COMP(itm_amplifier, 2, itm_soldering_iron, 1, itm_electrohack, 1,
-       itm_battery, 800, itm_geiger, 1, NULL);
+       itm_battery, 800, itm_geiger_off, 1, NULL);
 
- RECIPE(itm_receiver, CC_ELECTRONIC, sk_electronics, sk_null, 3, 12000);
+ RECIPE(itm_receiver, CC_ELECTRONIC, sk_electronics, sk_null, 2, 12000);
   TOOL(itm_screwdriver, -1, NULL);
   TOOL(itm_soldering_iron, 4, NULL);
   COMP(itm_amplifier, 2, itm_radio, 1, itm_two_way_radio, 1, NULL);
 
- RECIPE(itm_transponder, CC_ELECTRONIC, sk_electronics, sk_null, 3, 14000);
+ RECIPE(itm_transponder, CC_ELECTRONIC, sk_electronics, sk_null, 2, 14000);
   TOOL(itm_screwdriver, -1, NULL);
   TOOL(itm_soldering_iron, 7, NULL);
   COMP(itm_receiver, 3, itm_two_way_radio, 1, NULL);
@@ -259,6 +259,12 @@ void game::init_recipes()
   COMP(itm_pan, 1, itm_pot, 1, itm_knife_butcher, 2, itm_knife_steak, 6,
        itm_knife_butter, 6, itm_muffler, 1, NULL);
 
+ RECIPE(itm_tazer, CC_ELECTRONIC, sk_electronics, sk_null, 3, 25000);
+  TOOL(itm_screwdriver, -1, NULL);
+  TOOL(itm_soldering_iron, 10, NULL);
+  COMP(itm_amplifier, 1, NULL);
+  COMP(itm_power_supply, 1, NULL);
+
  RECIPE(itm_two_way_radio, CC_ELECTRONIC, sk_electronics, sk_null, 4, 30000);
   TOOL(itm_screwdriver, -1, NULL);
   TOOL(itm_soldering_iron, 14, NULL);
@@ -273,10 +279,36 @@ void game::init_recipes()
   COMP(itm_processor, 1, NULL);
   COMP(itm_RAM, 1, NULL);
 
- RECIPE(itm_geiger, CC_ELECTRONIC, sk_electronics, sk_null, 5, 35000);
+ RECIPE(itm_EMPbomb, CC_ELECTRONIC, sk_electronics, sk_null, 4, 32000);
+  TOOL(itm_screwdriver, -1, NULL);
+  TOOL(itm_soldering_iron, 6, NULL);
+  COMP(itm_superglue, 1, itm_string_36, 1, NULL);
+  COMP(itm_can_food, 1, itm_can_drink, 1, itm_canister_empty, 1, NULL);
+  COMP(itm_power_supply, 1, itm_amplifier, 1, NULL);
+
+ RECIPE(itm_mp3, CC_ELECTRONIC, sk_electronics, sk_computer, 5, 40000);
+  TOOL(itm_screwdriver, -1, NULL);
+  TOOL(itm_soldering_iron, 5, NULL);
+  COMP(itm_superglue, 1, NULL);
+  COMP(itm_antenna, 1, NULL);
+  COMP(itm_amplifier, 1, NULL);
+
+ RECIPE(itm_geiger_off, CC_ELECTRONIC, sk_electronics, sk_null, 5, 35000);
   TOOL(itm_screwdriver, -1, NULL);
   TOOL(itm_soldering_iron, 14, NULL);
   COMP(itm_power_supply, 1, NULL);
+  COMP(itm_amplifier, 2, NULL);
+
+ RECIPE(itm_UPS_off, CC_ELECTRONIC, sk_electronics, sk_null, 5, 45000);
+  TOOL(itm_screwdriver, -1, NULL);
+  TOOL(itm_soldering_iron, 24, NULL);
+  COMP(itm_power_supply, 4, NULL);
+  COMP(itm_amplifier, 3, NULL);
+
+ RECIPE(itm_bionics_battery, CC_ELECTRONIC, sk_electronics, sk_null, 6, 50000);
+  TOOL(itm_screwdriver, -1, NULL);
+  TOOL(itm_soldering_iron, 20, NULL);
+  COMP(itm_UPS_off, 1, itm_power_supply, 4, NULL);
   COMP(itm_amplifier, 2, NULL);
 
  RECIPE(itm_teleporter, CC_ELECTRONIC, sk_electronics, sk_null, 8, 50000);
@@ -357,7 +389,7 @@ void game::init_recipes()
   COMP(itm_power_supply, 1, NULL);
   COMP(itm_amplifier, 3, NULL);
 
- RECIPE(itm_hat_fur, CC_ARMOR, sk_tailor, sk_null, 1, 40000);
+ RECIPE(itm_hat_fur, CC_ARMOR, sk_tailor, sk_null, 2, 40000);
   TOOL(itm_sewing_kit, 8, NULL);
   COMP(itm_fur, 3, NULL);
 
@@ -403,7 +435,7 @@ void game::init_recipes()
 
  RECIPE(itm_crossbow_trap, CC_MISC, sk_mechanics, sk_traps, 3, 4500);
   COMP(itm_crossbow, 1, NULL);
-  COMP(itm_bolt_steel, 1, NULL);
+  COMP(itm_bolt_steel, 1, itm_bolt_wood, 4, NULL);
   COMP(itm_string_36, 1, itm_string_6, 2, NULL);
 
  RECIPE(itm_shotgun_trap, CC_MISC, sk_mechanics, sk_traps, 3, 5000);
@@ -412,10 +444,18 @@ void game::init_recipes()
   COMP(itm_string_36, 1, itm_string_6, 2, NULL);
 
  RECIPE(itm_blade_trap, CC_MISC, sk_mechanics, sk_traps, 4, 8000);
-  TOOL(itm_screwdriver, -1, NULL);
+  TOOL(itm_wrench, -1, NULL);
   COMP(itm_motor, 1, NULL);
   COMP(itm_machete, 1, NULL);
   COMP(itm_string_36, 1, NULL);
+
+ RECIPE(itm_landmine, CC_WEAPON, sk_traps, sk_mechanics, 5, 10000);
+  TOOL(itm_screwdriver, -1, NULL);
+  COMP(itm_superglue, 1, NULL);
+  COMP(itm_can_food, 1, itm_steel_chunk, 1, itm_canister_empty, 1, NULL);
+  COMP(itm_nail, 100, itm_bb, 200, NULL);
+  COMP(itm_shot_bird, 30, itm_shot_00, 15, itm_shot_slug, 12, itm_gasoline, 3,
+       itm_grenade, 1, NULL);
 
  RECIPE(itm_bandages, CC_MISC, sk_firstaid, sk_null, 1, 500);
   COMP(itm_rag, 1, NULL);
@@ -443,12 +483,16 @@ void game::init_recipes()
   COMP(itm_processor, 1, NULL);
   COMP(itm_RAM, 1, NULL);
   COMP(itm_power_supply, 1, NULL);
-  COMP(itm_battery, 200, itm_plut_cell, 1, NULL);
+  COMP(itm_battery, 400, itm_plut_cell, 1, NULL);
 
 }
 
 void game::craft()
 {
+ if (u.morale_level() < MIN_MORALE_CRAFT) {	// See morale.h
+  add_msg("Your morale is too low to craft...");
+  return;
+ }
  WINDOW *w_head = newwin( 3, 80, 0, 0);
  WINDOW *w_data = newwin(22, 80, 3, 0);
  craft_cat tab = CC_WEAPON;
@@ -467,15 +511,14 @@ void game::craft()
    draw_recipe_tabs(w_head, tab);
    current.clear();
    available.clear();
+// Set current to all recipes in the current tab; available are possible to make
    pick_recipes(current, available, tab);
-   werase(w_data);
-   mvwprintz(w_data, 24, 0, c_white, "\
-Press ? to describe object.  Press <ENTER> to attempt to craft object.");
-   wrefresh(w_data);
   }
 
 // Clear the screen of recipe data, and draw it anew
   werase(w_data);
+   mvwprintz(w_data, 20, 0, c_white, "\
+Press ? to describe object.  Press <ENTER> to attempt to craft object.");
   wrefresh(w_data);
   for (int i = 0; i < current.size() && i < 23; i++) {
    if (i == line)
@@ -563,7 +606,7 @@ Press ? to describe object.  Press <ENTER> to attempt to craft object.");
     for (int j = 0; j < current[line]->components[i].size(); j++) {
      int count = current[line]->components[i][j].count;
      itype_id type = current[line]->components[i][j].type;
-     nc_color compcol = (u.has_number(type, count) ? c_green : c_red);
+     nc_color compcol = (u.has_amount(type, count) ? c_green : c_red);
      std::stringstream dump;
      dump << count << "x " << itypes[type]->name << " ";
      std::string compname = dump.str();
@@ -772,7 +815,7 @@ void game::pick_recipes(std::vector<recipe*> &current,
     for (int k = 0; k < current[i]->components[j].size(); k++) {
      itype_id type = current[i]->components[j][k].type;
      int count = current[i]->components[j][k].count;
-     if (u.has_number(type, count)) {
+     if (u.has_amount(type, count)) {
       have_comp[j] = true;
       k = current[i]->components[j].size();
      }
@@ -794,17 +837,22 @@ void game::make_craft(recipe *making)
 
 void game::complete_craft()
 {
- std::vector<component> will_use;
- recipe making = recipes[u.activity.index];
+ recipe making = recipes[u.activity.index]; // Which recipe is it?
+ std::vector<component> will_use; // List of all items we're using, w/ count
+
+// Up to 5 components / tools
  for (int i = 0; i < 5; i++) {
   if (making.components[i].size() > 0) {
+// For each set of components in the recipe, fill you_have with the list of all
+// matching ingredients the player has.
    std::vector<component> you_have;
    for (int j = 0; j < making.components[i].size(); j++) {
-    if (u.has_number(making.components[i][j].type,
+    if (u.has_amount(making.components[i][j].type,
                      making.components[i][j].count))
      you_have.push_back(making.components[i][j]);
    }
-   if (you_have.size() == 1)
+
+   if (you_have.size() == 1) // Only one, so we'll definitely use it
     will_use.push_back(component(you_have[0].type, you_have[0].count));
    else {	// Let the player pick which component they want to use
     WINDOW* w = newwin(you_have.size() + 2, 30, 10, 25);
@@ -821,31 +869,47 @@ void game::complete_craft()
     while (ch < '1' || ch >= '1' + you_have.size());
     ch -= '1';
     will_use.push_back(component(you_have[ch].type, you_have[ch].count));
+    delwin(w);
    }
-  }
+  } // Done looking at components
+
+// Use charges of any tools that require charges used
   if (making.tools[i].size() > 0) {
    for (int j = 0; j < making.tools[i].size(); j++) {
     if (making.tools[i][j].count > 0)
      u.use_charges(making.tools[i][j].type, making.tools[i][j].count);
    }
   }
- }
- int skill_roll = (making.difficulty == 0 ? 1 :
-                   dice(u.sklevel[making.sk_primary] * 3 + 
-                        u.sklevel[making.sk_secondary], 20 + u.int_cur));
- int diff_roll = (making.difficulty == 0 ? 0 :
-                  dice(making.difficulty * 4, 28));
+ } // Done finding the components/tools needed
+
+// # of dice is 75% primary skill, 25% secondary (unless secondary is null)
+ int skill_dice = u.sklevel[making.sk_primary] * 3;
+ if (making.sk_secondary == sk_null)
+  skill_dice += u.sklevel[making.sk_primary];
+ else
+  skill_dice += u.sklevel[making.sk_secondary];
+// Sides on dice is 16 plus your current intelligence
+ int skill_sides = 16 + u.int_cur;
+
+ int diff_dice = making.difficulty * 4; // Since skill level is * 4 also
+ int diff_sides = 24;	// 16 + 8 (default intelligence)
+
+ int skill_roll = dice(skill_dice, skill_sides);
+ int diff_roll  = dice(diff_dice,  diff_sides);
+
  if (making.sk_primary != sk_null)
-  u.practice(making.sk_primary, making.difficulty * 4 + 12);
+  u.practice(making.sk_primary, making.difficulty * 5 + 20);
  if (making.sk_secondary != sk_null)
   u.practice(making.sk_secondary, 5);
- if (diff_roll >= skill_roll * (1 + 0.1 * rng(1, 5))) {
+
+// Messed up badly; waste some components.
+ if (making.difficulty != 0 && diff_roll > skill_roll * (1 + 0.1 * rng(1, 5))) {
   add_msg("You fail to make the %s, and waste some materials.",
           itypes[making.result]->name.c_str());
   int num_lost = rng(1, will_use.size());
   for (int i = 0; i < num_lost; i++) {
    int n = rng(0, will_use.size() - 1);
-   if (itypes[will_use[n].type]->is_tool())
+   if (itypes[will_use[n].type]->is_ammo() && will_use[i].type != itm_gasoline)
     u.use_charges(will_use[n].type, will_use[n].count);
    else
     u.use_amount(will_use[n].type, will_use[n].count);
@@ -853,18 +917,23 @@ void game::complete_craft()
   }
   u.activity.type = ACT_NULL;
   return;
+// Messed up slightly; no components wasted.
  } else if (diff_roll > skill_roll) {
   add_msg("You fail to make the %s, but don't waste any materials.",
           itypes[making.result]->name.c_str());
   u.activity.type = ACT_NULL;
   return;
  }
+// If we're here, the craft was a success!
+// Use up the items in will_use
  for (int i = 0; i < will_use.size(); i++) {
-  if (itypes[will_use[i].type]->is_tool())
+  if (itypes[will_use[i].type]->is_ammo() && will_use[i].type != itm_gasoline)
    u.use_charges(will_use[i].type, will_use[i].count);
-   else
+  else
    u.use_amount(will_use[i].type, will_use[i].count);
  }
+
+// Set up the new item, and pick an inventory letter
  int iter = 0;
  item newit(itypes[making.result], turn, nextinv);
  do {
@@ -873,6 +942,8 @@ void game::complete_craft()
   iter++;
  } while (u.has_item(newit.invlet) && iter < 52);
  newit = newit.in_its_container(&itypes);
+
+// We might not have space for the item
  if (iter == 52 || u.volume_carried()+newit.volume() > u.volume_capacity()) {
   add_msg("There's no room in your inventory for the %s, so you drop it.",
           newit.tname().c_str());

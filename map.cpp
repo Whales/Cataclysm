@@ -107,7 +107,8 @@ bool map::has_flag(t_flag flag, int x, int y)
 
 bool map::is_destructable(int x, int y)
 {
- return !(terlist[ter(x, y)].flags & mfb(swimmable));
+ return (has_flag(bashable, x, y) ||
+         (move_cost(x, y) == 0 && !has_flag(transparent, x, y)));
 }
 
 bool map::bash(int x, int y, int str, std::string &sound)
@@ -141,6 +142,9 @@ bool map::bash(int x, int y, int str, std::string &sound)
   if (str >= rng(0, 30)) {
    sound += "crash!";
    ter(x, y) = t_door_frame;
+   int num_boards = rng(2, 6);
+   for (int i = 0; i < num_boards; i++)
+    add_item(x, y, (*itypes)[itm_2x4], 0);
    return true;
   } else {
    sound += "wham!";
@@ -161,6 +165,9 @@ bool map::bash(int x, int y, int str, std::string &sound)
   if (str >= dice(3, 50)) {
    sound += "crash!";
    ter(x, y) = t_door_frame;
+   int num_boards = rng(0, 2);
+   for (int i = 0; i < num_boards; i++)
+    add_item(x, y, (*itypes)[itm_2x4], 0);
    return true;
   } else {
    sound += "wham!";
@@ -171,9 +178,23 @@ bool map::bash(int x, int y, int str, std::string &sound)
   if (str >= dice(3, 30)) {
    sound += "crash!";
    ter(x, y) = t_window_frame;
+   int num_boards = rng(0, 2) * rng(0, 1);
+   for (int i = 0; i < num_boards; i++)
+    add_item(x, y, (*itypes)[itm_2x4], 0);
    return true;
   } else {
    sound += "wham!";
+   return true;
+  }
+  break;
+ case t_paper_v:
+ case t_paper_h:
+  if (str >= dice(2, 6)) {
+   sound += "rrrrip!";
+   ter(x, y) = t_dirt;
+   return true;
+  } else {
+   sound += "slap!";
    return true;
   }
   break;
@@ -181,8 +202,22 @@ bool map::bash(int x, int y, int str, std::string &sound)
   if (str >= dice(8, 10)) {
    sound += "porcelain breaking!";
    ter(x, y) = t_rubble;
+   return true;
   } else {
    sound += "whunk!";
+   return true;
+  }
+  break;
+ case t_dresser:
+  if (str >= dice(3, 45)) {
+   sound += "smash!";
+   ter(x, y) = t_floor;
+   int num_boards = rng(4, 12);
+   for (int i = 0; i < num_boards; i++)
+    add_item(x, y, (*itypes)[itm_2x4], 0);
+   return true;
+  } else {
+   sound += "whump.";
    return true;
   }
   break;
@@ -212,6 +247,9 @@ bool map::bash(int x, int y, int str, std::string &sound)
   if (str >= rng(0, 50)) {
    sound += "crunch!";
    ter(x, y) = t_underbrush;
+   int num_sticks = rng(0, 3);
+   for (int i = 0; i < num_sticks; i++)
+    add_item(x, y, (*itypes)[itm_stick], 0);
    return true;
   } else {
    sound += "whack!";
@@ -287,6 +325,8 @@ void map::destroy(game *g, int x, int y, bool makesound)
   ter(x, y) = t_rubble;
   break;
  default:
+  if (has_flag(explodes, x, y))
+   g->explosion(x, y, 40, 0, true);
   ter(x, y) = t_rubble;
  }
  if (makesound)
@@ -296,43 +336,57 @@ void map::destroy(game *g, int x, int y, bool makesound)
 void map::shoot(game *g, int x, int y, int &dam, bool hit_items)
 {
  switch (ter(x, y)) {
+
  case t_door_c:
  case t_door_locked:
   dam -= rng(15, 30);
   if (dam > 0)
    ter(x, y) = t_door_b;
-  return;
+  break;
+
  case t_door_b:
-  if (one_in(8)) {	// 1 in 8 chance of hitting the door
+  if (hit_items || one_in(8)) {	// 1 in 8 chance of hitting the door
    dam -= rng(10, 30);
    if (dam > 0)
     ter(x, y) = t_door_frame;
   } else
    dam -= rng(0, 1);
-  return;
+  break;
+
  case t_door_boarded:
   dam -= rng(15, 35);
   if (dam > 0)
    ter(x, y) = t_door_b;
-  return;
+  break;
+
  case t_window:
   dam -= rng(0, 5);
   if (dam > 0)
    ter(x, y) = t_window_frame;
-  return;
+  break;
+
  case t_window_boarded:
   dam -= rng(10, 30);
   if (dam > 0)
    ter(x, y) = t_window_frame;
-  return;
+  break;
+
  case t_wall_glass_h:
  case t_wall_glass_v:
   dam -= rng(0, 8);
   if (dam > 0)
    ter(x, y) = t_floor;
-  return;
+  break;
+
+ case t_paper_v:
+ case t_paper_h:
+  dam -= rng(4, 16);
+  if (dam > 0)
+   ter(x, y) = t_dirt;
+  break;
+
  case t_gas_pump:
-  if (one_in(3) || hit_items) {
+  if (hit_items || one_in(3)) {
    if (dam > 15) {
     for (int i = x - 2; i <= x + 2; i++) {
      for (int j = y - 2; j <= y + 2; j++) {
@@ -344,7 +398,8 @@ void map::shoot(game *g, int x, int y, int &dam, bool hit_items)
    }
    dam -= 60;
   }
-  return;
+  break;
+
  case t_vat:
   if (dam >= 10) {
    g->sound(x, y, 15, "ke-rash!");
@@ -352,14 +407,19 @@ void map::shoot(game *g, int x, int y, int &dam, bool hit_items)
   } else
    dam = 0;
   break;
+
  default:
   if (move_cost(x, y) == 0 && !trans(x, y))
    dam = 0;	// TODO: Bullets can go through some walls?
   else
    dam -= (rng(0, 1) * rng(0, 1) * rng(0, 1));
  }
+
+// Now, destroy items on that tile.
+
  if ((move_cost(x, y) == 2 && !hit_items) || !inbounds(x, y))
   return;	// Items on floor-type spaces won't be shot up.
+
  bool destroyed;
  for (int i = 0; i < i_at(x, y).size(); i++) {
   destroyed = false;
@@ -548,10 +608,11 @@ void map::process_active_items(game *g)
    for (int n = 0; n < i_at(i, j).size(); n++) {
     if (i_at(i, j)[n].active) {
      tmp = dynamic_cast<it_tool*>(i_at(i, j)[n].type);
-     (use.*tmp->use)(g, &i_at(i, j)[n], true);
-     i_at(i, j)[n].charges -= tmp->charges_per_sec;
+     (use.*tmp->use)(g, &(g->u), &i_at(i, j)[n], true);
+     if (tmp->turns_per_charge > 0 && g->turn % tmp->turns_per_charge == 0)
+      i_at(i, j)[n].charges--;
      if (i_at(i, j)[n].charges <= 0) {
-      (use.*tmp->use)(g, &i_at(i, j)[n], false);
+      (use.*tmp->use)(g, &(g->u), &i_at(i, j)[n], false);
       if (tmp->revert_to == itm_null) {
        i_at(i, j).erase(i_at(i, j).begin() + n);
        n--;
@@ -642,7 +703,8 @@ bool map::add_field(game *g, int x, int y, field_id t, unsigned char density)
  if (density <= 0)
   return false;
  field_at(x, y) = field(t, density, 0);
- if (x == g->u.posx && y == g->u.posy && field_at(x, y).is_dangerous()) {
+ if (g != NULL && x == g->u.posx && y == g->u.posy &&
+     field_at(x, y).is_dangerous()) {
   g->cancel_activity();
   g->add_msg("You're in a %s!", fieldlist[t].name[density - 1].c_str());
  }
@@ -695,7 +757,8 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
  bool hi = false;
  if (u.has_disease(DI_BOOMERED))
   tercol = c_magenta;
- else if (u.has_active_bionic(bio_night_vision) || u.is_wearing(itm_goggles_nv))
+ else if ((u.is_wearing(itm_goggles_nv) && u.has_active_item(itm_UPS_on)) ||
+          u.has_active_bionic(bio_night_vision))
   tercol = c_ltgreen;
  else
   tercol = terlist[ter(x, y)].color;
@@ -724,7 +787,7 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
  }
 // If there's items here, draw those instead
  if (show_items && i_at(x, y).size() > 0 && field_at(x, y).is_null()) {
-  if ((terlist[ter(x, y)].flags & mfb(container)))
+  if ((terlist[ter(x, y)].sym != '.'))
    hi = true;
   else {
    tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
@@ -808,6 +871,10 @@ bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
 
 std::vector<point> map::route(int Fx, int Fy, int Tx, int Ty)
 {
+/* TODO: If the origin or destination is out of bound, figure out the closest
+ * in-bounds point and go to that, then to the real origin/destination.
+ */
+
  if (!inbounds(Fx, Fy) || !inbounds(Tx, Ty)) {
   int linet;
   if (sees(Fx, Fy, Tx, Ty, -1, linet))
@@ -890,6 +957,7 @@ std::vector<point> map::route(int Fx, int Fy, int Tx, int Ty)
   list[open[index].x][open[index].y] = ASL_CLOSED;
   open.erase(open.begin() + index);
  } while (!done && open.size() > 0);
+
  std::vector<point> tmp;
  std::vector<point> ret;
  if (done) {
@@ -915,16 +983,6 @@ void map::save(overmap *om, unsigned int turn, int x, int y)
  for (int gridx = 0; gridx < 3; gridx++) {
   for (int gridy = 0; gridy < 3; gridy++)
    saven(om, turn, x, y, gridx, gridy);
- }
-}
-
-void map::init(game *g, int x, int y)
-{
- for (int gridx = 0; gridx < 3; gridx++) {
-  for (int gridy = 0; gridy < 3; gridy++) {
-   if (!loadn(g, x, y, gridx, gridy))
-    loadn(g, x, y, gridx, gridy);
-  }
  }
 }
 
@@ -1190,13 +1248,13 @@ void cast_to_nonant(int &x, int &y, int &n)
 {
  n = int(x / SEEX) + int(y / SEEY) * 3;
 
+ x %= SEEX;
+ y %= SEEY;
+
  if (n < 0)
   n = 0;
  else if (n > 8)
   n = 8;
-
- x %= SEEX;
- y %= SEEY;
 
  if (x < 0) 
   x = 0;

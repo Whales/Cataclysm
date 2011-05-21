@@ -2,6 +2,7 @@
 #include "monster.h"
 #include "game.h"
 #include "rng.h"
+#include "line.h"
 
 void mdeath::normal(game *g, monster *z)
 {
@@ -17,7 +18,7 @@ void mdeath::normal(game *g, monster *z)
  }
 // Drop a dang ol' corpse
 // If their hp is less than -50, we destroyed them so badly no corpse was left
- if ((z->hp >= -50 || z->hp >= 0 - z->type->hp) &&
+ if ((z->hp >= -50 || z->hp >= 0 - 2 * z->type->hp) &&
      (z->made_of(FLESH) || z->made_of(VEGGY))) {
   item tmp;
   tmp.make_corpse(g->itypes[itm_corpse], z->type, g->turn);
@@ -39,12 +40,17 @@ void mdeath::boomer(game *g, monster *z)
  g->sound(z->posx, z->posy, 24, "a boomer explode!");
  for (int i = -1; i <= 1; i++) {
   for (int j = -1; j <= 1; j++) {
-   g->m.bash(z->posx + i, z->posy + j, 14, tmp);
+   g->m.bash(z->posx + i, z->posy + j, 10, tmp);
    if (g->m.field_at(z->posx + i, z->posy + j).type == fd_bile &&
        g->m.field_at(z->posx + i, z->posy + j).density < 3)
     g->m.field_at(z->posx + i, z->posy + j).density++;
    else
     g->m.add_field(g, z->posx + i, z->posy + j, fd_bile, 1);
+   int mondex = g->mon_at(z->posx + i, z->posy +j);
+   if (mondex != -1) {
+    g->z[mondex].stumble(g, false);
+    g->z[mondex].moves -= 250;
+   }
   }
  }
  if (abs(z->posx - g->u.posx) <= 1 && abs(z->posy - g->u.posy) <= 1)
@@ -85,6 +91,13 @@ void mdeath::fungusawake(game *g, monster *z)
  g->z.push_back(newfung);
 }
 
+void mdeath::disintegrate(game *g, monster *z)
+{
+ int junk;
+ if (g->u_see(z, junk))
+  g->add_msg("It disintegrates!");
+}
+
 void mdeath::worm(game *g, monster *z)
 {
  int j;
@@ -122,8 +135,10 @@ void mdeath::guilt(game *g, monster *z)
 {
  if (g->u.has_trait(PF_HEARTLESS))
   return;	// We don't give a shit!
+ if (rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 1)
+  return;	// Too far away, we can deal with it
  g->add_msg("You feel terrible for killing %s!", z->name().c_str());
- g->u.morale -= 5;
+ g->u.add_morale(MOR_MONSTER_GUILT);
 }
 
 void mdeath::blobsplit(game *g, monster *z)

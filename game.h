@@ -14,7 +14,13 @@
 #include "tutorial.h"
 #include "faction.h"
 #include "event.h"
+#include "mission.h"
 #include <vector>
+
+#define LONG_RANGE 10
+#define BLINK_SPEED 300
+#define BULLET_SPEED 10000000
+#define EXPLOSION_SPEED 70000000
 
 enum tut_type {
  TUT_NULL,
@@ -23,6 +29,7 @@ enum tut_type {
 };
 
 struct mtype;
+struct mission_type;
 class map;
 class player;
 
@@ -52,6 +59,7 @@ class game
   int  mon_at(int x, int y);	// Index of the monster at (x, y); -1 for none
   bool is_empty(int x, int y);	// True if no PC, no monster, move cost > 0
   void kill_mon(int index);	// Kill that monster; fixes any pointers etc
+  void explode_mon(int index);	// Explode a monster; like kill_mon but messier
   void plfire(bool burst);	// Player fires a gun (setup of target)...
 // ... a gun is fired, maybe by an NPC (actual damage, etc.).
   void fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
@@ -60,9 +68,13 @@ class game
                   std::vector<point> &trajectory);
   void cancel_activity();
   void cancel_activity_query(std::string message);
+  void give_mission(mission_id type);
   void teleport();
+  void nuke(int x, int y);
+  std::vector<faction *> factions_at(int x, int y);
   int& scent(int x, int y);
   unsigned char light_level();
+  int assign_npc_id();
   bool sees_u(int x, int y, int &t);
   bool u_see (int x, int y, int &t);
   bool u_see (monster *mon, int &t);
@@ -88,6 +100,7 @@ class game
   std::vector<monster> z;
   std::vector<monster> monbuff;
   int monbuffx, monbuffy, monbuffz, monbuff_turn;
+  int next_npc_id;
   std::vector<npc> active_npc;
   std::vector<mon_id> moncats[num_moncats];
   std::vector<faction> factions;
@@ -115,6 +128,7 @@ class game
   void init_monitems();	// Initializes monster inventory selection
   void init_traps();	// Initializes trap types
   void init_recipes();	// Initializes crafting recipes
+  void init_missions();	// Initializes mission templates
 
   void create_factions();	// Creates new factions (for a new game world)
 
@@ -135,8 +149,11 @@ class game
   void examine();// Examine nearby terrain	'e'
   void look_around();// Look at nearby terrain	';'
   void pickup(int posx, int posy, int min);// Pickup items; ',' or via examine()
+// Pick where to put liquid; false if it's left where it was
+  bool handle_liquid(item &liquid, bool from_ground, bool infinite);
   void drop();	  // Drop an item		'd'	TODO: Multidrop
   void butcher(); // Butcher a corpse		'B'
+  void complete_butcher(int index);	// Finish the butchering process
   void eat();	  // Eat food or fuel		'E' (or 'a')
   void use_item();// Use item; also tries E,R,W	'a'
   void wear();	  // Wear armor			'W' (or 'a')
@@ -185,6 +202,7 @@ class game
   void draw_overmap();     // Draws the overmap, allows note-taking etc.
   void disp_kills();       // Display the player's kill counts
   void disp_NPCs();        // Currently UNUSED.  Lists global NPCs.
+  void list_missions();    // Listed current, completed and failed missions.
 
 // If x & y are OOB, creates a new overmap and returns the proper terrain; also,
 // may mark the square as seen by the player
@@ -214,8 +232,10 @@ class game
   int nulscent;				// Returned for OOB scent checks
   std::vector<event> events;	        // Game events to be processed
   int kills[num_monsters];	        // Player's kill count
+  std::string last_action;		// The keypresses of last turn
 
   std::vector<recipe> recipes;	// The list of valid recipes
+  std::vector<mission_type> missions; // The list of mission templates
 
   bool tutorials_seen[NUM_LESSONS]; // Which tutorial lessons have we learned
   bool in_tutorial;                 // True if we're in a tutorial right now

@@ -12,6 +12,8 @@
 class game;
 class monster;
 
+#define MAP_EXTRA_CHANCE 40
+
 #ifndef SEEX 	// SEEX is how far the player can see in the X direction (at
 #define SEEX 12	// least, without scrolling).  All map segments will need to be
 #endif		// at least this wide. The map therefore needs to be 3x as wide.
@@ -23,26 +25,26 @@ class monster;
 
 // mfb(t_flag) converts a flag to a bit for insertion into a bitfield
 #ifndef mfb
-#define mfb(n) int(pow(2,(int)n))
+#define mfb(n) long(pow(2,(long)n))
 #endif
 
 enum t_flag {
- transparent, // Player & monsters can see through/past it
- bashable, // Player & monsters can bash this & make it the next in the list
- container,// Items on this square are hidden until looted by the player
- door,     // Can be opened--used for NPC pathfinding.
- flammable,// May be lit on fire
- explodes, // Explodes when on fire
- diggable, // Digging monsters, seeding monsters, digging w/ shovel, etc.
- swimmable,// You (and monsters) swim here
- sharp,	   // May do minor damage to players/monsters passing it
- rough,    // May hurt the player's feet
- sealed,   // Can't 'e' to retrieve items here
- noitem,   // Items "fall off" this space
- goes_down,// Can '>' to go down a level
- goes_up,  // Can '<' to go up a level
- computer, // Used as a computer
- num_t_flags // MUST be last
+ transparent = 0,// Player & monsters can see through/past it
+ bashable,     // Player & monsters can bash this & make it the next in the list
+ container,    // Items on this square are hidden until looted by the player
+ door,         // Can be opened--used for NPC pathfinding.
+ flammable,    // May be lit on fire
+ explodes,     // Explodes when on fire
+ diggable,     // Digging monsters, seeding monsters, digging w/ shovel, etc.
+ swimmable,    // You (and monsters) swim here
+ sharp,	       // May do minor damage to players/monsters passing it
+ rough,        // May hurt the player's feet
+ sealed,       // Can't 'e' to retrieve items here
+ noitem,       // Items "fall off" this space
+ goes_down,    // Can '>' to go down a level
+ goes_up,      // Can '<' to go up a level
+ computer,     // Used as a computer
+ num_t_flags   // MUST be last
 };
 
 struct ter_t {
@@ -50,15 +52,15 @@ struct ter_t {
  char sym;
  nc_color color;
  unsigned char movecost;
- unsigned flags : num_t_flags;
+ unsigned long flags;// : num_t_flags;
 };
 
 enum ter_id {
 t_null = 0,
-t_hole,
+t_hole,	// Real nothingness; makes you fall a z-level
 // Ground
 t_dirt, t_dirtmound, t_pit,
-t_rock_floor, t_rubble,
+t_rock_floor, t_rubble, t_wreckage,
 t_grass,
 t_metal_floor,
 t_pavement, t_pavement_y, t_sidewalk,
@@ -67,6 +69,7 @@ t_grate,
 t_slime,
 // Walls & doors
 t_wall_v, t_wall_h,
+t_wall_metal_v, t_wall_metal_h,
 t_wall_glass_v, t_wall_glass_h,
 t_reinforced_glass_v, t_reinforced_glass_h,
 t_bars,
@@ -76,6 +79,7 @@ t_bulletin,
 t_portcullis,
 t_window, t_window_frame, t_window_boarded,
 t_rock,
+t_paper_v, t_paper_h,
 // Tree
 t_tree, t_tree_young, t_underbrush,
 t_wax, t_floor_wax,
@@ -118,6 +122,8 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)},
 {"pile of rubble",   '#', c_ltgray,  4,
 	mfb(transparent)|mfb(rough)|mfb(diggable)},
+{"metal wreckage",   '#', c_cyan,    5,
+	mfb(transparent)|mfb(rough)|mfb(sharp)|mfb(container)},
 {"grass",	     '.', c_green,   2,
 	mfb(transparent)|mfb(diggable)},
 {"metal floor",      '.', c_ltcyan,  2,
@@ -138,6 +144,10 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(flammable)},
 {"wall",             '-', c_ltgray,  0,
 	mfb(flammable)},
+{"metal wall",       '|', c_cyan,    0,
+	0},
+{"metal wall",       '-', c_cyan,    0,
+	0},
 {"glass wall",       '|', c_ltcyan,  0,
 	mfb(transparent)|mfb(bashable)},
 {"glass wall",       '-', c_ltcyan,  0,
@@ -166,7 +176,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)},
 {"closed metal door",'+', c_cyan,    0, // Actually locked
 	0},
-{"bulletin board", '6', c_blue, 0,
+{"bulletin board",   '6', c_blue,    0,
 	0},
 {"makeshift portcullis", '&', c_cyan, 0,
 	0},
@@ -178,6 +188,10 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(bashable)|mfb(flammable)},
 {"solid rock",       '#', c_white,   0,
 	0},
+{"paper wall",       '|', c_white,   0,
+	mfb(bashable)|mfb(flammable)},
+{"paper wall",       '-', c_white,   0,
+	mfb(bashable)|mfb(flammable)},
 {"tree",	     '7', c_green,   0,
 	mfb(flammable)},
 {"young tree",       '1', c_green,   0,
@@ -231,7 +245,7 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)|mfb(computer)},
 {"computer console", '6', c_blue,    0,
 	mfb(transparent)|mfb(computer)},
-{"refrigerator",    '{', c_ltcyan,   0,
+{"refrigerator",     '{', c_ltcyan,   0,
 	mfb(container)},
 {"dresser",          '{', c_brown,   0,
 	mfb(transparent)|mfb(container)|mfb(flammable)},
@@ -244,17 +258,17 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"cloning vat",      '0', c_ltcyan,  0,
 	mfb(transparent)|mfb(bashable)|mfb(container)|mfb(sealed)},
 {"stairs down",      '>', c_yellow,  2,
-	mfb(transparent)|mfb(goes_down)},
+	mfb(transparent)|mfb(goes_down)|mfb(container)},
 {"stairs up",        '<', c_yellow,  2,
-	mfb(transparent)|mfb(goes_up)},
+	mfb(transparent)|mfb(goes_up)|mfb(container)},
 {"manhole",          '>', c_dkgray,  2,
-	mfb(transparent)|mfb(goes_down)},
+	mfb(transparent)|mfb(goes_down)|mfb(container)},
 {"ladder",           '<', c_dkgray,  2,
-	mfb(transparent)|mfb(goes_up)},
+	mfb(transparent)|mfb(goes_up)|mfb(container)},
 {"downward slope",   '>', c_brown,   2,
-	mfb(transparent)|mfb(goes_down)},
+	mfb(transparent)|mfb(goes_down)|mfb(container)},
 {"upward slope",     '<', c_brown,   2,
-	mfb(transparent)|mfb(goes_up)},
+	mfb(transparent)|mfb(goes_up)|mfb(container)},
 {"card reader",	     '6', c_pink,    0,
 	0},
 {"broken card reader",'6', c_ltgray, 0,
@@ -263,6 +277,36 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)},
 {"slot machine",     '6', c_green,   0,
 	mfb(bashable)}
+};
+
+enum map_extra {
+ mx_null = 0,
+ mx_helicopter,
+ mx_military,
+ mx_science,
+ mx_stash,
+ mx_portal,
+ mx_minefield,
+ mx_wolfpack,
+ mx_puddle,
+ mx_crater,
+ mx_fumarole,
+ num_map_extras
+};
+
+// Chances are relative to eachother; e.g. a 200 chance is twice as likely
+// as a 100 chance to appear.
+const int map_extra_chance[num_map_extras + 1] = {
+  0,	// Null - 0 chance
+100,	// Helicopter
+ 80,	// Military
+130,	// Science
+200,	// Stash
+  5,	// Portal
+ 70,	// Minefield
+ 30,	// Wolf pack
+250,	// Puddle
+  0	// Just a cap value; leave this as the last one
 };
 
 struct field_t {
@@ -289,7 +333,7 @@ enum field_id {
 };
 
 const field_t fieldlist[] = {
-{{"",	"",	"",},					'%',
+{{"",	"",	""},					'%',
  {c_white, c_white, c_white},	{true, true, true}, {false, false, false},  0},
 {{"blood splatter", "blood stain", "puddle of blood"},	'%',
  {c_red, c_red, c_red},		{true, true, true}, {false, false, false},2500},
@@ -321,18 +365,23 @@ struct field {
   density = d;
   age = a;
  }
- bool is_null() {
-  if (type == fd_null || type == fd_blood || type == fd_bile ||
-      type == fd_slime)
-   return true;
-  return false;
+
+ bool is_null()
+ {
+  return (type == fd_null || type == fd_blood || type == fd_bile ||
+          type == fd_slime);
  }
- bool is_dangerous() {
+
+ bool is_dangerous()
+ {
   return fieldlist[type].dangerous[density - 1];
  }
- std::string name() {
+
+ std::string name()
+ {
   return fieldlist[type].name[density - 1];
  }
+
 };
 
 struct spawn_point {

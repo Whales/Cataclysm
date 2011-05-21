@@ -57,7 +57,10 @@ but less so with fighting."
 enum dis_type {
  DI_NULL,
 // Temperature
+ DI_COLD, DI_COLD_FACE, DI_COLD_HANDS, DI_COLD_LEGS, DI_COLD_FEET,
+ DI_HOT,	// Can lead to heatstroke
  DI_HEATSTROKE, DI_FBFACE, DI_FBHANDS, DI_FBFEET,
+// Fields
  DI_SMOKE, DI_ONFIRE, DI_TEARGAS,
 // Monsters
  DI_BOOMERED, DI_SPORES, DI_FUNGUS, DI_SLIMED,
@@ -66,8 +69,8 @@ enum dis_type {
  DI_POISON, DI_FOODPOISON, DI_SHAKES,
 // Food & Drugs
  DI_PKILL1, DI_PKILL2, DI_PKILL3, DI_PKILL_L, DI_DRUNK, DI_CIG, DI_HIGH,
-  DI_HALLU, DI_VISUALS, DI_TOOK_XANAX, DI_TOOK_PROZAC, DI_TOOK_FLUMED,
-  DI_ADRENALINE, DI_ASTHMA, DI_METH,
+  DI_HALLU, DI_VISUALS, DI_IODINE, DI_TOOK_XANAX, DI_TOOK_PROZAC,
+  DI_TOOK_FLUMED, DI_ADRENALINE, DI_ASTHMA, DI_METH,
 // Traps
  DI_BEARTRAP, DI_IN_PIT,
 // Other
@@ -100,7 +103,7 @@ struct addiction
 
 enum activity_type {
  ACT_NULL = 0,
- ACT_RELOAD, ACT_READ, ACT_WAIT, ACT_CRAFT,
+ ACT_RELOAD, ACT_READ, ACT_WAIT, ACT_CRAFT, ACT_BUTCHER,
  NUM_ACTIVITIES
 };
 
@@ -249,9 +252,10 @@ It takes a lot to bring you down!  You get a 20%% bonus to all hit points."},
 Your skin is tough.  Cutting damage is slightly reduced for you."},
 {"Packmule", 3, false, "\
 You can manage to find space for anything!  You can carry 40%% more volume."},
-{"Fast Learner", 4, false, "\
-You learn skills at twice the normal rate!  Note that this only applies to\n\
-real-world experience, not to skill gain from other sources like books."},
+{"Fast Learner", 3, false, "\
+Your skill comprehension is 50%% higher, allowing you to learn skills much\n\
+faster than others.  Note that this only applies to real-world experience,\n\
+not to skill gain from other sources like books."},
 {"Deft", 2, false, "\
 While you're not any better at melee combat, you are better at recovering\n\
 from a miss, and will be able to attempt another strike faster."},
@@ -302,7 +306,7 @@ mutation will be beneficial are greatly increased."},
 Without your glasses, your seeing radius is severely reduced!  However, while\n\
 wearing glasses this trait has no effect, and you are guaranteed to start\n\
 with a pair."},
-{"Heavy Sleeper", -2, false, "\
+{"Heavy Sleeper", -1, false, "\
 You're quite the heavy sleeper.  Noises are unlikely to wake you up."},
 {"Asthmatic", -4, true, "\
 You will occasionally need to use an inhaler, or else suffer severe physical\n\
@@ -344,14 +348,14 @@ such as hunger, sleepiness, narcotic effects, etc."},
 {"Schizophrenic", -5, false, "\
 You will periodically suffer from delusions, ranging from minor effects to\n\
 full visual hallucinations.  Some of these effects may be controlled through\n\
-the use of medication."},
+the use of Thorazine."},
 {"Jittery", -3, false, "\
 During moments of great stress or under the effects of stimulants, you may\n\
 find your hands shaking uncontrollably, severely reducing your dexterity."},
-{"Hoarder", -3, false, "\
+{"Hoarder", -4, false, "\
 You don't feel right unless you're carrying as much as you can.  You suffer\n\
 morale penalties for carrying less than maximum volume (weight is ignored).\n\
-Benzodiazepines can help control this anxiety."},
+Xanax can help control this anxiety."},
 {"Savant", -4, false, "\
 You tend to specialize in one skill and be poor at all others.  You advance\n\
 at half speed in all skills except your best one. Note that combining this\n\
@@ -451,8 +455,8 @@ trail."},
 Your body's ability to digest meat is severely hampered.  Eating meat has a\n\
 good chance of making you vomit it back up; even if you manage to keep it\n\
 down, its nutritional value is greatly reduced."},
-{"Carnivore", -2, true, "\
-Your body's ability to digest fruits, vegetables and grainss is severely\n\
+{"Carnivore", -3, true, "\
+Your body's ability to digest fruits, vegetables and grains is severely\n\
 hampered.  You cannot eat anything besides meat."}
 };
 

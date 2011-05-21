@@ -23,17 +23,18 @@ public:
 // returns the default container of this item, with this item in it
  item in_its_container(std::vector<itype*> *itypes);
 
- std::string tname();
+ nc_color color(player *u);
+ std::string tname(game *g = NULL); // g needed for rotten-test
  void use(player &u);
 
 // Firearm specifics
  int reload_time(player &u);
  int clip_size();
  int accuracy();
- int gun_damage();
+ int gun_damage(bool with_ammo = true);
  int noise();
  int burst_size();
- int recoil();
+ int recoil(bool with_ammo = true);
  ammotype ammo();
  int pick_reload_ammo(player &u, bool interactive);
  bool reload(player &u, int index);
@@ -47,14 +48,20 @@ public:
 
  void put_in(item payload);
 
- unsigned int weight();
- unsigned int volume();
- unsigned char volume_contained();
+ int weight();
+ int volume();
+ int volume_contained();
+ int attack_time();
+ bool has_weapon_flag(weapon_flag f);
 
+// Our value as a weapon, given particular skills
  int  weapon_value(int skills[num_skill_types]);
+// As above, but discounts its use as a ranged weapon
+ int  melee_value(int skills[num_skill_types]);
  bool is_two_handed(player *u);
  bool made_of(material mat);
- bool conductive();
+ bool conductive(); // Electricity
+// Most of the is_whatever() functions call the same function in our itype
  bool is_food(player *u);// Some non-food items are food to certain players
  bool is_food_container(player *u);	// Ditto
  bool is_food();		// Ignoring the ability to eat batteries, etc.
@@ -64,15 +71,19 @@ public:
  bool is_bashing_weapon();
  bool is_cutting_weapon();
  bool is_gun();
- bool is_gunmod();;
+ bool is_gunmod();
+ bool is_bionic();
  bool is_ammo();
  bool is_armor();
  bool is_book();
  bool is_container();
  bool is_tool();
+ virtual bool is_artifact()  { return false; }
 
- itype* type;
- mtype* corpse;
+ //bool stack_with(item &it);	// Attempts to stack; returns true on success
+
+ itype*   type;
+ mtype*   corpse;
  it_ammo* curammo;
 
  std::vector<item> contents;

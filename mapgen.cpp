@@ -35,14 +35,11 @@ enum room_type {
 };
 
 bool connects_to(oter_id there, int dir_from_here);
-
 void house_room(map *m, room_type type, int x1, int y1, int x2, int y2);
-
 void science_room(map *m, int x1, int y1, int x2, int y2, int rotate);
-
 void set_science_room(map *m, int x1, int y1, bool faces_right, int turn);
-
 void silo_rooms(map *m);
+map_extra random_map_extra();
 
 void map::generate(game *g, overmap *om, int x, int y, int turn)
 {
@@ -127,6 +124,9 @@ void map::generate(game *g, overmap *om, int x, int y, int turn)
    t_west = tmp.ter(OMAPX - 1, overy);
   }
   draw_map(terrain_type, t_north, t_east, t_south, t_west, t_above, turn);
+
+  if (oterlist[terrain_type].embellished && one_in(MAP_EXTRA_CHANCE))
+   add_extra(random_map_extra(), g);
 
 // And finally save.
   for (int i = 0; i < 2; i++) {
@@ -245,7 +245,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
 
   if (terrain_type == ot_forest_water) {
 // Reset *_fac to handle where to place water
-   if (t_north == ot_forest_water)
+        if (t_north == ot_forest_water)
     n_fac = 2;
    else if (t_north >= ot_river_center && t_north <= ot_river_nw)
     n_fac = 3;
@@ -253,7 +253,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     n_fac = 1;
    else
     n_fac = 0;
-   if (t_east == ot_forest_water)
+        if (t_east == ot_forest_water)
     e_fac = 2;
    else if (t_east >= ot_river_center && t_east <= ot_river_nw)
     e_fac = 3;
@@ -261,7 +261,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     e_fac = 1;
    else
     e_fac = 0;
-   if (t_south == ot_forest_water)
+        if (t_south == ot_forest_water)
     s_fac = 2;
    else if (t_south >= ot_river_center && t_south <= ot_river_nw)
     s_fac = 3;
@@ -269,7 +269,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     s_fac = 1;
    else
     s_fac = 0;
-   if (t_west == ot_forest_water)
+        if (t_west == ot_forest_water)
     w_fac = 2;
    else if (t_west >= ot_river_center && t_west <= ot_river_nw)
     w_fac = 3;
@@ -342,6 +342,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    }
   }
   
+// j and i loop through appropriate hive-cell center squares
   for (int j = 5; j < SEEY * 2; j += 6) {
    for (int i = (j == 5 || j == 17 ? 3 : 6); i < SEEX * 2; i += 6) {
     if (!one_in(8)) {
@@ -349,10 +350,10 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      ter(i    , j - 5) = t_wax;
      ter(i    , j + 5) = t_wax;
      for (int k = -2; k <= 2; k++) {
-      for (int l = -1; l <= 1; l++) {
+      for (int l = -1; l <= 1; l++)
        ter(i + k, j + l) = t_floor_wax;
-      }
      }
+     add_spawn(mon_bee, 2, i, j);
      ter(i    , j - 3) = t_floor_wax;
      ter(i    , j + 3) = t_floor_wax;
      ter(i - 1, j - 2) = t_floor_wax;
@@ -365,107 +366,79 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
 // Up to two of these get skipped; an entrance to the cell
      int skip1 = rng(0, 23);
      int skip2 = rng(0, 23);
-     if (skip1 != 0 && skip2 != 0)
-      ter(i - 1, j - 4) = t_wax;
-     else
+
+     ter(i - 1, j - 4) = t_wax;
+     ter(i    , j - 4) = t_wax;
+     ter(i + 1, j - 4) = t_wax;
+     ter(i - 2, j - 3) = t_wax;
+     ter(i - 1, j - 3) = t_wax;
+     ter(i + 1, j - 3) = t_wax;
+     ter(i + 2, j - 3) = t_wax;
+     ter(i - 3, j - 2) = t_wax;
+     ter(i - 2, j - 2) = t_wax;
+     ter(i + 2, j - 2) = t_wax;
+     ter(i + 3, j - 2) = t_wax;
+     ter(i - 3, j - 1) = t_wax;
+     ter(i - 3, j    ) = t_wax;
+     ter(i - 3, j - 1) = t_wax;
+     ter(i - 3, j + 1) = t_wax;
+     ter(i - 3, j    ) = t_wax;
+     ter(i - 3, j + 1) = t_wax;
+     ter(i - 2, j + 3) = t_wax;
+     ter(i - 1, j + 3) = t_wax;
+     ter(i + 1, j + 3) = t_wax;
+     ter(i + 2, j + 3) = t_wax;
+     ter(i - 1, j + 4) = t_wax;
+     ter(i    , j + 4) = t_wax;
+     ter(i + 1, j + 4) = t_wax;
+
+     if (skip1 ==  0 || skip2 ==  0)
       ter(i - 1, j - 4) = t_floor_wax;
-     if (skip1 != 1 && skip2 != 1)
-      ter(i    , j - 4) = t_wax;
-     else
+     if (skip1 ==  1 || skip2 ==  1)
       ter(i    , j - 4) = t_floor_wax;
-     if (skip1 != 2 && skip2 != 2)
-      ter(i + 1, j - 4) = t_wax;
-     else
+     if (skip1 ==  2 || skip2 ==  2)
       ter(i + 1, j - 4) = t_floor_wax;
-
-     if (skip1 != 3 && skip2 != 3)
-      ter(i - 2, j - 3) = t_wax;
-     else
+     if (skip1 ==  3 || skip2 ==  3)
       ter(i - 2, j - 3) = t_floor_wax;
-     if (skip1 != 4 && skip2 != 4)
-      ter(i - 1, j - 3) = t_wax;
-     else
+     if (skip1 ==  4 || skip2 ==  4)
       ter(i - 1, j - 3) = t_floor_wax;
-     if (skip1 != 5 && skip2 != 5)
-      ter(i + 1, j - 3) = t_wax;
-     else
+     if (skip1 ==  5 || skip2 ==  5)
       ter(i + 1, j - 3) = t_floor_wax;
-     if (skip1 != 6 && skip2 != 6)
-      ter(i + 2, j - 3) = t_wax;
-     else
+     if (skip1 ==  6 || skip2 ==  6)
       ter(i + 2, j - 3) = t_floor_wax;
-
-     if (skip1 != 7 && skip2 != 7)
-      ter(i - 3, j - 2) = t_wax;
-     else
+     if (skip1 ==  7 || skip2 ==  7)
       ter(i - 3, j - 2) = t_floor_wax;
-     if (skip1 != 8 && skip2 != 8)
-      ter(i - 2, j - 2) = t_wax;
-     else
+     if (skip1 ==  8 || skip2 ==  8)
       ter(i - 2, j - 2) = t_floor_wax;
-     if (skip1 != 9 && skip2 != 9)
-      ter(i + 2, j - 2) = t_wax;
-     else
+     if (skip1 ==  9 || skip2 ==  9)
       ter(i + 2, j - 2) = t_floor_wax;
-     if (skip1 != 10 && skip2 != 10)
-      ter(i + 3, j - 2) = t_wax;
-     else
+     if (skip1 == 10 || skip2 == 10)
       ter(i + 3, j - 2) = t_floor_wax;
-
-     if (skip1 != 11 && skip2 != 11)
-      ter(i - 3, j - 1) = t_wax;
-     else
+     if (skip1 == 11 || skip2 == 11)
       ter(i - 3, j - 1) = t_floor_wax;
-     if (skip1 != 12 && skip2 != 12)
-      ter(i - 3, j    ) = t_wax;
-     else
+     if (skip1 == 12 || skip2 == 12)
       ter(i - 3, j    ) = t_floor_wax;
-     if (skip1 != 13 && skip2 != 13)
-      ter(i - 3, j - 1) = t_wax;
-     else
+     if (skip1 == 13 || skip2 == 13)
       ter(i - 3, j - 1) = t_floor_wax;
-
-     if (skip1 != 14 && skip2 != 14)
-      ter(i - 3, j + 1) = t_wax;
-     else
+     if (skip1 == 14 || skip2 == 14)
       ter(i - 3, j + 1) = t_floor_wax;
-     if (skip1 != 15 && skip2 != 15)
-      ter(i - 3, j    ) = t_wax;
-     else
+     if (skip1 == 15 || skip2 == 15)
       ter(i - 3, j    ) = t_floor_wax;
-     if (skip1 != 16 && skip2 != 16)
-      ter(i - 3, j + 1) = t_wax;
-     else
+     if (skip1 == 16 || skip2 == 16)
       ter(i - 3, j + 1) = t_floor_wax;
-
-     if (skip1 != 17 && skip2 != 17)
-      ter(i - 2, j + 3) = t_wax;
-     else
+     if (skip1 == 17 || skip2 == 17)
       ter(i - 2, j + 3) = t_floor_wax;
-     if (skip1 != 18 && skip2 != 18)
-      ter(i - 1, j + 3) = t_wax;
-     else
+     if (skip1 == 18 || skip2 == 18)
       ter(i - 1, j + 3) = t_floor_wax;
-     if (skip1 != 19 && skip2 != 19)
-      ter(i + 1, j + 3) = t_wax;
-     else
+     if (skip1 == 19 || skip2 == 19)
       ter(i + 1, j + 3) = t_floor_wax;
-     if (skip1 != 20 && skip2 != 20)
-      ter(i + 2, j + 3) = t_wax;
-     else
+     if (skip1 == 20 || skip2 == 20)
       ter(i + 2, j + 3) = t_floor_wax;
-
-     if (skip1 != 21 && skip2 != 21)
-      ter(i - 1, j + 4) = t_wax;
-     else
+     if (skip1 == 21 || skip2 == 21)
       ter(i - 1, j + 4) = t_floor_wax;
-     if (skip1 != 22 && skip2 != 22)
-      ter(i    , j + 4) = t_wax;
-     else
+     if (skip1 == 22 || skip2 == 22)
       ter(i    , j + 4) = t_floor_wax;
-     if (skip1 != 23 && skip2 != 23)
-      ter(i + 1, j + 4) = t_wax;
-     else
+     if (skip1 == 23 || skip2 == 23)
       ter(i + 1, j + 4) = t_floor_wax;
 
      if (terrain_type == ot_hive)
@@ -629,9 +602,9 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     int start = rng(0, 4);
     for (int i = 2; i < SEEX * 2 - start; i += gap) {
      ter(i               , start) = t_tree_young;
-     ter(SEEX * 2 - i - 1, start) = t_tree_young;
+     ter(SEEX * 2 - 1 - i, start) = t_tree_young;
      ter(start, i               ) = t_tree_young;
-     ter(start, SEEY * 2 - i - 1) = t_tree_young;
+     ter(start, SEEY * 2 - 1 - i) = t_tree_young;
     }
    }
    place_items(mi_trash, 5, 0, 0, SEEX * 2 -1, SEEX * 2 - 1, true, 0);
@@ -971,7 +944,8 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    ter(mw + 2, rng(tw + 3, cw - 3)) = t_door_c;
    ter(mw, cw) = t_door_c;
    break;
-  }
+  }	// Done with the various house structures
+
   if (rng(2, 7) < tw) {	// Big front yard has a chance for a fence
    for (int i = lw; i <= rw; i++)
     ter(i, 0) = t_fence_h;
@@ -993,6 +967,35 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     rn = rng(lw + 1, rw - 1);
    while (ter(rn, bw - 1) != t_floor);
    ter(rn, bw - 1) = t_stairs_down;
+  } else if (one_in(50)) { // Non-basements have a 1 in 50 chance of wasps!
+   for (int i = 0; i < SEEX * 2; i++) {
+    for (int j = 0; j < SEEY * 2; j++) {
+     if (ter(i, j) == t_door_c || ter(i, j) == t_door_locked)
+      ter(i, j) = t_door_frame;
+     if (ter(i, j) == t_window && !one_in(3))
+      ter(i, j) = t_window_frame;
+     if (ter(i, j) == t_wall_h && one_in(8))
+      ter(i, j) = t_paper_h;
+     if (ter(i, j) == t_wall_v && one_in(8))
+      ter(i, j) = t_paper_v;
+    }
+   }
+   int num_pods = rng(8, 12);
+   for (int i = 0; i < num_pods; i++) {
+    int podx = rng(1, SEEX * 2 - 2), pody = rng(1, SEEY * 2 - 2);
+    int nonx = 0, nony = 0;
+    while (nonx == 0 && nony == 0) {
+     nonx = rng(-1, 1);
+     nony = rng(-1, 1);
+    }
+    for (int x = -1; x <= 1; x++) {
+     for (int y = -1; y <= 1; y++) {
+      if (x != nonx || y != nony)
+       ter(podx + x, pody + y) = (y == 0 ? t_paper_v : t_paper_h);
+     }
+    }
+    add_spawn(mon_wasp, 1, podx, pody);
+   }
   }
   if (terrain_type == ot_house_east  || terrain_type == ot_house_base_east)
    rotate(1);
@@ -1028,55 +1031,60 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
  case ot_s_gas_east:
  case ot_s_gas_south:
  case ot_s_gas_west:
+  tw = rng(5, 14);
+  bw = SEEY * 2 - rng(1, 2);
+  mw = rng(tw + 5, bw - 3);
+  if (mw < bw - 5)
+   mw = bw - 5;
+  lw = rng(0, 3);
+  rw = SEEX * 2 - rng(1, 4);
+  cw = rng(lw + 4, rw - 5);
+  rn = rng(3, 6);	// Frequency of gas pumps
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEX * 2; j++) {
-    if ((j == 4 || j == 8) && (i == 6 || i == 10 || i == 14 || i == 18))
+    if (j < tw && (tw - j) % 4 == 0 && i > lw && i < rw &&
+        (i - (1 + lw)) % rn == 0)
      ter(i, j) = t_gas_pump;
-    else if ((j < 2 && i > 7 && i < 16) ||
-             (j < 12 && i > 1 && i < SEEX * 2 - 2))
+    else if ((j < 2 && i > 7 && i < 16) || (j < tw && i > lw && i < rw))
      ter(i, j) = t_pavement;
-    else if (j == 12 && (i == 7 || i == 8 || i == 15 || i == 16))
+    else if (j == tw && (i == lw+6 || i == lw+7 || i == rw-7 || i == rw-6))
      ter(i, j) = t_window;
-    else if (((j == 12 || j == SEEY * 2 - 3) && i > 3 && i < SEEX*2 - 4) ||
-             (j == 18 && (i > 8 && i < SEEX * 2 - 5)))
+    else if (((j == tw || j == bw) && i >= lw && i <= rw) ||
+             (j == mw && (i >= cw && i < rw)))
      ter(i, j) = t_wall_h;
-    else if (((i == 4 || i == SEEX * 2 - 5) && j > 12 && j < SEEY*2 - 3) ||
-             (i == 15 && (j == 19 || j == SEEY * 2 - 4)) || 
-             (i == 9 && j == SEEY * 2 - 4))
+    else if (((i == lw || i == rw) && j > tw && j < bw) ||
+             (j > mw && j < bw && (i == cw || i == rw - 2)))
      ter(i, j) = t_wall_v;
-    else if ((i == 17 && j == 18) || (i == 9 && j == 19))
-     ter(i, j) = t_door_c;
-    else if (i == 5 && j > 13 && j < SEEY * 2 - 3)
+    else if (i == lw + 1 && j > tw && j < bw)
      ter(i, j) = t_fridge;
-    else if ((i == 7 || i == 9 || i == 11) && j > 13 && j < 17)
+    else if (i > lw + 2 && i < lw + 12 && i < cw && i % 2 == 1 &&
+             j > tw + 1 && j < mw - 1)
      ter(i, j) = t_rack;
-    else if ((i == 14 && j > 12 && j < 16) ||
-             (j == 15 && i > 13 && i < 18))
+    else if ((i == rw - 5 && j > tw + 1 && j < tw + 4) ||
+             (j == tw + 3 && i > rw - 5 && i < rw))
      ter(i, j) = t_counter;
-    else if (i > 4 && i < SEEX * 2 - 5 && j > 12 && j < SEEY * 2 - 3)
+    else if (i > lw && i < rw && j > tw && j < bw)
      ter(i, j) = t_floor;
     else
      ter(i, j) = grass_or_dirt();
    }
   }
-  ter(rng(10, 13), 12) = t_door_c;
-  ter(rng(16, 17), 18) = t_door_c;
-  if (one_in(2))
-   place_items(mi_snacks,	74,  7, 14,  7, 16, false, 0);
-  else
-   place_items(mi_magazines,	74,  7, 14,  7, 16, false, 0);
-  if (one_in(2))
-   place_items(mi_snacks,	74,  9, 14,  9, 16, false, 0);
-  else
-   place_items(mi_magazines,	74,  9, 14,  9, 16, false, 0);
-  if (one_in(2))
-   place_items(mi_snacks,	74, 11, 14, 11, 16, false, 0);
-  else
-   place_items(mi_magazines,	74, 11, 14, 11, 16, false, 0);
-  place_items(mi_fridgesnacks,	82,  5, 14,  5, 20, false, 0);
-  place_items(mi_road,		12,  0,  0, SEEX * 2 - 3, 11, false, 0);
-  place_items(mi_behindcounter,	70, 15, 13, 18, 14, false, 0);
-  place_items(mi_softdrugs,	12, 16, 19, 18, 20, false, 0);
+  ter(cw, rng(mw + 1, bw - 1)) = t_door_c;
+  ter(rw - 1, mw) = t_door_c;
+  ter(rw - 1, bw - 1) = t_toilet;
+  ter(rng(10, 13), tw) = t_door_c;
+  if (one_in(5))
+   ter(rng(lw + 1, cw - 1), bw) = (one_in(4) ? t_door_c : t_door_locked);
+  for (int i = lw + (lw % 2 == 0 ? 3 : 4); i < cw && i < lw + 12; i += 2) {
+   if (one_in(2))
+    place_items(mi_snacks,	74, i, tw + 2, i, mw - 2, false, 0);
+   else
+    place_items(mi_magazines,	74, i, tw + 2, i, mw - 2, false, 0);
+  }
+  place_items(mi_fridgesnacks,	82, lw + 1, tw + 1, lw + 1, bw - 1, false, 0);
+  place_items(mi_road,		12, 0,      0,  SEEX*2 - 1, tw - 1, false, 0);
+  place_items(mi_behindcounter,	70, rw - 4, tw + 1, rw - 1, tw + 2, false, 0);
+  place_items(mi_softdrugs,	12, rw - 1, bw - 2, rw - 1, bw - 2, false, 0);
   if (terrain_type == ot_s_gas_east)
    rotate(1);
   if (terrain_type == ot_s_gas_south)
@@ -1089,57 +1097,66 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
  case ot_s_pharm_east:
  case ot_s_pharm_south:
  case ot_s_pharm_west:
+  tw = rng(0, 4);
+  bw = SEEY * 2 - rng(1, 5);
+  mw = bw - rng(3, 4);	// Top of the storage room
+  lw = rng(0, 4);
+  rw = SEEX * 2 - rng(1, 5);
+  cw = rng(13, rw - 5);	// Left side of the storage room
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
-    if (j == 3 && ((i > 5 && i < 9) || (i > 14 && i < 18)))
+    if (j == tw && ((i > lw + 2 && i < lw + 6) || (i > rw - 6 && i < rw - 2)))
      ter(i, j) = t_window;
-    else if ((j == 3 && (i == 11 || i == 12)) || (i == 13 && j == 18))
+    else if ((j == tw && (i == lw + 8 || i == lw + 9)) ||
+             (i == cw && j == mw + 1))
      ter(i, j) = t_door_c;
-    else if (((j == 3 || j == SEEY * 2 - 4) && i > 2 && i < SEEX * 2 - 3) ||
-             (j == 17 && i > 12 && i < SEEX * 2 - 4))
+    else if (((j == tw || j == bw) && i >= lw && i <= rw) ||
+             (j == mw && i >= cw && i < rw))
      ter(i, j) = t_wall_h;
-    else if (((i == 3 || i == SEEX * 2 - 4) && j > 3 && j < SEEY * 2 - 4) ||
-             (i == 13 && j == 19))
+    else if (((i == lw || i == rw) && j > tw && j < bw) ||
+             (i == cw && j > mw && j < bw))
      ter(i, j) = t_wall_v;
-    else if (((i == 11 || i == 12 || i == 16 || i == 17) && j > 6 && j < 14) ||
-             (j == 19 && i > 4 && i < 12))
+    else if (((i == lw + 8 || i == lw + 9 || i == rw - 4 || i == rw - 3) &&
+              j > tw + 3 && j < mw - 2) ||
+             (j == bw - 1 && i > lw + 1 && i < cw - 1))
      ter(i, j) = t_rack;
-    else if ((i == 4 && j > 11 && j < 15) ||
-             (j == 16 && i > 14 && i < SEEX * 2 - 4))
+    else if ((i == lw + 1 && j > tw + 8 && j < mw - 1) ||
+             (j == mw - 1 && i > cw + 1 && i < rw))
      ter(i, j) = t_fridge;
-    else if ((j == 17 && i > 4 && i < 13) || (j == 9 && i > 4 && i < 9) ||
-             (i ==  8 && j > 3 && j < 10))
+    else if ((j == mw     && i > lw + 1 && i < cw) ||
+             (j == tw + 6 && i > lw + 1 && i < lw + 6) ||
+             (i == lw + 5 && j > tw     && j < tw + 7))
      ter(i, j) = t_counter;
-    else if (i > 3 && i < SEEX * 2 - 4 && j > 3 && j < SEEY * 2 - 4)
+    else if (i > lw && i < rw && j > tw && j < bw)
      ter(i, j) = t_floor;
     else
      ter(i, j) = grass_or_dirt();
    }
   }
   if (one_in(3))
-   place_items(mi_snacks,	74, 11,  7, 11, 13, false, 0);
+   place_items(mi_snacks,	74, lw + 8, tw + 4, lw + 8, mw - 3, false, 0);
   else if (one_in(4))
-   place_items(mi_cleaning,	74, 11,  7, 11, 13, false, 0);
+   place_items(mi_cleaning,	74, lw + 8, tw + 4, lw + 8, mw - 3, false, 0);
   else
-   place_items(mi_magazines,	74, 11,  7, 11, 13, false, 0);
+   place_items(mi_magazines,	74, lw + 8, tw + 4, lw + 8, mw - 3, false, 0);
   if (one_in(5))
-   place_items(mi_softdrugs,	74, 12,  7, 12, 13, false, 0);
+   place_items(mi_softdrugs,	84, lw + 9, tw + 4, lw + 9, mw - 3, false, 0);
   else if (one_in(4))
-   place_items(mi_cleaning,	74, 12,  7, 12, 13, false, 0);
+   place_items(mi_cleaning,	74, lw + 9, tw + 4, lw + 9, mw - 3, false, 0);
   else
-   place_items(mi_snacks,	74, 12,  7, 12, 13, false, 0);
+   place_items(mi_snacks,	74, lw + 9, tw + 4, lw + 9, mw - 3, false, 0);
   if (one_in(5))
-   place_items(mi_softdrugs,	74, 16,  7, 16, 13, false, 0);
+   place_items(mi_softdrugs,	84, rw - 4, tw + 4, rw - 4, mw - 3, false, 0);
   else
-   place_items(mi_snacks,	74, 16,  7, 16, 13, false, 0);
+   place_items(mi_snacks,	74, rw - 4, tw + 4, rw - 4, mw - 3, false, 0);
   if (one_in(3))
-   place_items(mi_snacks,	70, 17,  7, 17, 13, false, 0);
+   place_items(mi_snacks,	70, rw - 3, tw + 4, rw - 3, mw - 3, false, 0);
   else
-   place_items(mi_softdrugs,	70, 17,  7, 17, 13, false, 0);
-  place_items(mi_fridgesnacks,	74,  4, 12,  4, 14, false, 0);
-  place_items(mi_fridgesnacks,	74, 15, 16, 19, 16, false, 0);
-  place_items(mi_harddrugs,	65,  5, 19, 11, 19, false, 0);
-  place_items(mi_behindcounter,	78,  4,  4,  7,  8, false, 0);
+   place_items(mi_softdrugs,	80, rw - 3, tw + 4, rw - 3, mw - 3, false, 0);
+  place_items(mi_fridgesnacks,	74, lw + 1, tw + 9, lw + 1, mw - 2, false, 0);
+  place_items(mi_fridgesnacks,	74, cw + 2, mw - 1, rw - 1, mw - 1, false, 0);
+  place_items(mi_harddrugs,	88, lw + 2, bw - 1, cw - 2, bw - 1, false, 0);
+  place_items(mi_behindcounter,	78, lw + 1, tw + 1, lw + 4, tw + 5, false, 0);
   if (terrain_type == ot_s_pharm_east)
    rotate(1);
   if (terrain_type == ot_s_pharm_south)
@@ -1147,6 +1164,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
   if (terrain_type == ot_s_pharm_west)
    rotate(3);
   break;
+
  case ot_s_grocery_north:
  case ot_s_grocery_east:
  case ot_s_grocery_south:
@@ -1189,20 +1207,20 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      ter(i, j) = grass_or_dirt();
    }
   }
-  place_items(mi_fridgesnacks,	60,  3, 10,  3, 15, false, 0);
+  place_items(mi_fridgesnacks,	65,  3, 10,  3, 15, false, 0);
   place_items(mi_fridge,	70,  8, 20, 14, 20, false, 0);
   place_items(mi_fridge,	50, 19, 20, 20, 20, false, 0);
-  place_items(mi_softdrugs,	45,  6, 10,  6, 15, false, 0);
-  place_items(mi_cleaning,	68,  7, 10,  7, 15, false, 0);
-  place_items(mi_kitchen,	55, 10, 10, 10, 15, false, 0);
-  place_items(mi_snacks,	75, 11, 10, 11, 15, false, 0);
-  place_items(mi_cannedfood,	70, 14, 10, 14, 15, false, 0);
+  place_items(mi_softdrugs,	55,  6, 10,  6, 15, false, 0);
+  place_items(mi_cleaning,	88,  7, 10,  7, 15, false, 0);
+  place_items(mi_kitchen,	75, 10, 10, 10, 15, false, 0);
+  place_items(mi_snacks,	78, 11, 10, 11, 15, false, 0);
+  place_items(mi_cannedfood,	80, 14, 10, 14, 15, false, 0);
   place_items(mi_pasta,		74, 15, 10, 15, 15, false, 0);
   place_items(mi_produce,	60, 20, 10, 20, 15, false, 0);
   place_items(mi_produce,	50, 18, 11, 19, 11, false, 0);
   place_items(mi_produce,	50, 18, 10, 20, 15, false, 0);
   for (int i = 8; i < 21; i +=4) {	// Checkout snacks & magazines
-   place_items(mi_snacks, 50, i, 5, i, 6, false, 0);
+   place_items(mi_snacks,    50, i, 5, i, 6, false, 0);
    place_items(mi_magazines, 70, i, 7, i, 7, false, 0);
   }
   if (terrain_type == ot_s_grocery_east)
@@ -1681,9 +1699,9 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     for (int j = 0; j < SEEY * 2; j++) {
      if (i <= 1 || i >= SEEX * 2 - 2 ||
          (j > 1 && j < SEEY * 2 - 2 && (i == SEEX - 2 || i == SEEX + 1)))
-      ter(i, j) = t_wall_v;
+      ter(i, j) = t_wall_metal_v;
      else if (j <= 1 || j >= SEEY * 2 - 2)
-      ter(i, j) = t_wall_h;
+      ter(i, j) = t_wall_metal_h;
      else
       ter(i, j) = t_floor;
     }
@@ -2084,9 +2102,6 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
       ter(i, j) = grass_or_dirt();
     }
    }
-/* x--
- * |>+		x is at (lw, tw);  + is at (mw, tw+1);  6 is at (mw, tw+2)
- * --6 */
    switch (rng(1, 4)) {	// Placement of stairs
    case 1:
     lw = 3;
@@ -2110,12 +2125,12 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     break;
    }
    for (int i = lw; i <= lw + 2; i++) {
-    ter(i, tw    ) = t_wall_h;
-    ter(i, tw + 2) = t_wall_h;
+    ter(i, tw    ) = t_wall_metal_h;
+    ter(i, tw + 2) = t_wall_metal_h;
    }
-   ter(lw    , tw + 1) = t_wall_v;
+   ter(lw    , tw + 1) = t_wall_metal_v;
    ter(lw + 1, tw + 1) = t_stairs_down;
-   ter(lw + 2, tw + 1) = t_wall_v;
+   ter(lw + 2, tw + 1) = t_wall_metal_v;
    ter(mw    , tw + 1) = t_door_metal_locked;
    ter(mw    , tw + 2) = t_card_reader;
 
@@ -2124,11 +2139,14 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     for (int j = 0; j < SEEY * 2; j++) {
      if (trig_dist(i, j, SEEX, SEEY) > 7)
       ter(i, j) = t_rock;
-     else if (trig_dist(i, j, SEEX, SEEY) > 5)
+     else if (trig_dist(i, j, SEEX, SEEY) > 5) {
       ter(i, j) = t_metal_floor;
-     else if (trig_dist(i, j, SEEX, SEEY) == 5)
+      if (one_in(30))
+       add_field(NULL, i, j, fd_nuke_gas, 2);	// NULL game; no messages
+     } else if (trig_dist(i, j, SEEX, SEEY) == 5) {
       ter(i, j) = t_hole;
-     else
+      add_trap(i, j, tr_ledge);
+     } else
       ter(i, j) = t_missile;
     }
    }
@@ -2152,6 +2170,38 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
   }
   ter(0, 0) = t_stairs_up;
   ter(4, 5) = t_computer_silo;
+  break;
+
+ case ot_temple:
+ case ot_temple_stairs:
+ case ot_temple_core:
+  if (t_above == ot_null) {	// We're on ground level
+   switch (rng(1, 4)) {	// Temple type
+   case 1:	// Swamp with stairs down
+    for (int i = 0; i < SEEX * 2; i++) {
+     for (int j = 0; j < SEEY * 2; j++) {
+      if (one_in(6))
+       ter(i, j) = t_tree;
+      else if (one_in(6))
+       ter(i, j) = t_tree_young;
+      else if (one_in(5))
+       ter(i, j) = t_underbrush;
+      else if (one_in(4))
+       ter(i, j) = t_water_sh;
+      else if (one_in(10))
+       ter(i, j) = t_water_dp;
+      else
+       ter(i, j) = t_dirt;
+     }
+    }
+    ter(SEEX - 4, SEEY - 4) = t_lava;
+    ter(SEEX + 3, SEEY - 4) = t_lava;
+    ter(SEEX - 4, SEEY + 3) = t_lava;
+    ter(SEEX + 3, SEEY + 3) = t_lava;
+    ter( rng(SEEX - 3, SEEX + 2), rng(SEEY - 3, SEEY + 2)) = t_stairs_down;
+    break;
+   }
+  }
   break;
 
  case ot_sub_station_north:
@@ -2285,11 +2335,11 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      break;
     }
    }
-   place_items(mi_bedroom, 80,  4, j,  9, j + 2, false, rng(0, turn));
-   place_items(mi_bedroom, 80, 14, j, 19, j + 2, false, rng(0, turn));
+   place_items(mi_bedroom,   80,  4,  j,  9, j + 2, false, rng(0, turn));
+   place_items(mi_bedroom,   80, 14,  j, 19, j + 2, false, rng(0, turn));
   }
-  place_items(mi_livingroom, 40, 5, 15, 10, 16, false, rng(0, turn));
-  place_items(mi_kitchen, 40, 14, 15, 18, 15, false, 0);
+  place_items(mi_livingroom, 40,  5, 15, 10, 16,    false, rng(0, turn));
+  place_items(mi_kitchen,    40, 14, 15, 18, 15,    false, 0);
 // Finally, place items on the randomly-placed special squares
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
@@ -2321,7 +2371,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     switch (rng(0, 4)) {
     case 1:
     case 2:
-     place_items(mi_fridge, 88, i, j, i + 6, j + 6, false, turn);
+     place_items(mi_fridge,  88, i, j, i + 6, j + 6, false, turn);
      break;
     case 3:
     case 4:
@@ -2551,7 +2601,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      ter(i, j) = grass_or_dirt();
    }
   }
-  ter(14, rng(3, 5)) = t_door_c;
+  ter(14, rng(3, 5))  = t_door_c;
   ter(rng(15, 20), 6) = t_door_locked;
 // TODO: What's in the back rooms?  Some goodies, presumably.  Maybe a MOB BOSS.
   
@@ -2629,9 +2679,9 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
   }
   ter(14, 19) = t_counter;
   ter(15, 19) = t_counter;
-  set_science_room(this,  2,  1, true, turn);
-  set_science_room(this,  2,  7, true, turn);
-  set_science_room(this,  2, 13, true, turn);
+  set_science_room(this,  2,  1, true,  turn);
+  set_science_room(this,  2,  7, true,  turn);
+  set_science_room(this,  2, 13, true,  turn);
   set_science_room(this, 14,  1, false, turn);
   set_science_room(this, 14,  7, false, turn);
   set_science_room(this, 14, 13, false, turn);
@@ -3003,7 +3053,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      ter(i, j) = t_rock_floor;
    }
   }
-  switch (rng(1, 4)) {	// TODO: More types!
+  switch (rng(1, 3)) {	// TODO: More types!
   case 1:	// Weapons cache
    for (int i = 2; i < SEEX * 2 - 2; i++) {
     ter(i, 1) = t_rack;
@@ -3030,8 +3080,8 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    place_items(mi_homeguns,	 72, SEEX - 1,  7, SEEX,  7, false, 0);
    place_items(mi_survival_tools,83, SEEX - 1,  8, SEEX, 10, false, 0);
    place_items(mi_manuals,	 60, SEEX - 1, 11, SEEX, 11, false, 0);
-   ter(SEEX - 1, SEEX * 2 - 2) = t_stairs_up;
-   ter(SEEX    , SEEX * 2 - 2) = t_stairs_up;
+   ter(SEEX - 1, SEEY * 2 - 2) = t_stairs_up;
+   ter(SEEX    , SEEY * 2 - 2) = t_stairs_up;
    break;
   case 3:	// Chem lab
    for (int i = 1; i < SEEY + 4; i++) {
@@ -3043,6 +3093,8 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     place_items(mi_chemistry,	90, SEEX*2-2, 1, SEEX*2-2, SEEY + 3, false, 0);
    else
     place_items(mi_electronics,	90, SEEX*2-2, 1, SEEX*2-2, SEEY + 3, false, 0);
+   ter(SEEX - 1, SEEY * 2 - 2) = t_stairs_up;
+   ter(SEEX    , SEEY * 2 - 2) = t_stairs_up;
    break;
   }
   break;
@@ -3289,6 +3341,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    for (int j = 0; j < SEEY * 2; j++)
     ter(i, j) = t_rock;
   }
+
   for (int i = SEEX - 2; i <= SEEX + 3; i++) {
    ter(i, 0) = t_rock_floor;
    ter(i, 1) = t_rock_floor;
@@ -3695,12 +3748,15 @@ void map::place_items(items_location loc, int chance, int x1, int y1,
 {
  std::vector<itype_id> eligible = (*mapitems)[loc];
 
- if (chance >= 100) {
-  debugmsg("Bad place_items called (chance = %d)", chance);
-  chance = 0;
- }
- if (chance == 0 || eligible.size() == 0) // No items here! (Why was it called?)
+ if (chance >= 100 || chance <= 0) {
+  debugmsg("map::place_items() called with an invalid chance (%d)", chance);
   return;
+ }
+ if (eligible.size() == 0) { // No items here! (Why was it called?)
+  debugmsg("map::place_items() called for an empty items list (list #%d)", loc);
+  return;
+ }
+
  int item_chance = 0;	// # of items
  for (int i = 0; i < eligible.size(); i++)
    item_chance += (*itypes)[eligible[i]]->rarity;
@@ -3760,10 +3816,11 @@ void map::make_all_items_owned()
    
 void map::rotate(int turns)
 {
- ter_id rotated[SEEX*2][SEEY*2];
- trap_id traprot[SEEX*2][SEEY*2];
+ ter_id rotated         [SEEX*2][SEEY*2];
+ trap_id traprot        [SEEX*2][SEEY*2];
  std::vector<item> itrot[SEEX*2][SEEY*2];
  std::vector<spawn_point> sprot[9];
+
  switch (turns) {
  case 1:
   for (int i = 0; i < SEEX * 2; i++) {
@@ -3790,8 +3847,8 @@ void map::rotate(int turns)
     sprot[n].push_back(tmp);
    }
   }
-    
   break;
+    
  case 2:
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
@@ -3817,8 +3874,8 @@ void map::rotate(int turns)
     sprot[n].push_back(tmp);
    }
   }
-    
   break;
+    
  case 3:
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
@@ -3844,11 +3901,12 @@ void map::rotate(int turns)
     sprot[n].push_back(tmp);
    }
   }
-    
   break;
+
  default:
   return;
  }
+
 // Set the spawn points
  for (int i = 0; i < 5; i++) {
   if (i != 2)
@@ -3864,6 +3922,10 @@ void map::rotate(int turns)
      ter(i, j) = t_wall_h;
     else if (ter(i, j) == t_wall_h)
      ter(i, j) = t_wall_v;
+    else if (ter(i, j) == t_wall_metal_v)
+     ter(i, j) = t_wall_metal_h;
+    else if (ter(i, j) == t_wall_metal_h)
+     ter(i, j) = t_wall_metal_v;
     else if (ter(i, j) == t_railing_v)
      ter(i, j) = t_railing_h;
     else if (ter(i, j) == t_railing_h)
@@ -4412,7 +4474,6 @@ void silo_rooms(map *m)
     m->place_items(used2, 64, x, y, x + width, y + height, false, 0);
   }
  } while (okay);
- debugmsg("%d rooms", rooms.size());
 
  m->ter(rooms[0].x, rooms[0].y) = t_stairs_up;
  int down_room = rng(0, rooms.size() - 1);
@@ -4451,5 +4512,231 @@ void silo_rooms(map *m)
   }
   rooms.erase(rooms.begin());
   room_sizes.erase(room_sizes.begin());
+ }
+}
+
+map_extra random_map_extra()
+{
+ int pick = 0;
+// Set pick to the total of all the chances for map extras
+ for (int i = 0; i < num_map_extras; i++)
+  pick += map_extra_chance[i];
+// Set pick to a number between 0 and the total
+ pick = rng(0, pick - 1);
+ int choice = -1;
+ while (pick >= 0) {
+  choice++;
+  pick -= map_extra_chance[choice];
+ }
+ return map_extra(choice);
+}
+
+void map::add_extra(map_extra type, game *g)
+{
+ item body;
+ body.make_corpse(g->itypes[itm_corpse], g->mtypes[mon_null], g->turn);
+ 
+ switch (type) {
+
+ case mx_null:
+  debugmsg("Tried to generate null map extra.");
+  break;
+
+ case mx_helicopter:
+ {
+  int cx = rng(4, SEEX * 2 - 5), cy = rng(4, SEEY * 2 - 5);
+  for (int x = 0; x < SEEX * 2; x++) {
+   for (int y = 0; y <= SEEY * 2; y++) {
+    if (x >= cx - 4 && x <= cx + 4 && y >= cy - 4 && y <= cy + 4) {
+     if (!one_in(5))
+      ter(x, y) = t_wreckage;
+     else if (has_flag(bashable, x, y)) {
+      std::string junk;
+      bash(x, y, 500, junk);	// Smash the fuck out of it
+      bash(x, y, 500, junk);	// Smash the fuck out of it some more
+     }
+    } else if (one_in(10))	// 1 in 10 chance of being wreckage anyway
+     ter(x, y) = t_wreckage;
+   }
+  }
+
+  place_items(mi_helicopter, 90, cx - 4, cy - 4, cx + 4, cy + 4, true, 0);
+  place_items(mi_helicopter, 20, 0, 0, SEEX * 2 - 1, SEEY * 2 - 1, true, 0);
+  items_location extra_items = mi_helicopter;
+  switch (rng(1, 4)) {
+   case 1: extra_items = mi_military;	break;
+   case 2: extra_items = mi_science;	break;
+   case 3: extra_items = mi_allguns;	break;
+   case 4: extra_items = mi_bionics;	break;
+  }
+  place_items(extra_items, 70, cx - 4, cy - 4, cx + 4, cy + 4, true, 0);
+ }
+ break;
+
+ case mx_military:
+ {
+  int num_bodies = dice(2, 6);
+  for (int i = 0; i < num_bodies; i++) {
+   int x, y, tries = 0;;
+   do {	// Loop until we find a valid spot to dump a body, or we give up
+    x = rng(0, SEEX * 2 - 1);
+    y = rng(0, SEEY * 2 - 1);
+    tries++;
+   } while (tries < 10 && move_cost(x, y) == 0);
+
+   if (tries < 10) {	// We found a valid spot!
+    add_item(x, y, body);
+    place_items(mi_military, 86, x, y, x, y, true, 0);
+   }
+  }
+  place_items(mi_rare, 25, 0, 0, SEEX * 2 - 1, SEEY * 2 - 1, true, 0);
+ }
+ break;
+
+ case mx_science:
+ {
+  int num_bodies = dice(2, 5);
+  for (int i = 0; i < num_bodies; i++) {
+   int x, y, tries = 0;;
+   do {	// Loop until we find a valid spot to dump a body, or we give up
+    x = rng(0, SEEX * 2 - 1);
+    y = rng(0, SEEY * 2 - 1);
+    tries++;
+   } while (tries < 10 && move_cost(x, y) == 0);
+
+   if (tries < 10) {	// We found a valid spot!
+    add_item(x, y, body);
+    add_item(x, y, (*itypes)[itm_card_id], 0);
+    place_items(mi_science, 84, x, y, x, y, true, 0);
+   }
+  }
+  place_items(mi_rare, 45, 0, 0, SEEX * 2 - 1, SEEY * 2 - 1, true, 0);
+ }
+ break;
+
+ case mx_stash:
+ {
+  int x = rng(0, SEEX * 2 - 1), y = rng(0, SEEY * 2 - 1);
+  if (move_cost(x, y) != 0)
+   ter(x, y) = t_dirt;
+
+  int size;
+  items_location stash;
+  switch (rng(1, 6)) {	// What kind of stash?
+   case 1: stash = mi_stash_food;	size = 90;	break;
+   case 2: stash = mi_stash_ammo;	size = 80;	break;
+   case 3: stash = mi_rare;		size = 70;	break;
+   case 4: stash = mi_stash_wood;	size = 90;	break;
+   case 5: stash = mi_stash_drugs;	size = 85;	break;
+   case 6: stash = mi_trash;		size = 92;	break;
+  }
+
+  place_items(stash, size, x, y, x, y, true, 0);
+
+// Now add traps around that stash
+  for (int i = x - 4; i <= x + 4; i++) {
+   for (int j = y - 4; j <= y + 4; j++) {
+    if (i >= 0 && j >= 0 && i < SEEX * 2 && j < SEEY * 2 && one_in(4)) {
+     trap_id placed;
+     switch (rng(1, 7)) {
+      case 1:
+      case 2:
+      case 3: placed = tr_beartrap;	break;
+      case 4:
+      case 5: placed = tr_nailboard;	break;
+      case 6: placed = tr_crossbow;	break;
+      case 7: placed = tr_shotgun_2;	break;
+     }
+     if (placed == tr_beartrap && has_flag(diggable, i, j)) {
+      if (one_in(8))
+       placed = tr_landmine;
+      else
+       placed = tr_beartrap_buried;
+     }
+     add_trap(i, j,  placed);
+    }
+   }
+  }
+ }
+ break;
+
+ case mx_portal:
+ {
+  int x = rng(1, SEEX * 2 - 2), y = rng(1, SEEY * 2 - 2);
+  for (int i = x - 1; i <= x + 1; i++) {
+   for (int j = y - 1; j <= y + 1; j++)
+    ter(i, j) = t_rubble;
+  }
+  add_trap(x, y, tr_portal);
+  int num_monsters = rng(0, 4);
+  for (int i = 0; i < num_monsters; i++) {
+   mon_id type = mon_id(rng(mon_flying_polyp, mon_blank));
+   int mx = rng(1, SEEX * 2 - 2), my = rng(1, SEEY * 2 - 2);
+   ter(mx, my) = t_rubble;
+   add_spawn(type, 1, mx, my);
+  }
+ }
+ break;
+
+ case mx_minefield:
+ {
+  int num_mines = rng(6, 20);
+  for (int x = 0; x < SEEX * 2; x++) {
+   for (int y = 0; y < SEEY * 2; y++) {
+    if (one_in(3))
+     ter(x, y) = t_dirt;
+   }
+  }
+  for (int i = 0; i < num_mines; i++) {
+   int x = rng(0, SEEX * 2 - 1), y = rng(0, SEEY * 2 - 1);
+   if (!has_flag(diggable, x, y) || one_in(4))
+    ter(x, y) = t_dirtmound;
+   add_trap(x, y, tr_landmine);
+  }
+ }
+ break;
+
+ case mx_wolfpack:
+  add_spawn(mon_wolf, rng(4, 10), SEEX, SEEY);
+  break;
+
+ case mx_puddle:
+ {
+  int x = rng(6, SEEX * 2 - 7), y = rng(6, SEEY * 2 - 7);
+  int dist = 0;
+  for (int dist = 0; dist < 6; dist++) {
+   for (int px = x - dist; px <= x + dist; px++) {
+    for (int py = y - dist; py <= y + dist; py++) {
+     if (rng(0, 8) > dist)
+      ter(px, py) = t_water_sh;
+    }
+   }
+  }
+ }
+ break;
+
+ case mx_crater:
+ {
+  int size = rng(2, 6);
+  int x = rng(size, SEEX * 2 - 1 - size), y = rng(size, SEEY * 2 - 1 - size);
+  for (int i = x - size; i <= x + size; i++) {
+   for (int j = y - size; j <= y + size; j++) {
+    ter(i, j) = t_rubble;
+    radiation(i, j) += rng(20, 40);
+   }
+  }
+ }
+ break;
+
+ case mx_fumarole:
+ {
+  int x1 = rng(0, SEEX - 1),        y1 = rng(0, SEEY - 1),
+      x2 = rng(SEEX, SEEX * 2 - 1), y2 = rng(SEEY, SEEY * 2 - 1);
+  std::vector<point> fumarole = line_to(x1, y1, x2, y2, 0);
+  for (int i = 0; i < fumarole.size(); i++)
+   ter(fumarole[i].x, fumarole[i].y) = t_lava;
+ }
+ break;
+
  }
 }

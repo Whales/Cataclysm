@@ -4,6 +4,7 @@
 #include "output.h"
 #include "game.h"
 #include "rng.h"
+#include "item.h"
 #include <sstream>
 #include <stdlib.h>
 #include <curses.h>
@@ -232,8 +233,10 @@ bool monster::is_fleeing(player &u)
 // fleefactor is by default the agressiveness of the animal, minus the
 //  percentage of remaining HP times four.  So, aggresiveness of 5 has a
 //  fleefactor of 2 AT MINIMUM.
- if (type->hp == 0)
+ if (type->hp == 0) {
   debugmsg("%s has type->hp of 0!", type->name.c_str());
+  return false;
+ }
 
  if (friendly != 0)
   return false;
@@ -309,7 +312,7 @@ void monster::hit_monster(game *g, int i)
  monster* target = &(g->z[i]);
  
  int numdice = type->melee_skill;
- int dodgedice = target->type->sk_dodge * 2;
+ int dodgedice = target->dodge() * 2;
  switch (target->type->size) {
   case MS_TINY:		dodgedice += 4;	break;
   case MS_SMALL: 	dodgedice += 2;	break;
@@ -342,6 +345,28 @@ int monster::armor()
 {
 // TODO: Add support for worn armor?
  return int(type->armor);
+}
+
+int monster::dodge()
+{
+ if (moves <= 0 - type->speed)
+  return 0;
+ return type->sk_dodge;
+}
+
+int monster::dodge_roll()
+{
+ int numdice = dodge();
+ 
+ switch (type->size) {
+  case MS_TINY:  numdice += 4; break;
+  case MS_SMALL: numdice += 2; break;
+  case MS_LARGE: numdice -= 2; break;
+  case MS_HUGE:  numdice -= 4; break;
+ }
+
+ numdice += int(speed / 80);
+ return dice(numdice, 10);
 }
 
 void monster::die(game *g)
@@ -437,4 +462,9 @@ void monster::make_friendly()
 {
  plans.clear();
  friendly = rng(5, 30) + rng(0, 20);
+}
+
+void monster::add_item(item it)
+{
+ inv.push_back(it);
 }

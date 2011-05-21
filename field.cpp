@@ -36,16 +36,22 @@ bool map::process_fields(game *g)
     if (has_flag(swimmable, x, y))	// Dissipate faster in water
      cur->age += 20;
     for (int i = 0; i < i_at(x, y).size(); i++) {
-     if (i_at(x, y)[i].made_of(LIQUID) || i_at(x, y)[i].made_of(VEGGY)   ||
-         i_at(x, y)[i].made_of(FLESH)  || i_at(x, y)[i].made_of(POWDER)  ||
-         i_at(x, y)[i].made_of(COTTON) || i_at(x, y)[i].made_of(WOOL)    ||
-         i_at(x, y)[i].made_of(PAPER)  || i_at(x, y)[i].made_of(PLASTIC) ||
-         i_at(x, y)[i].made_of(GLASS)) { // Whew!  Acid-destructable.
-      cur->age += i_at(x, y)[i].volume();
-      for (int m = 0; m < i_at(x, y)[i].contents.size(); m++)
-       i_at(x, y).push_back( i_at(x, y)[i].contents[m] );
-      i_at(x, y).erase(i_at(x, y).begin() + i);
-      i--;
+     item *melting = &(i_at(x, y)[i]);
+     if (melting->made_of(LIQUID) || melting->made_of(VEGGY)   ||
+         melting->made_of(FLESH)  || melting->made_of(POWDER)  ||
+         melting->made_of(COTTON) || melting->made_of(WOOL)    ||
+         melting->made_of(PAPER)  || melting->made_of(PLASTIC) ||
+         (melting->made_of(GLASS) && !one_in(3)) || one_in(4)) {
+// Acid destructable objects here
+      melting->damage++;
+      if (melting->damage >= 5 ||
+          (melting->made_of(PAPER) && melting->damage >= 3)) {
+       cur->age += melting->volume();
+       for (int m = 0; m < i_at(x, y)[i].contents.size(); m++)
+        i_at(x, y).push_back( i_at(x, y)[i].contents[m] );
+       i_at(x, y).erase(i_at(x, y).begin() + i);
+       i--;
+      }
      }
     }
     break;
@@ -114,13 +120,16 @@ bool map::process_fields(game *g)
     }
 // If the flames are REALLY big, they contribute to adjacent flames
     if (cur->density == 3 && cur->age < 0) {
+// If the flames are in a pit, it can't spread to non-pit
+     bool in_pit = (ter(x, y) == t_pit);
 // Randomly offset our x/y shifts by 0-2, to randomly pick a square to spread to
      int starti = rng(0, 2);
      int startj = rng(0, 2);
      for (int i = 0; i < 3 && cur->age < 0; i++) {
       for (int j = 0; j < 3 && cur->age < 0; j++) {
        if (field_at(x+((i+starti)%3), y+((j+startj)%3)).type == fd_fire &&
-           field_at(x+((i+starti)%3), y+((j+startj)%3)).density < 3) {
+           field_at(x+((i+starti)%3), y+((j+startj)%3)).density < 3 &&
+           (!in_pit || ter(x+((i+starti)%3), y+((j+startj)%3)) == t_pit)) {
         field_at(x+((i+starti)%3), y+((j+startj)%3)).density++; 
         field_at(x+((i+starti)%3), y+((j+startj)%3)).age = 0;
         cur->age = 0;
@@ -139,7 +148,8 @@ bool map::process_fields(game *g)
                   rng(15, 120) < cur->density * 10)) {
         if (field_at(x+i, y+j).type == fd_smoke)
          field_at(x+i, y+j) = field(fd_fire, 1, 0);
-        else 
+// Fire in pits can only spread to adjacent pits
+        else if (ter(x, y) != t_pit || ter(x + i, y + j) == t_pit)
          add_field(g, x+i, y+j, fd_fire, 1);
 // If we're not spreading, maybe we'll stick out some smoke, huh?
        } else if (move_cost(x+i, y+j) > 0 &&
@@ -263,6 +273,7 @@ bool map::process_fields(game *g)
      }
     }
     break;
+
    case fd_electricity:
     if (!one_in(5)) {	// 4 in 5 chance to spread
      std::vector<point> valid;

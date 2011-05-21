@@ -24,6 +24,8 @@ bool trade(game *g, dialogue &d, int cost, std::string deal);
 void npc::talk_to_u(game *g)
 {
  moves -= 100;
+ if (attitude == NPCATT_TALK)
+  attitude = NPCATT_NULL;
  dialogue d;
  d.alpha = &g->u;
  d.beta = this;
@@ -46,10 +48,8 @@ void npc::talk_to_u(game *g)
    say_put_em_up(g, d);
   else if (attitude == NPCATT_TALK && needs.size() > 0 && needs[0] != need_none)
    say_ask_for(g, d, needs[0]);
-/*
   else if (attitude == NPCATT_TALK)
    say_hello(g, d);
-*/
   else
    say_listen(g, d);
  } while (!d.done);
@@ -59,7 +59,7 @@ void npc::talk_to_u(game *g)
 
 void say_hello(game *g, dialogue &d)
 {
- //int opt = d.opt(talk_greeting_gen[rng(0, 9)],
+ talk_topic topic = TALK_NONE;
  int opt = d.opt("Hello.", "\"Let's travel together.\"", "\"Leave me alone.\"",
                  "Ignore them", NULL);
  switch (opt) {
@@ -129,7 +129,7 @@ void say_put_em_up(game *g, dialogue &d)
     d.done = true;
   }
  } else {
-  opt = d.opt(talk_drop_weap[rng(0, 9)],
+  opt = d.opt("<drop_it>",
               "Drop weapon", "!Exit dialogue", NULL);
   switch (opt) {
   case 1:
@@ -334,7 +334,7 @@ void say_listen_need(game *g, dialogue &d)
 void say_give_advice(game *g, dialogue &d)
 {
  std::ifstream fin;
- fin.open("NPC_HINTS");
+ fin.open("data/NPC_HINTS");
  if (!fin.is_open()) {
   debugmsg("Couldn't open NPC_HINTS.");
   d.done = true;
@@ -419,12 +419,7 @@ void say_why_join(game *g, dialogue &d)
  switch (opt) {
  case 1:
   d.alpha->practice(sk_speech, 4);
-  if (d.beta->op_of_u.value * 4 - d.beta->personality.bravery * 3 +
-      d.beta->personality.altruism * 2 + d.alpha->int_cur / 4 +
-      d.alpha->sklevel[sk_speech] > 8) {
-   debugmsg("value (%d) * 4, - bravery (%d) * 3, + altruism (%d) * 2, + int",
-            d.beta->op_of_u.value, d.beta->personality.bravery,
-            d.beta->personality.altruism);
+  if (d.beta->wants_to_travel_with(d.alpha)) {
    d.beta->op_of_u.value++;
    d.beta->op_of_u.trust++;
    d.beta->say(g, "Alright, let's do it!");
@@ -483,51 +478,67 @@ void say_why_join(game *g, dialogue &d)
  }
 }
 
-int dialogue::opt(std::string challenge, ...)
+void parse_tags(std::string &phrase, player *u, npc *me)
 {
-// Parse any tags in challenge
+ if (u == NULL || me == NULL) {
+  debugmsg("Called parse_tags() with NULL pointers!");
+  return;
+ }
  size_t fa, fb;
  std::string tag;
  do {
-  fa = challenge.find("<");
-  fb = challenge.find(">");
+  fa = phrase.find("<");
+  fb = phrase.find(">");
+  int l = fb - fa + 1;
   if (fa != std::string::npos && fb != std::string::npos)
-   tag = challenge.substr(fa, fb - fa + 1);
+   tag = phrase.substr(fa, fb - fa + 1);
   else
    tag = "";
-  if (tag == "<name_b>")
-   challenge.replace(fa, 8, talk_bad_names[rng(0, 9)]);
-  else if (tag == "<okay>")
-   challenge.replace(fa, 6, talk_okay[rng(0, 9)]);
-  else if (tag == "<name_g>")
-   challenge.replace(fa, 8, talk_good_names[rng(0, 9)]);
-  else if (tag == "<ill_die>")
-   challenge.replace(fa, 9, ill_die[rng(0, 9)]);
-  else if (tag == "<yrwp>")
-   challenge.replace(fa, 6, alpha->weapon.tname());
-  else if (tag == "<mywp>") {
-   if (beta->weapon.type->id == 0)
-    challenge.replace(fa, 6, "fists");
-   else
-    challenge.replace(fa, 6, beta->weapon.tname());
-  } else if (tag == "<ammo>") {
-   if (!beta->weapon.is_gun())
-    challenge.replace(fa, 6, "BADAMMO");
-   else {
-    it_gun* gun = dynamic_cast<it_gun*>(beta->weapon.type);
-    challenge.replace(fa, 6, ammo_name(gun->ammo));
+  bool replaced = false;
+  for (int i = 0; i < NUM_STATIC_TAGS && !replaced; i++) {
+   if (tag == talk_tags[i].tag) {
+    phrase.replace(fa, l, (*talk_tags[i].replacement)[rng(0, 9)]);
+    replaced = true;
    }
-  } else if (tag == "<punc>") {
-   switch (rng(0, 2)) {
-    case 0: challenge.replace(fa, 6, ".");   break;
-    case 1: challenge.replace(fa, 6, "..."); break;
-    case 2: challenge.replace(fa, 6, "!");   break;
+  }
+  if (!replaced) { // Special, dynamic tags go here
+   if (tag == "<yrwp>")
+    phrase.replace(fa, l, u->weapon.tname());
+   if (tag == "<mywp>") {
+    if (me->weapon.type->id == 0)
+     phrase.replace(fa, l, "fists");
+    else
+     phrase.replace(fa, l, me->weapon.tname());
+   } else if (tag == "<ammo>") {
+    if (!me->weapon.is_gun())
+     phrase.replace(fa, l, "BADAMMO");
+    else {
+     it_gun* gun = dynamic_cast<it_gun*>(me->weapon.type);
+     phrase.replace(fa, l, ammo_name(gun->ammo));
+    }
+   } else if (tag == "<punc>") {
+    switch (rng(0, 2)) {
+     case 0: phrase.replace(fa, l, ".");   break;
+     case 1: phrase.replace(fa, l, "..."); break;
+     case 2: phrase.replace(fa, l, "!");   break;
+    }
+   } else if (tag != "") {
+    debugmsg("Bad tag. %s (%d - %d)", tag.c_str(), fa, fb);
+    phrase.replace(fa, fb - fa + 1, "????");
    }
-  } else if (tag != "") {
-   debugmsg("Bad tag. %s (%d - %d)", tag.c_str(), fa, fb);
-   challenge.replace(fa, fb - fa + 1, "????");
   }
  } while (fa != std::string::npos && fb != std::string::npos);
+}
+ 
+int dialogue::opt(std::string challenge, ...)
+{
+// Put quotes around challenge (unless it's an action)
+ if (challenge.find_first_of("*") != 0) {
+  std::stringstream tmp;
+  tmp << "\"" << challenge << "\"";
+ }
+// Parse any tags in challenge
+ parse_tags(challenge, alpha, beta);
  if (challenge[0] >= 'a' && challenge[0] <= 'z')
   challenge[0] += 'A' - 'a';
 // Prepend "My Name: "

@@ -18,7 +18,8 @@ void setvector(std::vector<component> &vec, ... )
  int n_tmp;
  while (it_tmp = (itype_id)va_arg(ap, int)) {
   n_tmp = (int)va_arg(ap, int);
-  vec.push_back(component(it_tmp, n_tmp));
+  component tmp(it_tmp, n_tmp);
+  vec.push_back(tmp);
  }
  va_end(ap);
 }
@@ -43,5 +44,25 @@ void setvector(std::vector<items_location_and_chance> &vec, ... )
   tmpchance = (int)va_arg(ap, int);
   vec.push_back(items_location_and_chance(tmploc, tmpchance));
  }
+ va_end(ap);
+}
+
+void setvector(std::vector<mission_origin> &vec, ... )
+{
+ va_list ap;
+ va_start(ap, vec);
+ mission_origin tmp;
+ while (tmp = (mission_origin)va_arg(ap, int))
+  vec.push_back(tmp);
+ va_end(ap);
+}
+
+void setvector(std::vector<std::string> &vec, ... )
+{
+ va_list ap;
+ va_start(ap, vec);
+ char *tmp;
+ while (tmp = (char *)va_arg(ap, int))
+  vec.push_back((std::string)(tmp));
  va_end(ap);
 }

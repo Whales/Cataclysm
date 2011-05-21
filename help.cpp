@@ -28,19 +28,22 @@ help on that topic:\n\
 a: Introduction\n\
 b: Movement\n\
 c: Hunger, Thirst, and Sleep\n\
-d: Pain and Stimulatants\n\
+d: Pain and Stimulants\n\
 e: Addiction\n\
 f: Morale\n\
 g: Radioactivity and Mutation\n\
 h: Bionics\n\
 i: Crafting\n\
-j: Items overview\n\
-k: Combat\n\
-l: Survival tips\n\
+j: Traps\n\
+k: Items overview\n\
+l: Combat\n\
+m: Survival tips\n\
 \n\
 1: List of all commands\n\
 2: List of item types and data\n\
 3: Description of map symbols\n\
+4: Description of gun types\n\
+5: Frequently Asked Questions (Some spoilers!)\n\
 \n\
 q: Return to game");
  
@@ -100,7 +103,10 @@ than hunger.  Finding food in a city is usually easy; outside of a city, you\n\
 may have to hunt an animal, then stand over its corpse and 'B'utcher it into\n\
 small chunks of meat. Likewise, outside of a city you may have to drink water\n\
 from a river or other natural source; stand in shallow water and press 'g' or\n\
-',' to pick it up.  You'll need a watertight container.\n\
+',' to pick it up.  You'll need a watertight container.  Be forewarned that\n\
+some sources of water aren't trustworthy and may produce diseased water.  To\n\
+be sure it's healthy, run all water you collect through a water filter before\n\
+drinking.\n\
 \n\
 Every 14 to 20 hours, you'll find yourself growing sleepy.  If you do not\n\
 sleep by pressing '$', you'll start suffering stat and movement penalties.\n\
@@ -122,9 +128,20 @@ oxycodone, and more are all great options.  Be aware that while under the\n\
 influence of a lot of painkillers, the physiological effects may slow you or\n\
 reduce your stats.\n\
 \n\
+Note that most painkillers take a little while to kick in.  If you take some\n\
+oxycodone, and don't notice the effects right away, don't start taking more;\n\
+you may overdose and die!\n\
+\n\
 Pain will also disappear with time, so if drugs aren't available and you're\n\
 in a lot of pain, it may be wise to find a safe spot and simply rest for an\n\
-extended period of time.");
+extended period of time.\n\
+\n\
+Another common class of drugs is stimulants.  Stimulants provide you with a\n\
+temporary rush of energy, increasing your movement speed and many stats, most\n\
+notably intelligence, making them useful study aids.  There are two drawbacks\n\
+to stimulants; they make it more difficult to sleep, and, more importantly,\n\
+most are highly addictive.  Stimulants range from the caffeine rush of cola to\n\
+the more intense high of Adderall and methamphetamine.");
   getch();
   break;
 
@@ -180,8 +197,8 @@ slowly decrease.  Taking iodine tablets will help speed the process.\n\
 If you become very irradiated, you may develop mutations.  Most of the time,\n\
 these mutations will be negative; however, many are beneficial, and others\n\
 have both positive and negative effects.  Your mutations may change your play\n\
-style considerably.  They are extremely rare, but it is possible to find\n\
-substances that will remove mutations.");
+style considerably.  It is possible to find substances that will remove\n\
+mutations, though these are extremely rare.");
    getch();
    break;
 
@@ -202,8 +219,8 @@ Bionics come in ready-to-install canisters, most of which contain supplies\n\
 for several different modules.  Installing a bionic will consume the entire\n\
 canister, so choose your upgrade carefully.  Installation of a bionic is best\n\
 left to a trained professional; however, you may attempt to perform a self-\n\
-installation.  Performing such a task requires high levels of surgery,\n\
-mechanics, and/or electrions, and failure may cripple you!  Bionics canisters\n\
+installation.  Performing such a task requires high levels of first aid,\n\
+mechanics, and/or electronics, and failure may cripple you!  Bionics canisters\n\
 are difficult to find, but they may be purchased from certain NPCs for a very\n\
 high price.");
    getch();
@@ -242,6 +259,34 @@ all required for certain items.");
   case 'J':
    erase();
    mvprintz(0, 0, c_white, "\
+While sleeping in dangerous territory, it may be wise to set traps to ward off\n\
+unwanted intrusions.  There are a few traps to be found in the world, most\n\
+notably bubblewrap (which will make a loud noise if stepped on, helping to\n\
+wake you up) and bear traps (which make noise AND damage and trap anything\n\
+that steps on them).  Others need to be crafted; this requires the Traps skill\n\
+and possibly Mechanics.\n\
+\n\
+To set a trap, simply use the item ('a') and choose a direction; the trap will\n\
+be placed on an adjacent tile.  Some traps may require additional tools, like\n\
+a shovel, to be set.  Once set, a trap will remain in place until stepped on\n\
+or disarmed.\n\
+\n\
+To disarm a trap, examine ('e') the space it is on.  Your success depends upon\n\
+your Traps skill and Dexterity.  If you succeed, the trap is removed and\n\
+replaced by some or all of its constituent parts; however, if you fail, there\n\
+is a chance that you will set off the trap, suffering the consequences.\n\
+\n\
+Many traps are fully or partially hidden.  Your ability to detect traps is\n\
+entirely dependant upon your Perception.  Should you stumble into a trap, you\n\
+may have a chance to avoid it, depending on your Dodge skill.");
+
+   getch();
+   break;
+
+  case 'k':
+  case 'K':
+   erase();
+   mvprintz(0, 0, c_white, "\
 There are a wide variety of items available for your use. You may find them\n\
 lying on the ground; if so, simply press ',' or 'g' to pick up items on the\n\
 same square. Some items are found inside a container, drawn as a { with a\n\
@@ -251,8 +296,7 @@ these containers and loot their contents.\n\
 All items may be used as a melee weapon, though some are better than others.\n\
 You can check the melee attributes of an item you're carrying by hitting 'i'\n\
 to enter your inventory, then pressing the letter of the item.  There are 3\n\
-values, displayed as (B#/C#/H#). B indicates the bashing damage dealt, C is\n\
-cutting damage, and H is a bonus (or penalty) to your chance to hit.\n\
+melee values, bashing, cutting, and to-hit bonus (or penalty).\n\
 Bashing damage is universally effective, but is capped by low strength.\n\
 Cutting damage is a guaranteed increase in damage, but it may be reduced by\n\
 a monster's natural armor.\n\
@@ -268,8 +312,9 @@ damage and helps you resist things like smoke.  To take off an item, press\n\
 'T' then the proper letter.");
    getch();
    break;
-  case 'k':
-  case 'K':
+
+  case 'l':
+  case 'L':
    erase();
    mvprintz(0, 0, c_white, "\
 After 30 minutes of warmup time, monsters will begin to appear. They are\n\
@@ -279,18 +324,18 @@ positions relative to you, is displayed on the right side of the screen.\n\
 To attack a monster with a melee weapon, simply move into them. The time it\n\
 takes to attack depends on the size and weight of your weapon.  Small, light\n\
 weapons are the fastest; unarmed attacks increase in speed with your Unarmed\n\
-Combat skill, and will eventually be VERY fast.  A successful hit will stun\n\
-the monster temporarily, and most one-on-one fights will be easily won by the\n\
-player.  On the other hand, a miss will make you stumble and cost YOU\n\
-movement points.\n\
+Combat skill, and will eventually be VERY fast.  A successful hit with a\n\
+bashing weapon may stun the monster temporarily, while cutting weapons may get\n\
+stuck, possibly pulling the weapon from your hands--but a monster with a weapon\n\
+stuck in it will move much more slowly.  A miss may make you stumble and lose\n\
+movement points.  If a monster hits you, your clothing may absorb some damage,\n\
+but you will absorb the excess.\n\
 \n\
 Swarms of monsters may call for firearms. If you find one, wield it first,\n\
 then reload by pressing 'r'. If you wish to change ammo, you must unload the\n\
 weapon by pressing 'U', then reload again. To fire, press 'f', move the\n\
 cursor to the relevant space, then hit '.' or 'f'. Some guns have automatic\n\
-fire; to shoot a burst, press 'F'. This will severely reduce accuracy.  If\n\
-you are hit, your clothing will absorb some damage, but you will suffer\n\
-the excess.\n\
+fire; to shoot a burst, press 'F'.  This will severely reduce accuracy.\n\
 \n\
 Unlike most roguelikes, fleeing will often be your best option, especially\n\
 when overwhelmed by a swarm of zombies.  Try to avoid getting cornered inside\n\
@@ -299,10 +344,8 @@ escape tactic.");
   getch();
   break;
 
-   getch();
-   break;
-  case 'l':
-  case 'L':
+  case 'm':
+  case 'M':
    erase();
    mvprintz(0, 0, c_white, "\
 The first thing to do is to check your home for useful items. Your initial\n\
@@ -327,8 +370,8 @@ Firearms are the easiest way to kill an enemy, but the sound will attract\n\
 unwanted attention. Save the guns for emergencies, and melee when you can.\n\
 \n\
 Try to keep your inventory as full as possible without being overloaded.  You\n\
-never know when you might need an item, and most are good to sell, and you\n\
-can easily drop unwanted items on the floor.");
+never know when you might need an item, most are good to sell, and you can\n\
+easily drop unwanted items on the floor.");
    getch();
    break;
 
@@ -355,9 +398,9 @@ p - Power up / List bionics                  R - Read book\n\
    mvprintz(16, 0, c_white, "INFORMATION:");
    mvprintz(17, 0, c_ltgray, "\
 @ - View character status                    # - List factions\n\
-: - Open world map                           ; - Look around\n\
+: or m - Open world map                      ; - Look around\n\
 C - Chat with NPC                            ? - Help page\n\
-% - View kill counts");
+%%%% - View morale");
    mvprintz(21, 0, c_white, "META:");
    mvprintz(22, 0, c_ltgray, "\
 S - Save game                                Q - Quit w/o saving");
@@ -406,7 +449,7 @@ ITEM TYPES:\n\
  fired with 'f'. Some have automatic fire, which may be used with 'F' at a\n\
  penalty to accuracy. The color refers to the type; handguns are gray, shotguns\n\
  are red, submachine guns are cyan, rifles are brown, assault rifles are blue,\n\
- and heavy machine guns are green. Each has an accuracy rating, a bonus to\n\
+ and heavy machine guns are light red. Each has an accuracy rating, a bonus to\n\
  damage, a rate of fire, and a maximum load. Note that most firearms load\n\
  fully in one action, while shotguns must be loaded one shell at a time.\n\
 \n\
@@ -424,7 +467,7 @@ ITEM TYPES:\n\
     These items are suited for throwing, and many are only useful when\n\
  thrown, such as grenades, molotov cocktails, or tear gas.\n\
 \n\
-+       Book or magazine\n\
+?       Book or magazine\n\
     This can be read for training or entertainment by pressing 'R'. Most\n\
  require a basic level of intelligence; some require some base knowledge in\n\
  the relevant subject.");
@@ -438,10 +481,20 @@ ITEM TYPES:\n\
 .           Field - Empty grassland, occasional wild fruit.");
    mvprintz( 2, 0, c_green,   "\
 F           Forest - May be dense or sparse.  Slow moving; foragable food.");
-   mvprintz( 3, 0, c_dkgray,  "\
-%c%c%c%c%c%c%c%c%c%c%c Road - Safe from burrowing animals.", LINE_XOXO,
-            LINE_OXOX, LINE_XXOO, LINE_OXXO, LINE_OOXX, LINE_XOOX, LINE_XXXO,
-            LINE_XXOX, LINE_XOXX, LINE_OXXX, LINE_XXXX);
+   mvputch(3,  0, c_dkgray, LINE_XOXO);
+   mvputch(3,  1, c_dkgray, LINE_OXOX);
+   mvputch(3,  2, c_dkgray, LINE_XXOO);
+   mvputch(3,  3, c_dkgray, LINE_OXXO);
+   mvputch(3,  4, c_dkgray, LINE_OOXX);
+   mvputch(3,  5, c_dkgray, LINE_XOOX);
+   mvputch(3,  6, c_dkgray, LINE_XXXO);
+   mvputch(3,  7, c_dkgray, LINE_XXOX);
+   mvputch(3,  8, c_dkgray, LINE_XOXX);
+   mvputch(3,  9, c_dkgray, LINE_OXXX);
+   mvputch(3, 10, c_dkgray, LINE_XXXX);
+ 
+   mvprintz( 3, 12, c_dkgray,  "\
+Road - Safe from burrowing animals.");
    mvprintz( 4, 0, c_dkgray,  "\
 H=          Highway - Like roads, but lined with guard rails.");
    mvprintz( 5, 0, c_dkgray,  "\
@@ -477,6 +530,170 @@ O           Parking lot - Empty lot, few items.  Mostly useless.");
    getch();
    erase();
    break;
+  case '4':
+   erase();
+   mvprintz(0, 0, c_white, "Gun types:");
+   mvprintz(2, 0, c_ltgray, "( Handguns");
+   mvprintz(3, 0, c_white, "\
+Handguns are small weapons held in one or both hands.  They are much more\n\
+difficult to aim and control than larger firearms, and this is reflected in\n\
+their poor accuracy.  However, their small size makes them appropriate for\n\
+short-range combat, where largers guns fare poorly.\n\
+They are also relatively quick to reload, and use a very wide selection of\n\
+ammunition.  Their small size and low weight make it possible to carry\n\
+several loaded handguns, switching from one to the next once their ammo is\n\
+spent.");
+   mvprintz(12, 0, c_green, "( Crossbows");
+   mvprintz(13, 0, c_white, "\
+The best feature of crossbows is their silence.  The bolts they fire are only\n\
+rarely destroyed; if you pick up the bolts after firing them, your ammunition\n\
+will last much longer.  Crossbows suffer from a short range and a very long\n\
+reload time (modified by your strength); plus, most only hold a single round.\n\
+For this reason, it is advisable to carry a few loaded crossbows.\n\
+Crossbows can be very difficult to find; however, it is possible to craft one\n\
+given enough Mechanics skill.  Likewise, it is possible to make wooden bolts\n\
+from any number of wooden objects, though these are much less effective than\n\
+steel bolts.\n\
+Crossbows use the handgun skill.");
+   mvprintz(24, 0, c_white, "Press any key to continue...");
+   getch();
+   erase();
+   mvprintz(0, 0, c_white, "Gun types:");
+   mvprintz(2, 0, c_red, "( Shotguns");
+   mvprintz(3, 0, c_white, "\
+Shotguns are one of the most powerful weapons in the game, capable of taking\n\
+out almost any enemy with a single hit.  Birdshot and 00 shot spread, making\n\
+it very easy to hit nearby monsters.  However, they are very ineffective\n\
+against armor, and some armored monsters might shrug off 00 shot completely.\n\
+Shotgun slugs are the answer to this problem; they also offer much better\n\
+range than shot.\n\
+The biggest drawback to shotguns is their noisiness.  They are very loud,\n\
+and impossible to silence.  A shot that kills one zombie might attract three\n\
+more!  Because of this, shotguns are best reserved for emergencies.");
+   mvprintz(13, 0, c_cyan, "( Submachine Guns");
+   mvprintz(14, 0, c_white, "\
+Submachine guns are small weapons (some are barely larger than a handgun),\n\
+designed for relatively close combat and the ability to spray large amounts\n\
+of bullets.  However, they are more effective when firing single shots, so\n\
+use discretion.  They mainly use the 9mm and .45 ammunition; however, other\n\
+SMGs exist.  They reload moderately quickly, and are suitable for close or\n\
+medium-long range combat.");
+   mvprintz(22, 0, c_white, "Press any key to continue...");
+   getch();
+   erase();
+   mvprintz(0, 0, c_white, "Gun types:");
+   mvprintz(2, 0, c_brown, "( Hunting Rifles");
+   mvprintz(3, 0, c_white, "\
+Hunting rifles are popular for their superior range and accuracy.  What's\n\
+more, their scopes or sights make shots fired at targets more than 10 tiles\n\
+away as accurate as those with a shorter range.  However, they are very poor\n\
+at hitting targets 4 squares or less from the player.\n\
+Unlike assault rifles, hunting rifles have no automatic fire.  They are also\n\
+slow to reload and fire, so when facing a large group of nearby enemies, they\n\
+are not the best pick.");
+   mvprintz(11, 0, c_blue, "( Assault Rifles");
+   mvprintz(12, 0, c_white, "\
+Assault rifles are similar to hunting rifles in many ways; they are also\n\
+suited for long range combat, with similar bonuses and penalties.  Unlike\n\
+hunting rifles, assault rifles are capable of automatic fire.  Assault rifles\n\
+are less accurate than hunting rifles, and this is worsened under automatic\n\
+fire, so save it for when you're highly skilled.\n\
+Assault rifles are an excellent choice for medium or long range combat, or\n\
+even close-range bursts again a large number of enemies.  They are difficult\n\
+to use, and are best saved for skilled riflemen.");
+   mvprintz(24, 0, c_white, "Press any key to continue...");
+   getch();
+   erase();
+   mvprintz(0, 0, c_white, "Gun types:");
+   mvprintz(2, 0, c_ltred, "( Machine Guns");
+   mvprintz(3, 0, c_white, "\
+Machine guns are one of the most powerful firearms available.  They are even\n\
+larger than assault rifles, and make poor melee weapons; however, they are\n\
+capable of holding 100 or more rounds of highly-damaging ammunition.  They\n\
+are not built for accuracy, and firing single rounds is not very effective.\n\
+However, they also possess a very high rate of fire and somewhat low recoil,\n\
+making them very good at clearing out large numbers of enemies.");
+   mvprintz(10, 0, c_magenta, "( Energy Weapons");
+   mvprintz(11, 0, c_white, "\
+Energy weapons is an umbrella term used to describe a variety of rifles and\n\
+handguns which fire lasers, plasma, or energy atttacks.  They started to\n\
+appear in military use just prior to the start of the apocalypse, and as such\n\
+are very difficult to find.\n\
+Energy weapons have no recoil at all; they are nearly silent, have a long\n\
+range, and are fairly damaging.  The biggest drawback to energy weapons is\n\
+scarcity of ammunition; it is wise to reserve the precious ammo for when you\n\
+really need it.");
+   mvprintz(24, 0, c_white, "Press any key to continue...");
+   getch();
+   erase();
+   break;
+  case '5':
+   mvprintz(0, 0, c_white, "\
+Q: What is Run Mode, and why does it prevent me from moving?\n\
+A: Run Mode is a way to guarantee that you won't die by holding a movement\n\
+   key down.  When a monster comes into view, your movement will be ignored\n\
+   until Run Mode is turned off with the ! key.  This ensures that the\n\
+   sudden appearence of a monster won't catch you off guard.\n\
+\n\
+Q: It seems like everything I eat makes me sick!  What's wrong?\n\
+A: Lots of the food found in towns is perishable, and will only last a few\n\
+   days after the start of a new game (July 12).  Fruit, milk, and others are\n\
+   the first to go.  After the first couple of days, you should switch to\n\
+   canned food, jerky, and hunting.\n\
+\n\
+Q: Why doesn't reading a book seem to give me any training?\n\
+A: Your skills will not be displayed in the @ screen until they reach level\n\
+   one.  Generally it will take several reads of the same book to gain a\n\
+   single level in a skill.\n\
+\n\
+Q: How can I board up windows and doors?\n\
+A: You'll need a hammer, nails, and two by fours.  Use the hammer and choose\n\
+   the direction in which the terrain you wish to barricade lies.\n\
+\n\
+Q: How can I prevent monsters from attacking while I sleep?\n\
+A: Find a safe place to sleep, in a building far from the front door.  Set\n\
+   traps if you have them, or build a fire.");
+   getch();
+   erase();
+   mvprintz(0, 0, c_white, "\
+Q: Why do I always sink when I try to swim?\n\
+A: Your swimming ability is reduced greatly by the weight you are carrying,\n\
+   and is also adversely affected by the clothing you wear.  Until you reach\n\
+   a high level in the swimming skill, you'll need to drop your equipment and\n\
+   remove your clothing to swim, making it a last-ditch escape plan.\n\
+\n\
+Q: How can I cure a fungal infection?\n\
+A: At present time, there is only one cure, royal jelly.  You can find royal\n\
+   jelly in the bee hives which dot forests.\n\
+\n\
+Q: How do I get into science labs?\n\
+A: You can enter the front door if you have an ID card by 'e'xamining the\n\
+   keypad.  If you are skilled in computers and have an electrohack, it is\n\
+   possible to hack the keypad.  An EMP blast has a chance to force the doors\n\
+   open, but it's more likely to break them.  You can also sneak in through\n\
+   the sewers sometimes, or try to smash through the walls with explosions.\n\
+\n\
+Q: Why does my crafting fail so often?\n\
+A: Check the difficulty of the recipe, and the primary skill used; your skill\n\
+   level should be around one and a half times the difficulty to be confident\n\
+   that it will succeed.");
+   getch();
+   erase();
+   mvprintz(0, 0, c_white, "\
+Q: Shotguns bring in more zombies than they kill!  What's the point?\n\
+A: Shotguns are intended for emergency use.  If you are cornered, use your\n\
+   shotgun to escape, then just run from the zombies it attracts.\n\
+\n\
+Q: The game just told me to quit, and other weird stuff is happening.\n\
+A: You have the Schizophrenic trait, which might make the game seem buggy.\n\
+\n\
+Q: I have a question that's not addressed here.  How can I get an answer?\n\
+A: Email your question to fivedozenwhales@gmail.com.  I'll answer it for you,\n\
+   and possibly include it on this list.");
+   getch();
+   erase();
+   break;
+
   }
  } while (ch != 'q' && ch != KEY_ESCAPE);
 }
