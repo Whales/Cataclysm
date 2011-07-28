@@ -3977,7 +3977,9 @@ std::list<char> game::allInv(std::string title, bool multiAllowed, inv_menus men
 		// Print our header
 		mvwprintw(w_inv, 0, 40, "                                        ");//40 space
 		mvwprintw(w_inv, 0, 40, "Weight: ");
-		int post_wei = u.weight_carried() + weightCostAccum;
+		int post_wei = u.weight_carried();
+		if(multiMode)
+			post_wei += weightCostAccum;
 		if (post_wei >= u.weight_capacity() * .25)
 			wprintz(w_inv, c_red, "%d", post_wei);
 		else
@@ -3985,8 +3987,13 @@ std::list<char> game::allInv(std::string title, bool multiAllowed, inv_menus men
 		wprintz(w_inv, c_ltgray, "/%d/%d", int(u.weight_capacity() * .25),
 				u.weight_capacity());
 		mvwprintw(w_inv, 0, 60, "Volume: ");
-		int post_vol = u.volume_carried() + volumeCostAccum;
-		int post_space = u.volume_capacity() + storageCostAccum;
+		int post_vol = u.volume_carried();
+		int post_space = u.volume_capacity();
+		if(multiMode)
+		{
+			post_vol += volumeCostAccum;
+			post_space += storageCostAccum;
+		}
 		if (post_vol > u.volume_capacity() - 2)
 			wprintz(w_inv, c_red, "%d", post_vol);
 		else
