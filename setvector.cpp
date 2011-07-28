@@ -62,7 +62,7 @@ void setvector(std::vector<std::string> &vec, ... )
  va_list ap;
  va_start(ap, vec);
  char *tmp;
- while (tmp = (char *)va_arg(ap, int))
+ while (tmp = (char *)va_arg(ap, char *))
   vec.push_back((std::string)(tmp));
  va_end(ap);
 }
