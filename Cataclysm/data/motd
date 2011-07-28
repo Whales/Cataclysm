@@ -1,0 +1,18 @@
+# Max length of a line is 64 characters; the following line is for reference
+# This message may be 16 lines long at maximum.
+################################################################
+The game has two new major mechanics: weather and an XP pool.
+
+Weather is a set of gameplay effects and is updated on the half-
+hour.  Most notably, rain can get you wet, hurting your morale
+(and possibly your equipment in the future), sun can cause glare
+that reduces perception (wear a baseball cap!) and acid rain is
+almost as bad as a spitter zombie.  Seek cover!
+
+The XP pool is very similar to the one in crawl; it's a set of
+points which are used to increase your skills.  Unlike crawl,
+and pretty much any other game, it's filled by having high
+morale.  This makes tasty food, engaging books, and drugs all
+very valuable!  I'm not sure about this mechanic, and haven't
+tested it thoroughly, but I'm giving it a try.  Let me know what
+you think!
