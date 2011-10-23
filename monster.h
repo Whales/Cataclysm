@@ -18,6 +18,7 @@ ME_ONFIRE,		// Lit aflame
 ME_STUNNED,		// Stumbling briefly
 ME_BLIND,		// Can't use sight
 ME_DEAF,		// Can't use hearing
+ME_RAGING,               // Raging, will attack everything
 NUM_MONSTER_EFFECTS
 };
 
@@ -109,7 +110,7 @@ class monster {
  int moves, speed;
  int hp;
  int sp_timeout;
- int friendly;
+ int friendly; //-1 friendly, 0 hostile, 1 raging
  int faction_id; // If we belong to a faction
  mtype *type;
  bool dead;

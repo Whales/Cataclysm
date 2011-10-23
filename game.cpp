@@ -2764,6 +2764,8 @@ void game::flashbang(int x, int y)
   if (dist <= 4)
    z[i].add_effect(ME_STUNNED, 10 - dist);
   if (dist <= 8) {
+      z[i].add_effect(ME_RAGING, 60 - dist * 4);
+      z[i].plan(this);
    if (z[i].has_flag(MF_SEES) && m.sees(z[i].posx, z[i].posy, x, y, 8, t))
     z[i].add_effect(ME_BLIND, 18 - dist);
    if (z[i].has_flag(MF_HEARS))

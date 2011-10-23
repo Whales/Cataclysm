@@ -71,6 +71,31 @@ void monster::plan(game *g)
  int closest = -1;
  int dist = 1000;
  int tc, stc;
+//TODO it doesn't target NPC's right now
+ if (has_effect(ME_RAGING)){  //Target everyone !
+     for (int i = 0; i < g->z.size(); i++) { //check for the closest monster
+         monster *tmp = &(g->z[i]);
+         if (rl_dist(posx, posy, tmp->posx, tmp->posy) < dist &&
+             g->m.sees(posx, posy, tmp->posx, tmp->posy, sightrange, tc)) {
+          closest = i;
+          dist = rl_dist(posx, posy, tmp->posx, tmp->posy);
+          stc = tc; //still don't get what tc and stc mean
+         }
+     }
+     if (!is_fleeing(g->u) && can_see()) {   //if player is closer target him
+      if (g->sees_u(posx, posy, tc) && dist > rl_dist(posx, posy, g->u.posx, g->u.posy)) {
+       dist = rl_dist(posx, posy, g->u.posx, g->u.posy);
+       closest = -2;
+       stc = tc;
+      }
+ }
+     if (closest >= 0) // we targeted a monster
+      set_dest(g->z[closest].posx, g->z[closest].posy, stc);
+     else if (closest == -2) // targeted the player
+      set_dest(g->u.posx, g->u.posy, stc);
+     return;
+ }
+
  if (friendly != 0) {	// Target monsters, not the player!
   for (int i = 0; i < g->z.size(); i++) {
    monster *tmp = &(g->z[i]);
@@ -222,6 +247,8 @@ void monster::move(game *g)
   else if (mondex != -1 && type->melee_dice > 0 &&
            (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
    hit_monster(g, mondex);
+  else if(mondex !=-1 && type->melee_dice > 0 && has_effect(ME_RAGING))
+    hit_monster(g, mondex);
   else if (npcdex != -1 && type->melee_dice > 0)
    hit_player(g, g->active_npc[npcdex]);
   else if ((!can_move_to(g->m, next.x, next.y) || one_in(3)) &&
