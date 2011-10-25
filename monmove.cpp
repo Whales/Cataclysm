@@ -215,7 +215,8 @@ void monster::move(game *g)
  int mondex = (plans.size() > 0 ? g->mon_at(plans[0].x, plans[0].y) : -1);
 
  if (plans.size() > 0 &&
-     (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON) || has_effect(ME_RAGING)) &&
+     (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON) ||
+    		g->z[mondex].has_effect(ME_RAGING) || has_effect(ME_RAGING)) &&
      (can_move_to(g->m, plans[0].x, plans[0].y) ||
       (plans[0].x == g->u.posx && plans[0].y == g->u.posy) || 
      (g->m.has_flag(bashable, plans[0].x, plans[0].y) && has_flag(MF_BASHES)))){
@@ -249,7 +250,8 @@ void monster::move(game *g)
   else if (mondex != -1 && type->melee_dice > 0 &&
            (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
    hit_monster(g, mondex);
-  else if(mondex !=-1 && type->melee_dice > 0 && has_effect(ME_RAGING)){
+  else if(mondex !=-1 && type->melee_dice > 0 && (g->z[mondex].has_effect(ME_RAGING)||
+		  has_effect(ME_RAGING))){
 	  hit_monster(g, mondex);
   }
   else if (npcdex != -1 && type->melee_dice > 0)
