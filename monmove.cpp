@@ -72,7 +72,7 @@ void monster::plan(game *g)
  int dist = 1000;
  int tc, stc;
 //TODO it doesn't target NPC's right now
- if (has_effect(ME_RAGING)){  //Target everyone !
+ if (has_effect(ME_RAGING)){ //Target everyone !
      for (int i = 0; i < g->z.size(); i++) { //check for the closest monster
          monster *tmp = &(g->z[i]);
          if (rl_dist(posx, posy, tmp->posx, tmp->posy) < dist &&
@@ -89,10 +89,12 @@ void monster::plan(game *g)
        stc = tc;
       }
  }
-     if (closest >= 0) // we targeted a monster
+     if (closest >= 0){ // we targeted a monster
       set_dest(g->z[closest].posx, g->z[closest].posy, stc);
-     else if (closest == -2) // targeted the player
+     }
+     else if (closest == -2){ // targeted the player
       set_dest(g->u.posx, g->u.posy, stc);
+     }
      return;
  }
 
@@ -213,7 +215,7 @@ void monster::move(game *g)
  int mondex = (plans.size() > 0 ? g->mon_at(plans[0].x, plans[0].y) : -1);
 
  if (plans.size() > 0 &&
-     (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)) &&
+     (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON) || has_effect(ME_RAGING)) &&
      (can_move_to(g->m, plans[0].x, plans[0].y) ||
       (plans[0].x == g->u.posx && plans[0].y == g->u.posy) || 
      (g->m.has_flag(bashable, plans[0].x, plans[0].y) && has_flag(MF_BASHES)))){
@@ -247,8 +249,9 @@ void monster::move(game *g)
   else if (mondex != -1 && type->melee_dice > 0 &&
            (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
    hit_monster(g, mondex);
-  else if(mondex !=-1 && type->melee_dice > 0 && has_effect(ME_RAGING))
-    hit_monster(g, mondex);
+  else if(mondex !=-1 && type->melee_dice > 0 && has_effect(ME_RAGING)){
+	  hit_monster(g, mondex);
+  }
   else if (npcdex != -1 && type->melee_dice > 0)
    hit_player(g, g->active_npc[npcdex]);
   else if ((!can_move_to(g->m, next.x, next.y) || one_in(3)) &&

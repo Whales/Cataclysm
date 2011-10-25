@@ -485,6 +485,43 @@ void game::hit_monster_with_flags(monster &z, unsigned int flags)
   else if (z.made_of(FLESH) && one_in(4))
    z.add_effect(ME_ONFIRE, rng(1, 4));
 
+ } else if (flags & mfb(IF_AMMO_RAGE)){
+	 if(z.made_of(FLESH)||z.made_of(VEGGY)){
+		 switch(z.type->size){
+		 case MS_TINY:
+			 z.add_effect(ME_RAGING,150);
+			 add_msg("The %s is enraged!",z.name().c_str());
+			 break;
+		 case MS_SMALL:
+			 if(one_in(2)){
+				 z.add_effect(ME_RAGING,150);
+				 add_msg("The %s is enraged!",z.name().c_str());
+			 }
+			 break;
+
+		 case MS_MEDIUM:
+			 if(one_in(3)){
+				 z.add_effect(ME_RAGING,150);
+				 add_msg("The %s is enraged!",z.name().c_str());
+			 }
+
+			 break;
+		 case MS_LARGE:
+			 if(one_in(5)){
+				 z.add_effect(ME_RAGING,150);
+				 add_msg("The %s is enraged!",z.name().c_str());
+			 }
+
+			 break;
+		 case MS_HUGE:
+			 if(one_in(10)){
+				 z.add_effect(ME_RAGING,150);
+				 add_msg("The %s is enraged!",z.name().c_str());
+			 }
+
+			 break;
+		 }
+	 }
  }
 }
 

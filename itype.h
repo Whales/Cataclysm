@@ -87,8 +87,8 @@ itm_hat_ball, itm_hat_boonie, itm_hat_cotton, itm_hat_knit, itm_hat_hunting,
 // High-storage
 itm_backpack, itm_purse, itm_mbag, itm_fanny, itm_holster, itm_bootstrap,
 // Ammunition
-itm_battery, itm_plut_cell, itm_nail, itm_bb, itm_arrow_wood, itm_arrow_cf,
- itm_bolt_wood, itm_bolt_steel, itm_shot_bird, itm_shot_00, itm_shot_slug,
+itm_battery, itm_plut_cell, itm_nail, itm_bb, itm_arrow_wood, itm_arrow_cf, itm_arrow_po,
+ itm_bolt_wood, itm_bolt_steel,itm_bolt_po, itm_shot_bird, itm_shot_00, itm_shot_slug,
  itm_shot_he, itm_22_lr, itm_22_cb, itm_22_ratshot, itm_9mm, itm_9mmP,
  itm_9mmP2, itm_38_special, itm_38_super, itm_10mm, itm_40sw, itm_44magnum,
  itm_45_acp, itm_45_jhp, itm_45_super, itm_57mm, itm_46mm, itm_762_m43,
@@ -205,6 +205,7 @@ IF_AMMO_TEARGAS,// Teargas burst
 IF_AMMO_SMOKE,  // Smoke burst
 IF_AMMO_TRAIL,	// Leaves a trail of smoke
 IF_AMMO_FLASHBANG, // Disorients and blinds
+IF_AMMO_RAGE,   // Poisons Monster into a rage.
 NUM_ITEM_FLAGS
 };
 

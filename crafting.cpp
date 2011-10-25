@@ -128,6 +128,16 @@ void game::init_recipes()
   COMP(itm_2x4, 1, NULL);
   COMP(itm_nail, 1, NULL);
 
+ RECIPE(itm_bolt_po, CC_WEAPON, sk_archery, sk_survival, 2, 2000);
+ COMP(itm_superglue, 1, NULL);
+ COMP(itm_bolt_wood, 10,itm_bolt_steel,10, NULL);
+ COMP(itm_adderall, 5,itm_meth,1,itm_coke,2,itm_caffeine,5, NULL);
+
+ RECIPE(itm_arrow_po, CC_WEAPON, sk_archery, sk_survival, 2, 2000);
+ COMP(itm_superglue, 1, NULL);
+ COMP(itm_arrow_wood, 12,itm_arrow_cf,12, NULL);
+ COMP(itm_adderall, 5,itm_meth,1,itm_coke,2,itm_caffeine,5, NULL);
+
  RECIPE(itm_shot_he, CC_WEAPON, sk_mechanics, sk_gun, 4, 2000);
   TOOL(itm_screwdriver, -1, NULL);
   COMP(itm_superglue, 1, NULL);
