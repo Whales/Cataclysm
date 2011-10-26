@@ -198,7 +198,7 @@ void player::reset()
   int_cur = 0;
  
  int mor = morale_level();
- if (mor >= 0 && mor < 100 && rng(0, 100) <= mor - 20)
+ if (mor >= 0 && mor < 100 && rng(0, 100) <= mor + 20)
   xp_pool++;
  else if (mor > 0)
   xp_pool += int(mor / 100);
@@ -1897,9 +1897,8 @@ int player::sight_range(int light_level)
   ret = 1;
  if (has_disease(DI_BLIND))
   ret = 0;
- if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_eye))
-  ret = 4;
- if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_monocle))
+ if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_eye) &&
+     !is_wearing(itm_glasses_monocle))
   ret = 4;
  return ret;
 }
@@ -3815,7 +3814,10 @@ bool player::can_sleep(game *g)
   sleepy += 1;
  else
   sleepy -= g->m.move_cost(posx, posy);
- sleepy += int((fatigue - 192) / 16);
+ if (fatigue < 192)
+  sleepy -= int( (192 - fatigue) / 4);
+ else
+  sleepy += int((fatigue - 192) / 16);
  sleepy += rng(-8, 8);
  sleepy -= 2 * stim;
  if (sleepy > 0)
