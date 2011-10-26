@@ -48,6 +48,8 @@ class monster {
 				// Inverts color if inv==true
  bool has_flag(m_flags f);	// Returns true if f is set (see mtype.h)
  bool has_effect(monster_effect_type t); // True if we have the given effect
+ bool is_friend(monster *m); // Selfexplaining, true most of the times
+ bool is_friend(player &m); // selfexplaining, false most the times
  bool can_see();		// MF_SEES and no ME_BLIND
  bool can_hear();		// MF_HEARS and no ME_DEAF
  bool made_of(material m);	// Returns true if it's made of m

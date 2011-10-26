@@ -71,64 +71,18 @@ void monster::plan(game *g)
  int closest = -1;
  int dist = 1000;
  int tc, stc;
-//TODO it doesn't target NPC's right now
- if (has_effect(ME_RAGING)){ //Target everyone !
-     for (int i = 0; i < g->z.size(); i++) { //check for the closest monster
-         monster *tmp = &(g->z[i]);
-         if (rl_dist(posx, posy, tmp->posx, tmp->posy) < dist &&
-             g->m.sees(posx, posy, tmp->posx, tmp->posy, sightrange, tc)) {
-          closest = i;
-          dist = rl_dist(posx, posy, tmp->posx, tmp->posy);
-          stc = tc; //still don't get what tc and stc mean
-         }
-     }
-     if (!is_fleeing(g->u) && can_see()) {   //if player is closer target him
-      if (g->sees_u(posx, posy, tc) && dist > rl_dist(posx, posy, g->u.posx, g->u.posy)) {
-       dist = rl_dist(posx, posy, g->u.posx, g->u.posy);
-       closest = -2;
-       stc = tc;
-      }
- }
-     if (closest >= 0){ // we targeted a monster
-      set_dest(g->z[closest].posx, g->z[closest].posy, stc);
-     }
-     else if (closest == -2){ // targeted the player
-      set_dest(g->u.posx, g->u.posy, stc);
-     }
-     return;
- }
 
- if (friendly != 0) {	// Target monsters, not the player!
-  for (int i = 0; i < g->z.size(); i++) {
-   monster *tmp = &(g->z[i]);
-   if (tmp->friendly == 0 && rl_dist(posx, posy, tmp->posx, tmp->posy) < dist &&
-       g->m.sees(posx, posy, tmp->posx, tmp->posy, sightrange, tc)) {
-    closest = i;
-    dist = rl_dist(posx, posy, tmp->posx, tmp->posy);
-    stc = tc;
-   }
-  }
-  if (closest >= 0)
-   set_dest(g->z[closest].posx, g->z[closest].posy, stc);
-  else if (friendly > 0 && one_in(3))	// Grow restless with no targets
-   friendly--;
-  else if (friendly < 0 && g->sees_u(posx, posy, tc)) {
-   if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2)
-    set_dest(g->u.posx, g->u.posy, tc);
-   else
-    plans.clear();
-  }
-  return;
- }
+//TODO this doesn't deal with NPCs yet, is_friend is probably
+ // usable with npcs though, won't test it till NPCs are bugfree
  if (is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc) &&
-     (!g->u.has_trait(PF_ANIMALEMPATH) || !has_flag(MF_ANIMAL))) {
+     !is_friend(g->u)) {
   wandx = posx * 2 - g->u.posx;
   wandy = posy * 2 - g->u.posy;
   wandf = 40;
  }
 // If we can see, and we can see a character, start moving towards them
  if (!is_fleeing(g->u) && can_see()) {
-  if (g->sees_u(posx, posy, tc)) {
+  if (g->sees_u(posx, posy, tc)&& !is_friend(g->u)) {
    dist = rl_dist(posx, posy, g->u.posx, g->u.posy);
    closest = -2;
    stc = tc;
@@ -144,7 +98,7 @@ void monster::plan(game *g)
   }
   for (int i = 0; i < g->z.size(); i++) {
    monster *mon = &(g->z[i]);
-   if (mon->friendly != 0 && rl_dist(posx, posy, mon->posx, mon->posy) < dist &&
+   if (!mon->is_friend(this) && rl_dist(posx, posy, mon->posx, mon->posy) < dist &&
        g->m.sees(posx, posy, mon->posx, mon->posy, sightrange, tc)) {
     dist = rl_dist(posx, posy, mon->posx, mon->posy);
     closest = -3 - i;
@@ -157,6 +111,12 @@ void monster::plan(game *g)
    set_dest(g->z[-3 - closest].posx, g->z[-3 - closest].posy, stc);
   else if (closest >= 0)
    set_dest(g->active_npc[closest].posx, g->active_npc[closest].posy, stc);
+  else if (is_friend(g->u) && g->sees_u(posx, posy, tc)) {
+     if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2)
+      set_dest(g->u.posx, g->u.posy, tc);
+     else
+      plans.clear();
+    }
  }
 }
  
@@ -191,8 +151,7 @@ void monster::move(game *g)
   moves = 0;
   return;
  }
- if (friendly != 0 ||
-     (g->u.has_trait(PF_ANIMALEMPATH) && has_flag(MF_ANIMAL))) {
+ if (is_friend(g->u)) {
   if (friendly > 0)
    friendly--;
   friendly_move(g);
@@ -215,8 +174,8 @@ void monster::move(game *g)
  int mondex = (plans.size() > 0 ? g->mon_at(plans[0].x, plans[0].y) : -1);
 
  if (plans.size() > 0 &&
-     (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON) ||
-    		g->z[mondex].has_effect(ME_RAGING) || has_effect(ME_RAGING)) &&
+     (mondex == -1 || has_flag(MF_ATTACKMON) ||
+    		!g->z[mondex].is_friend(this)) &&
      (can_move_to(g->m, plans[0].x, plans[0].y) ||
       (plans[0].x == g->u.posx && plans[0].y == g->u.posy) || 
      (g->m.has_flag(bashable, plans[0].x, plans[0].y) && has_flag(MF_BASHES)))){
@@ -248,12 +207,8 @@ void monster::move(game *g)
   if (next.x == g->u.posx && next.y == g->u.posy && type->melee_dice > 0)
    hit_player(g, g->u);
   else if (mondex != -1 && type->melee_dice > 0 &&
-           (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
+           (!g->z[mondex].is_friend(this) || has_flag(MF_ATTACKMON)))
    hit_monster(g, mondex);
-  else if(mondex !=-1 && type->melee_dice > 0 && (g->z[mondex].has_effect(ME_RAGING)||
-		  has_effect(ME_RAGING))){
-	  hit_monster(g, mondex);
-  }
   else if (npcdex != -1 && type->melee_dice > 0)
    hit_player(g, g->active_npc[npcdex]);
   else if ((!can_move_to(g->m, next.x, next.y) || one_in(3)) &&
@@ -272,8 +227,7 @@ void monster::move(game *g)
  }
 
 // If we're close to our target, we get focused and don't stumble
- if ((has_flag(MF_STUMBLES) && (plans.size() > 3 || plans.size() == 0)) ||
-     !moved)
+ if ((has_flag(MF_STUMBLES) && (plans.size() > 3 || plans.size() == 0)) || !moved)
   stumble(g, moved);
 }
 

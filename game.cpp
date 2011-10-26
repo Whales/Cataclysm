@@ -4569,7 +4569,7 @@ void game::chat()
 void game::plmove(int x, int y)
 {
  if (run_mode == 2) { // Monsters around and we don't wanna run
-  add_msg("Monster spotted--run mode is on! (Press '!' to turn it off or space to ignore monster.)");
+  add_msg("Monster spotted--run mode is on! (Press '!' to turn it off or ' to ignore monster.)");
   return;
  }
  x += u.posx;
