@@ -26,6 +26,7 @@ game::game()
  test_vec.push_back(tmpcomp);
  debugmsg("%s", test_vec[0].save_data().c_str());
 */
+
  clear();	// Clear the screen
  intro();	// Print an intro screen, make sure we're at least 80x25
 // Gee, it sure is init-y around here!
