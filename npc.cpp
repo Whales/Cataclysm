@@ -1716,6 +1716,8 @@ void npc::die(game *g, bool your_fault)
   g->m.add_item(posx, posy, inv[i]);
  for (int i = 0; i < worn.size(); i++)
   g->m.add_item(posx, posy, worn[i]);
- if (weapon.type->id != itm_null)
-  g->m.add_item(posx, posy, weapon);
+ if(weapon.type != NULL){ //should fix for now
+  if (weapon.type->id != itm_null) //TODO segfault here / type is NULL!
+   g->m.add_item(posx, posy, weapon);
+ }
 }

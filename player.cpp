@@ -277,19 +277,34 @@ int player::current_speed()
 
 int player::swim_speed()
 {
- int ret = 440 + 2 * weight_carried() - 50 * sklevel[sk_swimming];
+  int ret = 440 + 2 * weight_carried() - 50 * sklevel[sk_swimming];
  if (has_trait(PF_WEBBED))
   ret -= 100 + str_cur * 10;
- ret += (50 - sklevel[sk_swimming] * 2) * abs(encumb(bp_legs));
- ret += (80 - sklevel[sk_swimming] * 3) * abs(encumb(bp_torso));
- if (sklevel[sk_swimming] < 10) {
-  for (int i = 0; i < worn.size(); i++)
-   ret += (worn[i].volume() * (10 - sklevel[sk_swimming])) / 2;
+ if (has_trait(PF_HYDROPHILE)) {
+  int encumlegs =(abs(encumb(bp_legs))==0 ? 0 : abs(encumb(bp_legs)) -1);
+  int encumtorso =(abs(encumb(bp_torso))==0 ? 0 : abs(encumb(bp_torso)) -1);
+  ret += (50 - sklevel[sk_swimming] * 2) * encumlegs;
+  ret += (80 - sklevel[sk_swimming] * 3) * encumtorso;
+  if (sklevel[sk_swimming] < 10) {
+   for (int i = 0; i < worn.size(); i++)
+    ret += (worn[i].volume() * 0.75 * (10 - sklevel[sk_swimming])) / 2;
+  }
  }
+ else {
+  ret += (50 - sklevel[sk_swimming] * 2) * abs(encumb(bp_legs));
+  ret += (80 - sklevel[sk_swimming] * 3) * abs(encumb(bp_torso));
+  if (sklevel[sk_swimming] < 10) {
+   for (int i = 0; i < worn.size(); i++)
+    ret += (worn[i].volume() * (10 - sklevel[sk_swimming])) / 2;
+  }
+ }
+
  ret -= str_cur * 6 + dex_cur * 4;
 // If (ret > 500), we can not swim; so do not apply the underwater bonus.
  if (underwater && ret < 500)
   ret -= 50;
+ if(has_trait(PF_HYDROPHILE))
+	 ret -=ret *0.1;
  if (ret < 30)
   ret = 30;
  return ret;

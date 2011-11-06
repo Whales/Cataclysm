@@ -207,6 +207,11 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   COMP(itm_veggy,1, NULL);
   COMP(itm_water,1, NULL);
 
+  RECIPE(itm_water_iodine, CC_FOOD, sk_cooking, sk_null, 0, 50);
+   COMP(itm_bottle_plastic, 1, NULL);
+   COMP(itm_iodine, 1, NULL);
+   COMP(itm_water, 1, itm_water_dirty, 1, NULL);
+
  RECIPE(itm_veggy_cooked, CC_FOOD, sk_cooking, sk_null, 0, 4000);
   TOOL(itm_hotplate, 5, itm_fire, -1, NULL);
   TOOL(itm_pan, -1, itm_pot, -1, NULL);

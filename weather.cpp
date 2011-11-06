@@ -14,8 +14,11 @@ void weather_effect::glare(game *g)
 
 void weather_effect::wet(game *g)
 {
- if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE && one_in(2))
+ if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE && one_in(2) &&
+     !g->u.has_trait(PF_HYDROPHILE))
   g->u.add_morale(MORALE_WET, -1, -30);
+ else if(g->u.has_trait(PF_HYDROPHILE))
+  g->u.add_morale(MORALE_WET, 1, 30);
 // Put out fires and reduce scent
  for (int x = 0; x < SEEX * 3; x++) {
   for (int y = 0; y < SEEY * 3; y++) {
@@ -32,8 +35,11 @@ void weather_effect::wet(game *g)
 
 void weather_effect::very_wet(game *g)
 {
- if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE)
+ if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE &&
+   !g->u.has_trait(PF_HYDROPHILE))
   g->u.add_morale(MORALE_WET, -1, -60);
+ else if(g->u.has_trait(PF_HYDROPHILE))
+  g->u.add_morale(MORALE_WET, 1, 60);
 // Put out fires and reduce scent
  for (int x = 0; x < SEEX * 3; x++) {
   for (int y = 0; y < SEEY * 3; y++) {

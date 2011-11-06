@@ -54,6 +54,14 @@ DRINK("water",		 0, 50,	c_ltcyan, itm_null,// Dirty water, from rivers
 	30,  0,  0,  0, -4,  0,  1,  0,&iuse::poison,	ADD_NULL, "\
 Water, the stuff of life, the best thirst-quencher available.");
 
+DRINK("purified water",     100, 50, c_ltcyan, itm_null,
+    50,  0,  0,  0,  0,  0,  1,  1,&iuse::none,   ADD_NULL, "\
+Water and you're sure it's clean.");
+
+DRINK("iodine water",      30, 50, c_ltcyan, itm_null,
+    50,  0,  0,  0,  0,  0,  1, -1,&iuse::none,   ADD_NULL, "\
+Water, it's clean but has a nasty taste.");
+
 DRINK("sewage sample",	 5,  5, c_ltgreen, itm_bottle_plastic,
 	 5,  0,  0,  0,-10,  0,  1,-20,&iuse::sewage,	ADD_NULL, "\
 A sample of sewage from a treatment plant.  Gross.");
