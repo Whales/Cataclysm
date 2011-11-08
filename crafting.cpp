@@ -1273,7 +1273,9 @@ void consume_tools(game *g, std::vector<component> tools)
    g->m.use_charges(point(g->u.posx, g->u.posy), PICKUP_RANGE,
                     map_has[selection].type, map_has[selection].count);
   else {
-   selection -= map_has.size();
+   selection -= map_has.size(); // was -2
+   //SEGFAULT below! Not sure why. type is NULL, 0-length menu.
+   //It seems like it has failed to populate map_has and player_has
    g->u.use_charges(player_has[selection].type, player_has[selection].count);
   }
  }

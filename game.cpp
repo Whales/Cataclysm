@@ -5239,7 +5239,7 @@ void game::spawn_mon(int shiftx, int shifty)
    temp.spawn_at(&cur_om, levx + (1 * rng(-2, 2)), levy + (1 * rng(-2, 2)));
    temp.posx = SEEX * 2 * (temp.mapx - levx) + rng(0 - SEEX, SEEX);
    temp.posy = SEEY * 2 * (temp.mapy - levy) + rng(0 - SEEY, SEEY);
-   temp.attitude = NPCATT_TALK;
+   temp.attitude = NPCATT_NULL;
    active_npc.push_back(temp);
   }
 
