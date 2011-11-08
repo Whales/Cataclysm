@@ -56,6 +56,9 @@ bool map::process_fields(game *g)
     }
     break;
 
+   case fd_sap:
+    break; // It doesn't do anything.
+
    case fd_fire: {
 // Consume items as fuel to help us grow/last longer.
     bool destroyed;
@@ -105,7 +108,7 @@ bool map::process_fields(game *g)
       }
 
      } else if (it->made_of(FLESH)) {
-      if (vol <= cur->density * 5 || cur->density == 3 && one_in(vol / 20)) {
+      if (vol <= cur->density * 5 || (cur->density == 3 && one_in(vol / 20))) {
        cur->age--;
        destroyed = it->burn(cur->density);
        smoke += 3;
@@ -138,7 +141,7 @@ bool map::process_fields(game *g)
 
      } else if (it->made_of(PLASTIC)) {
       smoke += 3;
-      if (it->burnt <= cur->density * 2 || cur->density == 3 && one_in(vol)) {
+      if (it->burnt <= cur->density * 2 || (cur->density == 3 && one_in(vol))) {
        destroyed = it->burn(cur->density);
        if (one_in(vol + it->burnt))
         cur->age--;
@@ -503,6 +506,15 @@ void map::step_in_field(int x, int y, game *g)
    }
    break;
 
+ case fd_sap:
+  g->add_msg("The sap sticks to you!");
+  g->u.add_disease(DI_SAP, cur->density * 2, g);
+  if (cur->density == 1)
+   field_at(x, y) = field();
+  else
+   cur->density--;
+  break;
+
   case fd_fire:
    if (!g->u.has_active_bionic(bio_heatsink)) {
     if (cur->density == 1) {
@@ -581,7 +593,7 @@ void map::mon_in_field(int x, int y, game *g, monster *z)
  if (z->has_flag(MF_DIGS))
   return;	// Digging monsters are immune to fields
  field *cur = &field_at(x, y);
- int dam = 0, j;
+ int dam = 0;
  switch (cur->type) {
   case fd_null:
   case fd_blood:	// It doesn't actually do anything
@@ -602,6 +614,14 @@ void map::mon_in_field(int x, int y, game *g, monster *z)
     else
      dam = rng(cur->density, cur->density * 4);
    }
+   break;
+
+  case fd_sap:
+   z->speed -= cur->density * 5;
+   if (cur->density == 1)
+    field_at(x, y) = field();
+   else
+    cur->density--;
    break;
 
   case fd_fire:
@@ -647,7 +667,7 @@ void map::mon_in_field(int x, int y, game *g, monster *z)
 
   case fd_tear_gas:
    if (z->made_of(FLESH) || z->made_of(VEGGY)) {
-    z->add_effect(ME_BLIND, cur->density * 3);
+    z->add_effect(ME_BLIND, cur->density * 8);
     if (cur->density == 3) {
      z->add_effect(ME_STUNNED, rng(10, 20));
      dam = rng(4, 10);
