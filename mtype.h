@@ -9,6 +9,7 @@
 #include "monattack.h"
 #include "enums.h"
 #include "color.h"
+#include "output.h"
 
 class mdeath;
 
@@ -119,6 +120,7 @@ struct mtype {
  std::string description;
  char sym;	// Symbol on the map
  nc_color color;// Color of symbol (see color.h)
+ int sprite; // Graphical representation in tileset mode
 
  m_size size;
  material mat;	// See enums.h for material list.  Generally, flesh; veggy?
@@ -151,6 +153,7 @@ struct mtype {
   description = "";
   sym = ' ';
   color = c_white;
+  sprite = 0;
   size = MS_MEDIUM;
   mat = FLESH;
   flags = 0;
@@ -182,7 +185,8 @@ struct mtype {
         std::string pdescription ) { 
   id = pid; 
   name = pname; 
-  sym = psym;
+  sym = psym;  
+	sprite = active_tileset->name_to_position(pname.c_str());
   color = pcolor;
   size = psize;
   mat = pmat;

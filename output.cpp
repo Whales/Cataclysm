@@ -1,5 +1,5 @@
-#ifndef _OUTPUT_H_
-#define _OUTPUT_H_
+#ifndef _OUTPUT_CPP_
+#define _OUTPUT_CPP_
 
 #include <curses.h>
 #include <string>
@@ -7,6 +7,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <stdlib.h>
+#include <sstream>
 #include "color.h"
 #include "output.h"
 #include "rng.h"
@@ -473,7 +474,7 @@ char popup_getkey(const char *mes, ...)
  }
  line_num++;
  mvwprintz(w, line_num, 1, c_white, tmp.c_str());
- 
+
  wrefresh(w);
  char ch = getch();;
  werase(w);
@@ -567,7 +568,7 @@ void popup_top(const char *mes, ...)
  }
  line_num++;
  mvwprintz(w, line_num, 1, c_white, tmp.c_str());
- 
+
  wrefresh(w);
  char ch;
  do
@@ -618,7 +619,7 @@ void popup(const char *mes, ...)
  }
  line_num++;
  mvwprintz(w, line_num, 1, c_white, tmp.c_str());
- 
+
  wrefresh(w);
  char ch;
  do
@@ -663,6 +664,54 @@ void full_screen_popup(const char* mes, ...)
  refresh();
 }
 
+// Graphical tileset code
+// ==============================================================================================
+
+Tileset* active_tileset;
+
+#ifdef __TILESET
+extern "C" {
+ PDCEX SDL_Surface* pdc_tileset;
+}
+#endif
+
+bool draw_object(WINDOW* w, int x, int y, int name, bool highlight, bool alpha) {
+ if(name == 0) { return false; }
+ if(highlight) highlight = A_BOLD;
+ #ifdef __TILESET
+  if(active_tileset) {
+   if(!alpha) {
+    mvwaddch(w,y,x, ' ');
+    wrefresh(w); // need to call refresh because otherwise the draw will be quequed and overwritten
+   }
+   mvwaddch(w,y,x, A_TILESET | (name + 0x80) | highlight );
+   wrefresh(w);
+   return true;
+  } // if symbol doesn't exist, it's rendered as the normal character
+ #endif
+ return false;
+}
+
+void set_screen_size(int argc, char *argv[]) {
+ #ifdef __TILESET
+ int tmp_sheight = 0, tmp_swidth = 0;
+ for(int i=0; i<argc; i++) {
+  if(i == 1) {
+   char* param = argv[i];
+   // magic to convert char* to int cross-platform
+   std::stringstream paramstream(param);
+   paramstream >> tmp_swidth;
+  } else if(i == 2) {
+   char* param = argv[i];
+   std::stringstream paramstream(param);
+   paramstream >> tmp_sheight;
+  }
+ }
+ pdc_sheight = tmp_sheight;
+ pdc_swidth = tmp_swidth;
+ #endif
+}
+
 char rand_char()
 {
  switch (rng(0, 9)) {
@@ -679,4 +728,372 @@ char rand_char()
  }
  return '?';
 }
-#endif
+
+
+int Tileset::name_to_position(const char* name) {
+ #ifdef __TILESET
+ if(!pdc_tileset) return 0;
+ #endif
+ if(string_to_position.find(name) == string_to_position.end()) return 0;
+ return string_to_position[name];
+}
+
+// Deon's tileset sprite positions
+// ===============================
+
+Tileset::Tileset() {
+ string_to_position["cursor"]          = 0;
+ string_to_position["human corpse"]    = 0;
+
+ string_to_position["self"]            = 1;
+
+ string_to_position["corpse"]          = 0;
+ string_to_position["cursor"]          = 9;
+ string_to_position["zombie"]          = 17;
+ string_to_position["shrieker zombie"] = 18;
+ string_to_position["spitter zombie"]  = 19;
+ string_to_position["shocker zombie"]  = 20;
+ string_to_position["zombie hunter"]   = 21;
+ string_to_position["zombie brute"]    = 22;
+ string_to_position["zombie hulk"]     = 23;
+ string_to_position["fungal zombie"]   = 24;
+ string_to_position["boomer"]          = 25;
+ string_to_position["fungal boomer"]   = 26;
+ string_to_position["skeleton"]        = 27;
+ string_to_position["zombie necromancer"] = 28;
+ string_to_position["zombie scientist"]= 29;
+
+ string_to_position["triffid"]         = 33;
+ string_to_position["young triffid"]   = 34;
+ string_to_position["queen triffid"]   = 35;
+ string_to_position["fungaloid"]       = 36;
+ string_to_position["young fungaloid"] = 37;
+ string_to_position["spore"]           = 38;
+ string_to_position["blob"]            = 39;
+ string_to_position["small blob"]      = 40;
+ string_to_position["ant larva"]       = 41;
+ string_to_position["giant ant"]       = 42;
+ string_to_position["soldier ant"]     = 43;
+ string_to_position["ant queen"]       = 44;
+ string_to_position["fungal insect"]   = 45;
+ string_to_position["giant bee"]       = 46;
+ string_to_position["giant wasp"]      = 47;
+
+ string_to_position["sewer fish"]      = 49;
+ string_to_position["sewer snake"]     = 50;
+ string_to_position["sewer rat"]       = 51;
+ string_to_position["dog"]             = 52;
+ string_to_position["wolf"]            = 53;
+ string_to_position["squirrel"]        = 54;
+ string_to_position["rabbit"]          = 55;
+ string_to_position["deer"]            = 56;
+ string_to_position["bear"]            = 57;
+ string_to_position["graboid"]         = 58;
+ string_to_position["giant worm"]      = 59;
+ string_to_position["half worm"]       = 60;
+
+ string_to_position["giant mosquito"]  = 65;
+ string_to_position["giant dragonfly"] = 66;
+ string_to_position["giant centipede"] = 67;
+ string_to_position["giant frog"]      = 68;
+ string_to_position["giant slug"]      = 69;
+ string_to_position["dermatik larva"]  = 70;
+ string_to_position["dermatik"]        = 71;
+
+ string_to_position["flying polyp"]        = 81;
+ string_to_position["hunting horror"]      = 82;
+ string_to_position["Mi-go"]               = 83;
+ string_to_position["yugg"]                = 84;
+ string_to_position["gelatinous blob"]     = 85;
+ string_to_position["flaming eye"]         = 86;
+ string_to_position["kreck"]               = 87;
+ string_to_position["blank body"]          = 88;
+ string_to_position["Gozu"]                = 89;
+
+ string_to_position["eyebot"]               = 97;
+ string_to_position["manhack"]              = 98;
+ string_to_position["skitterbot"]           = 99;
+ string_to_position["secubot"]              = 100;
+ string_to_position["copbot"]               = 101;
+ string_to_position["molebot"]              = 102;
+ string_to_position["tripod robot"]         = 103;
+ string_to_position["chicken walker"]       = 104;
+ string_to_position["tankbot"]              = 105;
+ string_to_position["turret"]               = 106;
+
+ string_to_position["wall NS"]            = 144;
+ string_to_position["wall WE"]            = 144;
+ string_to_position["solid rock"]         = 145;
+ string_to_position["metal wall"]         = 145;
+ string_to_position["glass wall"]         = 146;
+ string_to_position["reinforced glass"]   = 146;
+ string_to_position["closed wood door"]   = 147;
+ string_to_position["locked wood door"]   = 147;
+ string_to_position["damaged wood door"]   = 148;
+ string_to_position["open wood door"]   = 149;
+ string_to_position["empty door frame"]   = 149;
+ string_to_position["boarded up door"]   = 150;
+ string_to_position["window"]   = 151;
+ string_to_position["window frame"]   = 152;
+ string_to_position["boarded up window"]   = 153;
+ string_to_position["metal grate"]   = 154;
+ string_to_position["closed metal door"]   = 155;
+ string_to_position["open metal door"]   = 156;
+
+ string_to_position["dirt"]            = 160;
+ string_to_position["grass"]            = 161;
+ string_to_position["floor"]            = 162;
+ string_to_position["rock floor"]            = 164;
+ string_to_position["sidewalk"]            = 163;
+ string_to_position["pavement"]            = 164;
+ string_to_position["yellow pavement"]     = 165;
+ string_to_position["wax floor"]     = 166;
+ string_to_position["wax wall"]     = 167;
+ string_to_position["picket fence WE"]     = 168;
+ string_to_position["railing WE"]     = 168;
+ string_to_position["picket fence NS"]     = 169;
+ string_to_position["railing NS"]     = 169;
+ string_to_position["backboard"]     = 170;
+ string_to_position["gasoline pump"]     = 171;
+ string_to_position["smashed gas pump"]     = 172;
+ string_to_position["toilet"]     = 173;
+ string_to_position["dumpster"]     = 174;
+ string_to_position["radio controls"]     = 175;
+ string_to_position["computer console"]     = 175;
+ string_to_position["card reader"]     = 175;
+ string_to_position["slot machine"]     = 175;
+
+ string_to_position["broken computer console"]     = 176;
+ string_to_position["broken card reader"]     = 176;
+
+
+ string_to_position["book"]            = 208;
+ string_to_position["bandages"]        = 209;
+ string_to_position["first aid"]       = 210;
+ string_to_position["vitamins"]        = 211;
+ string_to_position["aspirin"]        = 211;
+ string_to_position["caffeine pills"]        = 211;
+ string_to_position["sleeping pills"]        = 211;
+ string_to_position["iodine tablets"]        = 211;
+ string_to_position["Dayquil"]        = 211;
+ string_to_position["Nyquil"]        = 211;
+ string_to_position["inhaler"]        = 212;
+ string_to_position["cigarettes"]        = 213;
+
+ string_to_position["batteries"]           = 192;
+ string_to_position["plutonium cell"]           = 193;
+ string_to_position["nails"]           = 194;
+
+ string_to_position["BB"]           = 195;
+ string_to_position["birdshot"]           = 195;
+ string_to_position["00 shot"]           = 195;
+ string_to_position["shotgun slug"]           = 195;
+ string_to_position[".22 LR"]           = 195;
+ string_to_position[".22 CB"]           = 195;
+ string_to_position[".22 rat-shot"]           = 195;
+ string_to_position["9mm"]           = 195;
+ string_to_position["9mm +P"]           = 195;
+ string_to_position["9mm +P+"]           = 195;
+ string_to_position[".38 Special"]           = 195;
+ string_to_position[".38 Super"]           = 195;
+ string_to_position["10mm Auto"]           = 195;
+ string_to_position[".40 S&W"]           = 195;
+ string_to_position[".44 Magnum"]           = 195;
+ string_to_position[".45 ACP"]           = 195;
+ string_to_position[".45 FMJ"]           = 195;
+ string_to_position[".45 Super"]           = 195;
+ string_to_position["7.62x51mm"]           = 195;
+ string_to_position["7.62x51mm incendiary"]           = 195;
+ string_to_position["5.7x28mm"]           = 195;
+
+ string_to_position["holster"]           = 203;
+ string_to_position["bootstrap"]           = 203;
+
+ string_to_position["chitinous helmet"]           = 204;
+ string_to_position["army helmet"]           = 205;
+ string_to_position["skid lid"]           = 206;
+ string_to_position["bike helmet"]           = 206;
+ string_to_position["motorcycle helmet"]           = 206;
+ string_to_position["baseball helmet"]           = 207;
+
+ string_to_position["fur hat"]           = 215;
+ string_to_position["cotton hat"]           = 216;
+ string_to_position["knit hat"]           = 217;
+ string_to_position["boonie hat"]           = 217;
+ string_to_position["baseball cap"]           = 218;
+ string_to_position["hunting cap"]           = 218;
+
+ string_to_position["safety glasses"]           = 219;
+ string_to_position["ski goggles"]           = 219;
+ string_to_position["welding goggles"]           = 219;
+ string_to_position["light amp goggles"]           = 219;
+
+ string_to_position["eyeglasses"]           = 220;
+ string_to_position["reading glasses"]           = 220;
+ string_to_position["swim goggles"]           = 220;
+
+ string_to_position["gas mask"]           = 221;
+ string_to_position["dust mask"]           = 222;
+ string_to_position["filter mask"]           = 222;
+
+ string_to_position["light gloves"]           = 223;
+ string_to_position["mittens"]           = 223;
+ string_to_position["wool gloves"]           = 223;
+ string_to_position["winter gloves"]           = 223;
+ string_to_position["leather gloves"]           = 223;
+ string_to_position["fingerless gloves"]           = 223;
+ string_to_position["rubber gloves"]           = 223;
+ string_to_position["medical gloves"]           = 223;
+ string_to_position["fire gauntlets"]           = 223;
+
+ string_to_position["boots"]           = 224;
+ string_to_position["steeltoed boots"] = 224;
+ string_to_position["winter boots"]    = 224;
+ string_to_position["mocassins"]       = 224;
+ string_to_position["flip-flops"]      = 225;
+ string_to_position["sneakers"]        = 225;
+ string_to_position["dress shoes"]     = 226;
+ string_to_position["heels"]           = 226;
+ string_to_position["messenger bag"]           = 227;
+ string_to_position["backpack"]           = 228;
+ string_to_position["purse"]           = 229;
+ string_to_position["fanny pack"]      = 229;
+
+ string_to_position["jeans"]      = 230;
+ string_to_position["pants"]      = 231;
+ string_to_position["leather pants"]      = 232;
+ string_to_position["cargo pants"]      = 233;
+ string_to_position["army pants"]      = 234;
+ string_to_position["skirt"]      = 235;
+ string_to_position["jumpsuit"]      = 236;
+ string_to_position["dress"]      = 237;
+ string_to_position["chitinous armor"]      = 238;
+ string_to_position["kevlar vest"]      = 237;
+
+ string_to_position["scissors"]        = 240;
+ string_to_position["hammer"]          = 241;
+ string_to_position["wrench"]          = 242;
+ string_to_position["screwdriver"]     = 243;
+ string_to_position["soldering iron"]     = 243;
+ string_to_position["wood saw"]        = 244;
+ string_to_position["hack saw"]        = 245;
+ string_to_position["sledge hammer"]   = 246;
+ string_to_position["jack hammer"]     = 247;
+ string_to_position["chainsaw"]   = 248;
+ string_to_position["crowbar"]   = 249;
+ string_to_position["two by four"]   = 250;
+ string_to_position["heavy stick"]   = 251;
+ string_to_position["pipe"]   = 252;
+ string_to_position["muffler"]   = 253;
+ string_to_position["baseball bat"]   = 254;
+ string_to_position["rubber hose"]   = 255;
+ string_to_position["syringe"]   = 256;
+ string_to_position["rag"]   = 257;
+ string_to_position["fur pelt"]   = 258;
+ string_to_position["leather pelt"]   = 258;
+ string_to_position["superglue"]   = 259;
+ string_to_position["ID card"]   = 260;
+ string_to_position["electrohack"]   = 261;
+ string_to_position["string - 6 in"]   = 262;
+ string_to_position["string - 3 ft"]   = 262;
+ string_to_position["rope - 6 ft"]   = 263;
+ string_to_position["rope - 30 ft"]   = 263;
+ string_to_position["steel chain"]   = 264;
+ string_to_position["processor board"]   = 265;
+ string_to_position["RAM"]   = 266;
+ string_to_position["power converter"]   = 267;
+ string_to_position["amplifier circuit"]   = 268;
+ string_to_position["transponder circuit"]   = 268;
+ string_to_position["signar receiver"]   = 269;
+ string_to_position["antenna"]   = 270;
+ string_to_position["chunk of steel"]   = 271;
+ string_to_position["electric motor"]   = 272;
+ string_to_position["sheet of glass"]   = 273;
+ string_to_position["manhole cover"]   = 274;
+ string_to_position["rock"]   = 275;
+ string_to_position["broom"]   = 276;
+ string_to_position["mop"]   = 277;
+ string_to_position["hatchet"]   = 278;
+ string_to_position["wood ax"]   = 279;
+ string_to_position["nail board"]   = 280;
+ string_to_position["X-Acto knife"]   = 281;
+ string_to_position["pot"]   = 282;
+ string_to_position["frying pan"]   = 283;
+ string_to_position["butter knife"]   = 284;
+ string_to_position["steak knife"]   = 284;
+ string_to_position["butcher knife"]   = 284;
+ string_to_position["combat knife"]   = 284;
+ string_to_position["machete"]   = 285;
+ string_to_position["katana"]   = 286;
+ string_to_position["wood spear"]   = 287;
+ string_to_position["steel spear"]   = 288;
+ string_to_position["expandable baton"]   = 289;
+ string_to_position["bee sting"]   = 290;
+ string_to_position["wasp sting"]   = 290;
+ string_to_position["chunk of chitin"]   = 291;
+ string_to_position["empty canister"]   = 292;
+ string_to_position["gold bar"]   = 293;
+ string_to_position["flashlight (on)"]   = 294;
+ string_to_position["flashlight (off)"]   = 295;
+ string_to_position["lighter"]   = 296;
+ string_to_position["fire extinguisher"]   = 297;
+ string_to_position["plastic bottle"]   = 298;
+ string_to_position["glass bottle"]   = 299;
+ string_to_position["sm. cardboard box"]   = 300;
+ string_to_position["aluminum can"]   = 301;
+ string_to_position["tin can"]   = 301;
+ string_to_position["plastic bag"]   = 302;
+
+ string_to_position["rain coat"]   = 304;
+ string_to_position["trenchcoat"]   = 305;
+ string_to_position["peacoat"]   = 305;
+ string_to_position["fur coat"]   = 305;
+ string_to_position["winter coat"]   = 305;
+ string_to_position["wool poncho"]   = 306;
+ string_to_position["t shirt"]   = 307;
+ string_to_position["polo shirt"]   = 307;
+ string_to_position["dress shirt"]   = 308;
+ string_to_position["tank top"]   = 309;
+ string_to_position["sweatshirt"]   = 310;
+ string_to_position["sweater"]   = 310;
+
+ string_to_position["shallow water"]   = 125;
+ string_to_position["deep water"]   = 126;
+ string_to_position["sewage"]   = 127;
+
+ string_to_position["subway station"]   = 128;
+ string_to_position["police station"]   = 129;
+ string_to_position["library"]   = 130;
+ string_to_position["grocery store"]   = 131;
+ string_to_position["sporting goods store"]   = 132;
+ string_to_position["gun store"]   = 133;
+ string_to_position["clothing store"]   = 134;
+ string_to_position["hardware store"]   = 135;
+ string_to_position["pharmacy"]   = 136;
+ string_to_position["bar"]   = 137;
+ string_to_position["liquor store"]   = 138;
+ string_to_position["bank"]   = 139;
+
+ string_to_position["bee hive"]     = 167;
+ string_to_position["house"]   = 140;
+ string_to_position["swamp"]   = 141;
+ string_to_position["park"]   = 142;
+ string_to_position["forest"]   = 143;
+
+ string_to_position["river"]   = 126;
+ string_to_position["river bank"]   = 125;
+ string_to_position["field"]   = 160;
+ string_to_position["road"]   = 164;
+ string_to_position["highway"]   = 164;
+ string_to_position["road, manhole"]   = 165;
+ string_to_position["parking lot"]     = 165;
+ string_to_position["gas station"]     = 171;
+ string_to_position["science lab"]     = 124;
+
+ string_to_position["underbrush"]   = 141;
+ string_to_position["marloss bush"]   = 141;
+ string_to_position["young tree"]   = 142;
+ string_to_position["tree"]   = 143;
+}
+
+#endif // _OUTPUT_CPP_

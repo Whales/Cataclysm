@@ -2,9 +2,11 @@
 #define _OUTPUT_H_
 
 #include "color.h"
+#include <string.h>
 #include <cstdarg>
 #include <string>
 #include <vector>
+#include <map>
 
 //      LINE_NESW  - X for on, O for off
 #define LINE_XOXO 4194424
@@ -49,5 +51,50 @@ nc_color invert_color(nc_color c);
 nc_color red_background(nc_color c);
 nc_color rand_color();
 char rand_char();
+
+
+// Graphical tileset code
+// ==================================================================
+
+#include "curses.h"
+
+// if we use SDL, load the header
+#ifdef __TILESET
+ #include <SDL/SDL.h>
+ #undef main
+
+extern "C" {
+ PDCEX int pdc_sheight, pdc_swidth;
+ int pdc_toggle_fullscreen();
+}
+
+#endif
+
+// struct used to compare \0-terminated strings
+struct ltstr {
+    bool operator()(const char* s1, const char* s2) const {
+        return strcmp(s1, s2) < 0;
+    }
+};
+
+// this class will be used to make it possible to define multiple tilesets
+// tilesets will map strings to positions within their file
+class Tileset {
+public:
+ Tileset();
+ int name_to_position(const char* name);
+
+private:
+ std::map<const char*,int,ltstr> string_to_position;
+};
+
+// In tileset mode, this can be used to adjust the window size.
+void set_screen_size(int argc, char *argv[]);
+
+extern Tileset* active_tileset;
+
+// if in tileset mode, draws the sprite associated with symbol, otherwise returns false
+bool draw_object(WINDOW* w, int x, int y, int symbol, bool highlight=false, bool alpha=false);
+
 
 #endif

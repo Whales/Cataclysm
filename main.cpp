@@ -13,6 +13,9 @@ int main(int argc, char *argv[])
 {
  srand(time(NULL));
 
+// prepare a tileset for graphical rendering
+ active_tileset = new Tileset();
+
 // ncurses stuff
  initscr(); // Initialize ncurses
  noecho();  // Don't echo keypresses

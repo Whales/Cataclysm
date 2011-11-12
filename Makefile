@@ -11,13 +11,14 @@ DDIR = .deps
 
 TARGET = cataclysm
 
-OS  = $(shell uname -o)
+OS  = $(shell uname -s)
 CXX = g++
 
 CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE)
 
-ifeq ($(OS), Msys)
-LDFLAGS = -static -lpdcurses
+ifeq ($(OS), MINGW32_NT-5.1)
+CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE) -D__TILESET
+LDFLAGS = -static -lpdcurses -lSDL
 else 
 LDFLAGS = -lncurses
 endif
