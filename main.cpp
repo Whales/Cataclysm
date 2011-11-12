@@ -13,6 +13,9 @@ int main(int argc, char *argv[])
 {
  srand(time(NULL));
 
+// set the screen size
+ set_screen_size(argc, argv);
+
 // prepare a tileset for graphical rendering
  active_tileset = new Tileset();
 

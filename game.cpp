@@ -412,7 +412,7 @@ void game::start_game()
  u.per_cur = u.per_max;
  u.int_cur = u.int_max;
  u.dex_cur = u.dex_max;
- nextspawn = int(turn);	
+ nextspawn = int(turn);
  temperature = 65;	// Springtime-appropriate?
 
 // Testing pet dog!
@@ -2070,7 +2070,7 @@ unsigned char game::light_level()
  int flashlight = u.active_item_charges(itm_flashlight_on);
  //int light = u.light_items();
  if (ret < 10 && flashlight > 0) {
-/* additive so that low battery flashlights still increase the light level 
+/* additive so that low battery flashlights still increase the light level
 	rather than decrease it 						*/
   ret += flashlight;
   if (ret > 10)
@@ -2370,7 +2370,8 @@ void game::mon_info()
     mvwputch (w_moninfo, line, 0, tmpcol, '@');
     mvwprintw(w_moninfo, line, 2, active_npc[(buff + 1) * -1].name.c_str());
    } else {
-    mvwputch (w_moninfo, line, 0, mtypes[buff]->color, mtypes[buff]->sym);
+    if(!draw_object(w_moninfo, 0, line, mtypes[buff]->sprite))
+       mvwputch (w_moninfo, line, 0, mtypes[buff]->color, mtypes[buff]->sym);
     mvwprintw(w_moninfo, line, 2, mtypes[buff]->name.c_str());
    }
    line++;
@@ -2536,7 +2537,7 @@ void game::check_warmth()
   add_msg("Your body is cold.");
   u.add_disease(DI_COLD, abs(warmth), this);
  } else if (warmth >= 12) {
-  add_msg("Your body is too hot."); 
+  add_msg("Your body is too hot.");
   u.add_disease(DI_HOT, warmth * 2, this);
  }
  // HANDS
@@ -2799,7 +2800,7 @@ void game::use_computer(int x, int y)
   debugmsg("Tried to use computer at (%d, %d) - none there", x, y);
   return;
  }
- 
+
  used->use(this);
 
  refresh_all();
@@ -4952,7 +4953,7 @@ void game::vertical_move(int movez, bool force)
   }
 
   if (stairx == -1 || stairy == -1) { // No stairs found!
-// Before we return in any of these cases, we have to reset cur_om to the 
+// Before we return in any of these cases, we have to reset cur_om to the
 // proper level!
    if (movez < 0) {
     if (tmpmap.move_cost(u.posx, u.posy) == 0) {
@@ -4976,7 +4977,7 @@ void game::vertical_move(int movez, bool force)
    stairy = u.posy;
   }
  }
- 
+
 // We moved!  Load the new map.
  levz += movez;
  u.moves -= 100;
@@ -4985,7 +4986,7 @@ void game::vertical_move(int movez, bool force)
  if (abs(monstairx - levx) <= 1 && abs(monstairy - levy) <= 1 &&
      monstairz == levz)
   replace_monsters = true;
- 
+
  if (!force) {
   monstairx = levx;
   monstairy = levy;
