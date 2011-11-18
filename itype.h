@@ -24,7 +24,7 @@ itm_corpse,
 // Special crafting-only pseudoitems
 itm_fire, itm_toolset,
 // Drinks
-itm_water, itm_water_iodine, itm_sewage,
+itm_water,itm_water_iodine, itm_sewage,
  itm_salt_water, itm_oj, itm_apple_cider,
  itm_energy_drink, itm_cola, itm_rootbeer, itm_milk, itm_V8, itm_broth,
  itm_soup, itm_whiskey, itm_vodka, itm_rum, itm_tequila, itm_beer, itm_bleach,

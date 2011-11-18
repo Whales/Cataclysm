@@ -5393,7 +5393,7 @@ void game::spawn_mon(int shiftx, int shifty)
  int iter;
  int t;
  // Create a new NPC?
-
+/*
   if (one_in(50 + 5 * cur_om.npcs.size())) {
    npc temp;
    temp.randomize(this);
@@ -5405,6 +5405,7 @@ void game::spawn_mon(int shiftx, int shifty)
    active_npc.push_back(temp);
   }
 
+  */
 
 // Now, spawn monsters (perhaps)
  monster zom;

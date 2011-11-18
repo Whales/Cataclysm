@@ -56,11 +56,7 @@ DRINK("water",		90, 50,	c_ltcyan, itm_bottle_plastic,
 	50,  0,  0,  0,  0,  0,  1,  0,&iuse::none,	ADD_NULL, "\
 Water, the stuff of life, the best thirst-quencher available.");
 
-DRINK("purified water",     100, 50, c_ltcyan, itm_null,
-    50,  0,  0,  0,  0,  0,  1,  1,&iuse::none,   ADD_NULL, "\
-Water and you're sure it's clean.");
-
-DRINK("iodine water",      30, 50, c_ltcyan, itm_null,
+DRINK("iodine water",      30, 50, c_ltcyan, itm_bottle_plastic,
     50,  0,  0,  0,  0,  0,  1, -1,&iuse::none,   ADD_NULL, "\
 Water, it's clean but has a nasty taste.");
 
