@@ -684,29 +684,16 @@ std::vector<item>& map::i_at(int x, int y)
 
 item map::water_from(int x, int y)
 {
- item ret((*itypes)[itm_null], 0);
- int rn = rng(1, 10);
- if (ter(x, y) == t_water_sh) {
-  if (rn <= 3)
-   ret.type = (*itypes)[itm_water_dirty];
-  else
-   ret.type = (*itypes)[itm_water];
- } else if (ter(x, y) == t_water_dp) {
-  if (rn <= 2)
-   ret.type = (*itypes)[itm_water_dirty];
-  else
-   ret.type = (*itypes)[itm_water];
- } else if (ter(x, y) == t_sewage) {
-  if (rn <= 9)
-   ret.type = (*itypes)[itm_water_dirty];
-  else
-   ret.type = (*itypes)[itm_water];
- } else if (ter(x, y) == t_toilet) {
-  if (rn <= 8)
-   ret.type = (*itypes)[itm_water_dirty];
-  else
-   ret.type = (*itypes)[itm_water];
- }
+ item ret((*itypes)[itm_water], 0);
+ if (ter(x, y) == t_water_sh && one_in(3))
+  ret.poison = rng(1, 4);
+ else if (ter(x, y) == t_water_dp && one_in(4))
+  ret.poison = rng(1, 4);
+ else if (ter(x, y) == t_sewage)
+  ret.poison = rng(1, 7);
+ else if (ter(x, y) == t_toilet && !one_in(3))
+  ret.poison = rng(1, 3);
+
  return ret;
 }
 
@@ -742,12 +729,16 @@ void map::add_item(int x, int y, itype* type, int birthday)
 {
  item tmp(type, birthday);
  tmp = tmp.in_its_container(itypes);
+ if (tmp.made_of(LIQUID) && has_flag(swimmable, x, y))
+  return;
  add_item(x, y, tmp);
 }
 
 void map::add_item(int x, int y, item new_item)
 {
  if (!inbounds(x, y))
+  return;
+ if (new_item.made_of(LIQUID) && has_flag(swimmable, x, y))
   return;
  if (has_flag(noitem, x, y) || i_at(x, y).size() >= 26) {// Too many items there
   std::vector<point> okay;
@@ -1145,7 +1136,8 @@ bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
  }
 }
 
-std::vector<point> map::route(int Fx, int Fy, int Tx, int Ty)
+// Bash defaults to true.
+std::vector<point> map::route(int Fx, int Fy, int Tx, int Ty, bool bash)
 {
 /* TODO: If the origin or destination is out of bound, figure out the closest
  * in-bounds point and go to that, then to the real origin/destination.
@@ -1204,7 +1196,7 @@ std::vector<point> map::route(int Fx, int Fy, int Tx, int Ty)
      done = true;
      parent[x][y] = open[index];
     } else if (inbounds(x, y) &&
-               (move_cost(x, y) > 0 || has_flag(bashable, x, y))) {
+               (move_cost(x, y) > 0 || (bash && has_flag(bashable, x, y)))) {
      if (list[x][y] == ASL_NONE) {	// Not listed, so make it open
       list[x][y] = ASL_OPEN;
       open.push_back(point(x, y));
@@ -1212,14 +1204,14 @@ std::vector<point> map::route(int Fx, int Fy, int Tx, int Ty)
       gscore[x][y] = gscore[open[index].x][open[index].y] + move_cost(x, y);
       if (ter(x, y) == t_door_c)
        gscore[x][y] += 4;	// A turn to open it and a turn to move there
-      else if (move_cost(x, y) == 0 && has_flag(bashable, x, y))
+      else if (move_cost(x, y) == 0 && (bash && has_flag(bashable, x, y)))
        gscore[x][y] += 18;	// Worst case scenario with damage penalty
       score[x][y] = gscore[x][y] + 2 * rl_dist(x, y, Tx, Ty);
      } else if (list[x][y] == ASL_OPEN) { // It's open, but make it our child
       int newg = gscore[open[index].x][open[index].y] + move_cost(x, y);
       if (ter(x, y) == t_door_c)
        newg += 4;	// A turn to open it and a turn to move there
-      else if (move_cost(x, y) == 0 && has_flag(bashable, x, y))
+      else if (move_cost(x, y) == 0 && (bash && has_flag(bashable, x, y)))
        newg += 18;	// Worst case scenario with damage penalty
       if (newg < gscore[x][y]) {
        gscore[x][y] = newg;
@@ -1366,7 +1358,7 @@ void map::saven(overmap *om, unsigned int turn, int worldx, int worldy,
  for (int i = 0; i < grid[n].spawns.size(); i++) {
   tmpsp = grid[n].spawns[i];
   fout << "S " << int(tmpsp.type) << " " << tmpsp.count << " " << tmpsp.posx <<
-          " " << tmpsp.posy << std::endl;
+          " " << tmpsp.posy << " " << (tmpsp.friendly ? "1" : "0") << std::endl;
  }
 // Output the computer
  if (grid[n].comp.name != "")
@@ -1449,8 +1441,9 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
     mapin >> itx >> ity >> t >> d >> a;
     grid[gridn].fld[itx][ity] = field(field_id(t), d, a);
    } else if (!mapin.eof() && ch == 'S') {
-    mapin >> t >> a >> itx >> ity;
-    spawn_point tmp(mon_id(t), a, itx, ity);
+    char tmpfriend;
+    mapin >> t >> a >> itx >> ity >> tmpfriend;
+    spawn_point tmp(mon_id(t), a, itx, ity, (tmpfriend == '1'));
     grid[gridn].spawns.push_back(tmp);
    } else if (!mapin.eof() && ch == 'c') {
     getline(mapin, databuff);
@@ -1494,12 +1487,9 @@ void map::spawn_monsters(game *g)
      int tries = 0;
      int mx = grid[n].spawns[i].posx, my = grid[n].spawns[i].posy;
      monster tmp(g->mtypes[grid[n].spawns[i].type]);
-     tmp.spawnposx = mx;
-     tmp.spawnposy = my;
      tmp.spawnmapx = g->levx;
      tmp.spawnmapy = g->levy;
-// TODO: this is a hacky hacky hack
-     if (tmp.type->id == mon_dog_thing)
+     if (grid[n].spawns[i].friendly)
       tmp.friendly = -1;
      int fx = mx + gx * SEEX, fy = my + gy * SEEY;
 
@@ -1512,6 +1502,8 @@ void map::spawn_monsters(game *g)
       tries++;
      }
      if (tries != 10) {
+      tmp.spawnposx = fx;
+      tmp.spawnposy = fy;
       tmp.spawn(fx, fy);
       g->z.push_back(tmp);
      }
