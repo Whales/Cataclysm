@@ -71,6 +71,11 @@ class game
   bool event_queued(event_type type);
 // Sound at (x, y) of intensity (vol), described to the player is (description)
   void sound(int x, int y, int vol, std::string description);
+// creates a list of coordinates to draw footsteps
+  void add_footstep(int x, int y, int volume, int distance);
+  std::vector<point> footsteps;
+// visual cue to monsters moving out of the players sight
+  void draw_footsteps();
 // Explosion at (x, y) of intensity (power), with (shrapnel) chunks of shrapnel
   void explosion(int x, int y, int power, int shrapnel, bool fire);
 // Flashback at (x, y)
@@ -104,6 +109,7 @@ class game
   int reserve_mission(mission_id type);
   mission* find_mission(int id); // Mission with UID=id; NULL if non-existant
   void teleport(player *p = NULL);
+  void plswim(int x, int y); // Called by plmove.  Handles swimming
   void nuke(int x, int y);
   std::vector<faction *> factions_at(int x, int y);
   int& scent(int x, int y);
@@ -115,11 +121,16 @@ class game
   bool u_see (int x, int y, int &t);
   bool u_see (monster *mon, int &t);
   bool pl_sees(player *p, monster *mon, int &t);
+  point look_around();// Look at nearby terrain	';'
   void refresh_all();
   void update_map(int &x, int &y);  // Called by plmove when the map updates
+  void update_overmap_seen(); // Update which overmap tiles we can see
 
   faction* random_good_faction();
   faction* random_evil_faction();
+
+  itype* new_artifact();
+  void process_artifact(item *it, player *p, bool wielded = false);
 
   char inv(std::string title = "Inventory:");
   std::vector<item> multidrop();
@@ -183,7 +194,6 @@ class game
   void monster_wish(); // Create a monster
 
   void plmove(int x, int y); // Standard movement; handles attacks, traps, &c
-  void plswim(int x, int y); // Called by plmove.  Handles swimming
   void wait();	// Long wait (player action)	'^'
   void open();	// Open a door			'o'
   void close();	// Close a door			'c'
@@ -199,7 +209,6 @@ class game
   void place_construction(constructable con); // See construction.cpp
   void complete_construction();               // See construction.cpp
   void examine();// Examine nearby terrain	'e'
-  point look_around();// Look at nearby terrain	';'
   void pickup(int posx, int posy, int min);// Pickup items; ',' or via examine()
 // Pick where to put liquid; false if it's left where it was
   bool handle_liquid(item &liquid, bool from_ground, bool infinite);
@@ -284,6 +293,7 @@ class game
   quit_status uquit;    // Set to true if the player quits ('Q')
 
   calendar nextspawn; // The turn on which monsters will spawn next.
+  calendar nextweather; // The turn on which weather will shift next.
   int next_npc_id, next_faction_id, next_mission_id; // Keep track of UIDs
   signed char temperature;              // The air temperature
   weather_type weather;			// Weather pattern--SEE weather.h

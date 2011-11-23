@@ -65,21 +65,21 @@ oter_id shop(int dir)
  if (one_in(20))
   type = 14;
  switch (type) {
-  case  0: ret = ot_s_lot;	       break;
-  case  1: ret = ot_s_gas_north;       break;
-  case  2: ret = ot_s_pharm_north;     break;
-  case  3: ret = ot_s_grocery_north;   break;
-  case  4: ret = ot_s_hardware_north;  break;
-  case  5: ret = ot_s_sports_north;    break;
-  case  6: ret = ot_s_liquor_north;    break;
-  case  7: ret = ot_s_gun_north;       break;
-  case  8: ret = ot_s_clothes_north;   break;
-  case  9: ret = ot_s_library_north;   break;
-  case 10: ret = ot_sub_station_north; break;
-  case 11: ret = ot_bank_north;        break;
-  case 12: ret = ot_bar_north;         break;
+  case  0: ret = ot_s_lot;	         break;
+  case  1: ret = ot_s_gas_north;         break;
+  case  2: ret = ot_s_pharm_north;       break;
+  case  3: ret = ot_s_grocery_north;     break;
+  case  4: ret = ot_s_hardware_north;    break;
+  case  5: ret = ot_s_sports_north;      break;
+  case  6: ret = ot_s_liquor_north;      break;
+  case  7: ret = ot_s_gun_north;         break;
+  case  8: ret = ot_s_clothes_north;     break;
+  case  9: ret = ot_s_library_north;     break;
+  case 10: ret = ot_sub_station_north;   break;
+  case 11: ret = ot_bank_north;          break;
+  case 12: ret = ot_bar_north;           break;
   case 13: ret = ot_s_electronics_north; break;
-  case 14: ret = ot_police_north;      break;
+  case 14: ret = ot_police_north;        break;
  }
  if (ret == ot_s_lot)
   return ret;
@@ -510,6 +510,7 @@ void overmap::generate_sub(overmap* above)
  std::vector<city> mine_points;
  std::vector<point> bunker_points;
  std::vector<point> triffid_points;
+ std::vector<point> temple_points;
  for (int i = 0; i < OMAPX; i++) {
   for (int j = 0; j < OMAPY; j++) {
    seen(i, j) = false;	// Start by setting all squares to unseen
@@ -555,6 +556,9 @@ void overmap::generate_sub(overmap* above)
    else if (above->ter(i, j) == ot_triffid_grove ||
             above->ter(i, j) == ot_triffid_roots)
     triffid_points.push_back( point(i, j) );
+
+   else if (above->ter(i, j) == ot_temple_stairs)
+    temple_points.push_back( point(i, j) );
 
    else if (above->ter(i, j) == ot_lab_core ||
             (posz == -1 && above->ter(i, j) == ot_lab_stairs))
@@ -637,6 +641,13 @@ void overmap::generate_sub(overmap* above)
    ter( triffid_points[i].x, triffid_points[i].y ) = ot_triffid_finale;
  }
 
+ for (int i = 0; i < temple_points.size(); i++) {
+  if (posz == -5)
+   ter( temple_points[i].x, temple_points[i].y ) = ot_temple_finale;
+  else
+   ter( temple_points[i].x, temple_points[i].y ) = ot_temple_stairs;
+ }
+
 }
 
 void overmap::make_tutorial()
@@ -686,24 +697,11 @@ std::vector<point> overmap::find_all(point origin, oter_id type, int type_range,
 
 std::vector<point> overmap::find_terrain(std::string term, int cursx, int cursy)
 {
- int range = 1;
  std::vector<point> found;
- for (int i = 0; i < num_ter_types; i++) {
-  if (oterlist[i].name.find(term) != std::string::npos) {
-   if (i == ot_forest || i == ot_hive || i == ot_hiway_ns ||
-       i == ot_bridge_ns)
-    range = 2;
-   else if (i >= ot_road_ns && i < ot_road_nesw_manhole)
-    range = ot_road_nesw_manhole - i + 1;
-   else if (i >= ot_river_center && i < ot_river_nw)
-    range = ot_river_nw - i + 1;
-   else if (i >= ot_house_north && i < ot_lab)
-    range = 4;
-   else if (i == ot_lab)
-    range = 2;
-   int maxdist = OMAPX;
-   found = find_all(point(cursx,cursy), oter_id(i), range, maxdist, true);
-   i = num_ter_types;
+ for (int x = 0; x < OMAPX; x++) {
+  for (int y = 0; y < OMAPY; y++) {
+   if (seen(x, y) && oterlist[ter(x, y)].name.find(term) != std::string::npos)
+    found.push_back( point(x, y) );
   }
  }
  return found;
@@ -1962,8 +1960,10 @@ void overmap::place_specials()
    for (int i = 0; i < NUM_OMSPECS; i++) {
     omspec_place place;
     overmap_special special = overmap_specials[i];
+    int min = special.min_dist_from_city, max = special.max_dist_from_city;
     if ((placed[i] < special.max_appearances || special.max_appearances == 0) &&
-        dist_from_city(p) >= special.min_dist_from_city &&
+        (min == -1 || dist_from_city(p) >= min) &&
+        (max == -1 || dist_from_city(p) <= max) &&
         (place.*special.able)(this, p))
      valid.push_back( omspec_id(i) );
    }
@@ -1982,19 +1982,26 @@ void overmap::place_specials()
 
 void overmap::place_special(overmap_special special, point p)
 {
+ bool rotated = false;
 // First, place terrain...
  ter(p.x, p.y) = special.ter;
 // Next, obey any special effects the flags might have
  if (special.flags & mfb(OMS_FLAG_ROTATE_ROAD)) {
-  if (is_road(p.x + 1, p.y))
+  if (is_road(p.x, p.y - 1))
+   rotated = true;
+  else if (is_road(p.x + 1, p.y)) {
    ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + 1);
-  else if (is_road(p.x, p.y + 1))
+   rotated = true;
+  } else if (is_road(p.x, p.y + 1)) {
    ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + 2);
-  else if (is_road(p.x - 1, p.y))
+   rotated = true;
+  } else if (is_road(p.x - 1, p.y)) {
    ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + 3);
+   rotated = true;
+  }
  }
 
- if (special.flags & mfb(OMS_FLAG_ROTATE_RANDOM))
+ if (!rotated && special.flags & mfb(OMS_FLAG_ROTATE_RANDOM))
   ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + rng(0, 3) );
   
  if (special.flags & mfb(OMS_FLAG_3X3)) {
@@ -2005,6 +2012,30 @@ void overmap::place_special(overmap_special special, point p)
     point np(p.x + x, p.y + y);
     ter(np.x, np.y) = special.ter;
    }
+  }
+ }
+
+ if (special.flags & mfb(OMS_FLAG_3X3_SECOND)) {
+  int startx = -1, starty = -1;
+  if (is_road(p.x, p.y - 1)) { // Road to north
+   startx = p.x - 1;
+   starty = p.y;
+  } else if (is_road(p.x + 1, p.y)) { // Road to east
+   startx = p.x - 2;
+   starty = p.y - 1;
+  } else if (is_road(p.x, p.y + 1)) { // Road to south
+   startx = p.x - 1;
+   starty = p.y - 2;
+  } else if (is_road(p.x - 1, p.y)) { // Road to west
+   startx = p.x;
+   starty = p.y - 1;
+  }
+  if (startx != -1) {
+   for (int x = startx; x < startx + 3; x++) {
+    for (int y = starty; y < starty + 3; y++)
+     ter(x, y) = oter_id(special.ter + 1);
+   }
+   ter(p.x, p.y) = special.ter;
   }
  }
 

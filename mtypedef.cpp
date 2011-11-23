@@ -119,7 +119,7 @@ mandibles."
 mon("queen ant",	'a',	c_ltred,	MS_LARGE,	FLESH,
 	(mfb(MF_SMELLS)|mfb(MF_QUEEN)),
 //	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
-	  0, 13,  2, 60,  6,  3,  4,  4,  1, 14,-40,180, 5,
+	  0, 13,  2, 60,  6,  3,  4,  4,  1, 14,-40,180, 1,
 	&mdeath::normal,	&mattack::antqueen, "\
 This ant has a long, bloated thorax, bulging\n\
 with hundreds of small ant eggs.  It moves\n\
@@ -135,6 +135,15 @@ mon("fungal insect",	'a',	c_ltgray,	MS_MEDIUM,	VEGGY,
 This insect is pale gray in color, its\n\
 chitin weakened by the fungus sprouting\n\
 from every joint on its body."
+);
+
+mon("giant fly",	'a',	c_ltgray,	MS_SMALL,	FLESH,
+	(mfb(MF_SMELLS)|mfb(MF_FLIES)|mfb(MF_STUMBLES)),
+//	frq dif agr spd msk mdi m## cut dge arm itm  HP special freq
+	  0,  8,  5,120,  3,  1,  3,  0,  5,  0,  0, 25,  0,
+	&mdeath::normal,	&mattack::none, "\
+A large housefly the size of a small dog.\n\
+It buzzes around incessantly."
 );
 
 mon("giant bee",	'a',	c_yellow,	MS_SMALL,	FLESH,

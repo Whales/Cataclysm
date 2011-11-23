@@ -9,6 +9,7 @@
 #include "trap.h"
 #include "morale.h"
 #include "inventory.h"
+#include "artifact.h"
 #include <vector>
 #include <string>
 
@@ -60,6 +61,8 @@ public:
  void mutate(game *g);
 
  int  sight_range(int light_level);
+ int  overmap_sight_range(int light_level);
+ int  clairvoyance(); // Sight through walls &c
  bool has_two_arms();
  bool can_wear_boots();
  bool is_armed();	// True if we're wielding something; true for bionics
@@ -68,7 +71,7 @@ public:
 
  void pause();		// '.' command; pauses & reduces recoil
  int  hit_roll(); // Our basic hit roll, compared to our target's dodge roll
- bool scored_crit();
+ bool scored_crit(int target_dodge = 0);
  int  hit_mon(game *g, monster *z); // Handles hitting a monster up to its death
 // hit_player returns false on a miss, and modifies bp, hitdam, and hitcut
  bool hit_player(player &p, body_part &bp, int &hitdam, int &hitcut);
@@ -164,6 +167,7 @@ public:
  std::vector<item> inv_dump(); // Inventory + weapon + worn (for death, etc)
  int  butcher_factor();	// Automatically picks our best butchering tool
  bool is_wearing(itype_id it);	// Are we wearing a specific itype?
+ bool has_artifact_with(art_effect_passive effect);
 
 // has_amount works ONLY for quantity.
 // has_charges works ONLY for charges.

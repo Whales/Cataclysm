@@ -7,6 +7,7 @@
 #include "keypress.h"
 #include "moraledata.h"
 #include "inventory.h"
+#include "artifact.h"
 #include <sstream>
 #include <curses.h>
 #include <stdlib.h>
@@ -171,10 +172,10 @@ void player::reset()
  }
 // Radiation
  if (radiation > 0) {
-  str_cur  -= int(radiation / 24);
-  dex_cur  -= int(radiation / 36);
-  per_cur  -= int(radiation / 40);
-  int_cur  -= int(radiation / 48);
+  str_cur  -= int(radiation / 80);
+  dex_cur  -= int(radiation / 110);
+  per_cur  -= int(radiation / 100);
+  int_cur  -= int(radiation / 120);
  }
 // Stimulants
  dex_cur += int(stim / 10);
@@ -274,6 +275,11 @@ int player::current_speed()
  if (has_trait(PF_QUICK))
   newmoves = int(newmoves * 1.10);
 
+ if (has_artifact_with(AEP_SPEED_UP))
+  newmoves += 20;
+ if (has_artifact_with(AEP_SPEED_DOWN))
+  newmoves -= 20;
+
  if (newmoves < 1)
   newmoves = 1;
 
@@ -323,7 +329,7 @@ nc_color player::color()
   return c_pink;
  if (underwater)
   return c_blue;
- if (has_active_bionic(bio_cloak))
+ if (has_active_bionic(bio_cloak) || has_artifact_with(AEP_INVISIBLE))
   return c_dkgray;
  return c_white;
 }
@@ -360,7 +366,7 @@ void player::load_info(game *g, std::string data)
   illness.push_back(illtmp);
  }
 
- int numadd;
+ int numadd = 0;
  addiction addtmp;
  dump >> numadd;
  for (int i = 0; i < numadd; i++) {
@@ -369,7 +375,7 @@ void player::load_info(game *g, std::string data)
   addictions.push_back(addtmp);
  }
 
- int numbio;
+ int numbio = 0;
  bionic biotmp;
  dump >> numbio;
  for (int i = 0; i < numbio; i++) {
@@ -1937,6 +1943,25 @@ int player::sight_range(int light_level)
  return ret;
 }
 
+int player::overmap_sight_range(int light_level)
+{
+ int sight = sight_range(light_level);
+ if (sight < SEEX)
+  return 0;
+ if (sight <= SEEX * 4)
+  return (sight / (SEEX / 2));
+ if (has_amount(itm_binoculars, 1))
+  return 20;
+
+ return 10;
+}
+
+int player::clairvoyance()
+{
+ if (has_artifact_with(AEP_CLAIRVOYANCE))
+  return 3;
+}
+
 bool player::has_two_arms()
 {
  if (has_bionic(bio_blaster) || hp_cur[hp_arm_l] < 10 || hp_cur[hp_arm_r] < 10)
@@ -2097,6 +2122,32 @@ void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
  if (dam <= 0)
   return;
 
+ if (has_artifact_with(AEP_SNAKES) && dam >= 6) {
+  int snakes = int(dam / 6);
+  std::vector<point> valid;
+  for (int x = posx - 1; x <= posx + 1; x++) {
+   for (int y = posy - 1; y <= posy + 1; y++) {
+    if (g->is_empty(x, y))
+     valid.push_back( point(x, y) );
+   }
+  }
+  if (snakes > valid.size())
+   snakes = valid.size();
+  if (snakes == 1)
+   g->add_msg("A snake sprouts from your body!");
+  else if (snakes >= 2)
+   g->add_msg("Some snakes sprout from your body!");
+  monster snake(g->mtypes[mon_sewer_snake]);
+  for (int i = 0; i < snakes; i++) {
+   int index = rng(0, valid.size() - 1);
+   point sp = valid[index];
+   valid.erase(valid.begin() + index);
+   snake.spawn(sp.x, sp.y);
+   snake.friendly = -1;
+   g->z.push_back(snake);
+  }
+ }
+  
  if (has_trait(PF_PAINRESIST))
   painadd = (sqrt(cut) + dam + cut) / (rng(4, 6));
  else
@@ -2442,9 +2493,7 @@ void player::suffer(game *g)
  if (underwater) {
   if (!has_trait(PF_GILLS))
    oxygen--;
-  if (oxygen <= 5)
-   g->add_msg("You're almost out of air!  Press '<' to surface.");
-  else if (oxygen < 0) {
+  if (oxygen < 0) {
    if (has_bionic(bio_gills) && power_level > 0) {
     oxygen += 5;
     power_level--;
@@ -2452,7 +2501,8 @@ void player::suffer(game *g)
     g->add_msg("You're drowning!");
     hurt(g, bp_torso, 0, rng(2, 5));
    }
-  }
+  } else if (oxygen <= 5)
+   g->add_msg("You're almost out of air!  Press '<' to surface.");
  }
  for (int i = 0; i < illness.size(); i++) {
   dis_effect(g, *this, illness[i]);
@@ -2526,7 +2576,8 @@ void player::suffer(game *g)
      add_morale(MORALE_FEELING_BAD, -20, -100);
    }
   }
-  if (has_trait(PF_SCHIZOPHRENIC) && one_in(2400)) { // Every 4 hours or so
+  if ((has_trait(PF_SCHIZOPHRENIC) || has_artifact_with(AEP_SCHIZO)) &&
+      one_in(2400)) { // Every 4 hours or so
    monster phantasm;
    int i;
    switch(rng(0, 11)) {
@@ -2653,6 +2704,8 @@ void player::suffer(game *g)
  }
  if (has_trait(PF_UNSTABLE) && one_in(28800))	// Average once per 2 days
   mutate(g);
+ if (has_artifact_with(AEP_MUTAGENIC) && one_in(28800))
+  mutate(g);
  radiation += rng(0, g->m.radiation(posx, posy) / 4);
  if (rng(1, 1000) < radiation && int(g->turn) % 600 == 0) {
   mutate(g);
@@ -2685,6 +2738,9 @@ void player::suffer(game *g)
  if (has_bionic(bio_power_weakness) && max_power_level > 0 &&
      power_level >= max_power_level * .75)
   str_cur -= 3;
+
+ if (has_artifact_with(AEP_ATTENTION))
+  add_disease(DI_ATTENTION, 3, g);
 
  if (dex_cur < 0)
   dex_cur = 0;
@@ -2916,7 +2972,9 @@ void player::process_active_items(game *g)
 {
  it_tool* tmp;
  iuse use;
- if (weapon.active) {
+ if (weapon.is_artifact() && weapon.is_tool())
+  g->process_artifact(&weapon, this, true);
+ else if (weapon.active) {
   if (!weapon.is_tool()) {
    debugmsg("%s is active, but it is not a tool.", weapon.tname().c_str());
    return;
@@ -2936,6 +2994,8 @@ void player::process_active_items(game *g)
  for (int i = 0; i < inv.size(); i++) {
   for (int j = 0; j < inv.stack_at(i).size(); j++) {
    item *tmp_it = &(inv.stack_at(i)[j]);
+   if (tmp_it->is_artifact() && tmp_it->is_tool())
+    g->process_artifact(tmp_it, this);
    if (tmp_it->active) {
     tmp = dynamic_cast<it_tool*>(tmp_it->type);
     (use.*tmp->use)(g, this, tmp_it, true);
@@ -2958,6 +3018,10 @@ void player::process_active_items(game *g)
    }
   }
  }
+ for (int i = 0; i < worn.size(); i++) {
+  if (worn[i].is_artifact())
+   g->process_artifact(&(worn[i]), this);
+ }
 }
 
 item player::remove_weapon()
@@ -2971,7 +3035,7 @@ item player::i_rem(char let)
 {
  item tmp;
  if (weapon.invlet == let) {
-  if (weapon.type->id > num_items)
+  if (weapon.type->id > num_items && weapon.type->id < num_all_items)
    return ret_null;
   tmp = weapon;
   weapon = ret_null;
@@ -3077,6 +3141,12 @@ void player::use_amount(itype_id it, int quantity, bool use_container)
 
 void player::use_charges(itype_id it, int quantity)
 {
+ if (it == itm_toolset) {
+  power_level -= quantity;
+  if (power_level < 0)
+   power_level = 0;
+  return;
+ }
 // Start by checking weapon contents
  for (int i = 0; i < weapon.contents.size(); i++) {
   if (weapon.contents[i].type->id == it) {
@@ -3124,7 +3194,7 @@ int player::butcher_factor()
    if (cur_item->damage_cut() >= 10 && !cur_item->has_flag(IF_SPEAR)) {
     int factor = cur_item->volume() * 5 - cur_item->weight() * 1.5 -
                  cur_item->damage_cut();
-    if (cur_item->damage_cut() < 20)
+    if (cur_item->damage_cut() <= 20)
      factor *= 2;
     if (factor < lowest_factor)
      lowest_factor = factor;
@@ -3134,7 +3204,7 @@ int player::butcher_factor()
  if (weapon.damage_cut() >= 10) {
   int factor = weapon.volume() * 5 - weapon.weight() * 1.5 -
                weapon.damage_cut();
-  if (weapon.damage_cut() < 20)
+  if (weapon.damage_cut() <= 20)
    factor *= 2;
   if (factor < lowest_factor)
    lowest_factor = factor;
@@ -3151,13 +3221,52 @@ bool player::is_wearing(itype_id it)
  return false;
 }
 
+bool player::has_artifact_with(art_effect_passive effect)
+{
+ if (weapon.is_artifact() && weapon.is_tool()) {
+  it_artifact_tool *tool = dynamic_cast<it_artifact_tool*>(weapon.type);
+  for (int i = 0; i < tool->effects_wielded.size(); i++) {
+   if (tool->effects_wielded[i] == effect)
+    return true;
+  }
+  for (int i = 0; i < tool->effects_carried.size(); i++) {
+   if (tool->effects_carried[i] == effect)
+    return true;
+  }
+ }
+ for (int i = 0; i < inv.size(); i++) {
+  if (inv[i].is_artifact() && inv[i].is_tool()) {
+   it_artifact_tool *tool = dynamic_cast<it_artifact_tool*>(inv[i].type);
+   for (int i = 0; i < tool->effects_carried.size(); i++) {
+    if (tool->effects_carried[i] == effect)
+     return true;
+   }
+  }
+ }
+ for (int i = 0; i < worn.size(); i++) {
+  if (worn[i].is_artifact()) {
+   it_artifact_armor *armor = dynamic_cast<it_artifact_armor*>(worn[i].type);
+   for (int i = 0; i < armor->effects_worn.size(); i++) {
+    if (armor->effects_worn[i] == effect)
+     return true;
+   }
+  }
+ }
+ return false;
+}
+   
+
 bool player::has_amount(itype_id it, int quantity)
 {
+ if (it == itm_toolset)
+  return has_bionic(bio_tools);
  return (amount_of(it) >= quantity);
 }
 
 int player::amount_of(itype_id it)
 {
+ if (it == itm_toolset && has_bionic(bio_tools))
+  return 1;
  int quantity = 0;
  if (weapon.type->id == it)
   quantity++;
@@ -3176,6 +3285,12 @@ bool player::has_charges(itype_id it, int quantity)
 
 int player::charges_of(itype_id it)
 {
+ if (it == itm_toolset) {
+  if (has_bionic(bio_tools))
+   return power_level;
+  else
+   return 0;
+ }
  int quantity = 0;
  if (weapon.type->id == it)
   quantity += weapon.charges;
@@ -3320,7 +3435,6 @@ bool player::eat(game *g, int index)
    return false;
 
   if (spoiled) {
-// We're only warned if we're a supertaster, OR the food is very old
    if (is_npc())
     return false;
    if (!query_yn("This %s smells awful!  Eat it?", eaten->tname(g).c_str()))
@@ -3344,9 +3458,15 @@ bool player::eat(game *g, int index)
   }
 // At this point, we've definitely eaten the item, so use up some turns.
   if (has_trait(PF_GOURMAND))
-   moves -= 100;
+   moves -= 150;
   else
    moves -= 250;
+// If it's poisonous... poison us.  TODO: More several poison effects
+  if (eaten->poison >= rng(2, 4))
+   add_disease(DI_POISON, eaten->poison * 20, g);
+  if (eaten->poison > 0)
+   add_disease(DI_FOODPOISON, eaten->poison * 40, g);
+
 // Descriptive text
   if (!is_npc()) {
    if (eaten->made_of(LIQUID))
