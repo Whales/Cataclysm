@@ -29,6 +29,7 @@ monster::monster()
  friendly = 0;
  faction_id = -1;
  dead = false;
+ made_footstep = false;
 }
 
 monster::monster(mtype *t)
@@ -50,6 +51,7 @@ monster::monster(mtype *t)
  friendly = 0;
  faction_id = -1;
  dead = false;
+ made_footstep = false;
 }
 
 monster::monster(mtype *t, int x, int y)
@@ -71,6 +73,7 @@ monster::monster(mtype *t, int x, int y)
  friendly = 0;
  faction_id = -1;
  dead = false;
+ made_footstep = false;
 }
 
 void monster::poly(mtype *t)
@@ -327,7 +330,7 @@ bool monster::is_fleeing(player &u)
 int monster::hit(player &p, body_part &bp_hit)
 {
  int numdice = type->melee_skill;
- if (dice(numdice, 10) <= dice(p.dodge(), 10)) {
+ if (dice(numdice, 10) <= dice(p.dodge(), 10) && !one_in(20)) {
   if (numdice > p.sklevel[sk_dodge])
    p.practice(sk_dodge, 5);
   return 0;	// We missed!
@@ -554,6 +557,7 @@ bool monster::make_fungus(game *g)
  case mon_ant:
  case mon_ant_soldier:
  case mon_ant_queen:
+ case mon_fly:
  case mon_bee:
  case mon_dermatik:
   poly(g->mtypes[mon_ant_fungus]);

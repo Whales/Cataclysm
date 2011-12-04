@@ -172,10 +172,10 @@ void player::reset()
  }
 // Radiation
  if (radiation > 0) {
-  str_cur  -= int(radiation / 24);
-  dex_cur  -= int(radiation / 36);
-  per_cur  -= int(radiation / 40);
-  int_cur  -= int(radiation / 48);
+  str_cur  -= int(radiation / 80);
+  dex_cur  -= int(radiation / 110);
+  per_cur  -= int(radiation / 100);
+  int_cur  -= int(radiation / 120);
  }
 // Stimulants
  dex_cur += int(stim / 10);
@@ -329,7 +329,7 @@ nc_color player::color()
   return c_pink;
  if (underwater)
   return c_blue;
- if (has_active_bionic(bio_cloak))
+ if (has_active_bionic(bio_cloak) || has_artifact_with(AEP_INVISIBLE))
   return c_dkgray;
  return c_white;
 }
@@ -366,7 +366,7 @@ void player::load_info(game *g, std::string data)
   illness.push_back(illtmp);
  }
 
- int numadd;
+ int numadd = 0;
  addiction addtmp;
  dump >> numadd;
  for (int i = 0; i < numadd; i++) {
@@ -375,7 +375,7 @@ void player::load_info(game *g, std::string data)
   addictions.push_back(addtmp);
  }
 
- int numbio;
+ int numbio = 0;
  bionic biotmp;
  dump >> numbio;
  for (int i = 0; i < numbio; i++) {
@@ -1943,6 +1943,25 @@ int player::sight_range(int light_level)
  return ret;
 }
 
+int player::overmap_sight_range(int light_level)
+{
+ int sight = sight_range(light_level);
+ if (sight < SEEX)
+  return 0;
+ if (sight <= SEEX * 4)
+  return (sight / (SEEX / 2));
+ if (has_amount(itm_binoculars, 1))
+  return 20;
+
+ return 10;
+}
+
+int player::clairvoyance()
+{
+ if (has_artifact_with(AEP_CLAIRVOYANCE))
+  return 3;
+}
+
 bool player::has_two_arms()
 {
  if (has_bionic(bio_blaster) || hp_cur[hp_arm_l] < 10 || hp_cur[hp_arm_r] < 10)
@@ -2130,9 +2149,9 @@ void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
  }
   
  if (has_trait(PF_PAINRESIST))
-  painadd = (sqrt(cut) + dam + cut) / (rng(4, 6));
+  painadd = (sqrt(double(cut)) + dam + cut) / (rng(4, 6));
  else
-  painadd = (sqrt(cut) + dam + cut) / 4;
+  painadd = (sqrt(double(cut)) + dam + cut) / 4;
  pain += painadd;
 
  switch (bphurt) {
@@ -2474,15 +2493,13 @@ void player::suffer(game *g)
  if (underwater) {
   if (!has_trait(PF_GILLS))
    oxygen--;
-  if (oxygen <= 5)
-   g->add_msg("You're almost out of air!  Press '<' to surface.");
-  else if (oxygen < 0) {
+  if (oxygen < 0) {
    if (has_bionic(bio_gills) && power_level > 0) {
     oxygen += 5;
     power_level--;
    } else {
     g->add_msg("You're drowning!");
-    hurt(g, bp_torso, 0, rng(2, 5));
+    hurt(g, bp_torso, 0, rng(1, 4));
    }
   }
  }
@@ -2686,6 +2703,8 @@ void player::suffer(game *g)
  }
  if (has_trait(PF_UNSTABLE) && one_in(28800))	// Average once per 2 days
   mutate(g);
+ if (has_artifact_with(AEP_MUTAGENIC) && one_in(28800))
+  mutate(g);
  radiation += rng(0, g->m.radiation(posx, posy) / 4);
  if (rng(1, 1000) < radiation && int(g->turn) % 600 == 0) {
   mutate(g);
@@ -2718,6 +2737,10 @@ void player::suffer(game *g)
  if (has_bionic(bio_power_weakness) && max_power_level > 0 &&
      power_level >= max_power_level * .75)
   str_cur -= 3;
+
+// Artifact effects
+ if (has_artifact_with(AEP_ATTENTION))
+  add_disease(DI_ATTENTION, 3, g);
 
  if (dex_cur < 0)
   dex_cur = 0;
@@ -3571,6 +3594,10 @@ bool player::wield(game *g, int index)
  }
  if (!is_armed()) {
   weapon = inv.remove_item(index);
+  if (weapon.is_artifact() && weapon.is_tool()) {
+   it_artifact_tool *art = dynamic_cast<it_artifact_tool*>(weapon.type);
+   g->add_artifact_messages(art->effects_wielded);
+  }
   moves -= 30;
   return true;
  } else if (volume_carried() + weapon.volume() - inv[index].volume() <
@@ -3580,6 +3607,10 @@ bool player::wield(game *g, int index)
   inv.remove_item(index);
   inv_sorted = false;
   moves -= 45;
+  if (weapon.is_artifact() && weapon.is_tool()) {
+   it_artifact_tool *art = dynamic_cast<it_artifact_tool*>(weapon.type);
+   g->add_artifact_messages(art->effects_wielded);
+  }
   return true;
  } else if (query_yn("No space in inventory for your %s.  Drop it?",
                      weapon.tname(g).c_str())) {
@@ -3588,6 +3619,10 @@ bool player::wield(game *g, int index)
   inv.remove_item(index);
   inv_sorted = false;
   moves -= 30;
+  if (weapon.is_artifact() && weapon.is_tool()) {
+   it_artifact_tool *art = dynamic_cast<it_artifact_tool*>(weapon.type);
+   g->add_artifact_messages(art->effects_wielded);
+  }
   return true;
  }
 
@@ -3647,6 +3682,10 @@ bool player::wear(game *g, char let)
   return false;
  }
  g->add_msg("You put on your %s.", to_wear->tname(g).c_str());
+ if (to_wear->is_artifact()) {
+  it_artifact_armor *art = dynamic_cast<it_artifact_armor*>(to_wear->type);
+  g->add_artifact_messages(art->effects_worn);
+ }
  moves -= 350; // TODO: Make this variable?
  worn.push_back(*to_wear);
  if (index == -2)

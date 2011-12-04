@@ -33,7 +33,7 @@ void settlement_building(settlement &set, int x, int y);
 
 double dist(int x1, int y1, int x2, int y2)
 {
- return sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
+ return sqrt(double(pow(x1-x2, 2.0) + pow(y1-y2, 2.0)));
 }
 
 bool is_river(oter_id ter)
@@ -61,9 +61,9 @@ bool is_wall_material(oter_id ter)
 oter_id shop(int dir)
 {
  oter_id ret = ot_s_lot;
- int type = rng(0, 13);
+ int type = rng(0, 15);
  if (one_in(20))
-  type = 14;
+  type = 16;
  switch (type) {
   case  0: ret = ot_s_lot;	         break;
   case  1: ret = ot_s_gas_north;         break;
@@ -79,7 +79,9 @@ oter_id shop(int dir)
   case 11: ret = ot_bank_north;          break;
   case 12: ret = ot_bar_north;           break;
   case 13: ret = ot_s_electronics_north; break;
-  case 14: ret = ot_police_north;        break;
+  case 14: ret = ot_pawn_north;          break;
+  case 15: ret = ot_mil_surplus_north;   break;
+  case 16: ret = ot_police_north;        break;
  }
  if (ret == ot_s_lot)
   return ret;
@@ -399,12 +401,9 @@ void overmap::generate(game *g, overmap* north, overmap* east, overmap* south,
    if (!river_end.empty()) {
     place_river(river_start[index], river_end[0]);
     river_end.erase(river_end.begin());
-   } else {
-    mvprintw(0, 0, "%d   ", river_end_copy.size());
-    getch();
+   } else
     place_river(river_start[index],
                 river_end_copy[rng(0, river_end_copy.size() - 1)]);
-   }
    river_start.erase(river_start.begin() + index);
   }
  } else if (river_end.size() > river_start.size() && river_start.size() > 0) {
@@ -415,12 +414,9 @@ void overmap::generate(game *g, overmap* north, overmap* east, overmap* south,
    if (!river_start.empty()) {
     place_river(river_start[0], river_end[index]);
     river_start.erase(river_start.begin());
-   } else {
-    mvprintw(0, 0, "%d   ", river_start_copy.size());
-    getch();
+   } else
     place_river(river_start_copy[rng(0, river_start_copy.size() - 1)],
                 river_end[index]);
-   }
    river_end.erase(river_end.begin() + index);
   }
  } else if (river_end.size() > 0) {
@@ -920,7 +916,8 @@ point overmap::choose_point(game *g)
  WINDOW* w_search = newwin(13, 27, 3, 51);
  timeout(BLINK_SPEED);	// Enable blinking!
  bool blink = true;
- int cursx = (g->levx + 1) / 2, cursy = (g->levy + 1) / 2;
+ int cursx = (g->levx + int(MAPSIZE / 2)) / 2,
+     cursy = (g->levy + int(MAPSIZE / 2)) / 2;
  int origx = cursx, origy = cursy;
  char ch = 0;
  point ret(-1, -1);
@@ -973,7 +970,7 @@ point overmap::choose_point(game *g)
    if (found.x == -1) {	// Didn't find a note
     std::vector<point> terlist;
     terlist = find_terrain(term, origx, origy);
-    if(terlist.size() != 0){
+    if (terlist.size() != 0){
      int i = 0;
      //Navigate through results
      do {
@@ -988,12 +985,13 @@ point overmap::choose_point(game *g)
       mvwprintz(w_search, 10, 1, c_white, "Enter/Spacebar to select.");
       mvwprintz(w_search, 11, 1, c_white, "q to return.");
       ch = input();
-      if (ch == ERR) blink = !blink;
-      else if(ch == '<'){
+      if (ch == ERR)
+       blink = !blink;
+      else if (ch == '<') {
        i++;
-       if(i > terlist.size() -1) i = 0;
-      }
-      else if(ch == '>'){
+       if(i > terlist.size() - 1)
+        i = 0;
+      } else if(ch == '>'){
        i--;
        if(i < 0)
         i = terlist.size() - 1;
@@ -1021,7 +1019,8 @@ point overmap::choose_point(game *g)
 */
   else if (ch == ERR)	// Hit timeout on input, so make characters blink
    blink = !blink;
- } while (ch != KEY_ESCAPE && ch != 'q' && ch != 'Q' && ch != ' ' && ch != '\n');
+ } while (ch != KEY_ESCAPE && ch != 'q' && ch != 'Q' && ch != ' ' &&
+          ch != '\n');
  timeout(-1);
  werase(w_map);
  wrefresh(w_map);
@@ -1530,7 +1529,7 @@ void overmap::make_hiway(int x1, int y1, int x2, int y2, oter_id base)
  int dir = 0;
  int x = x1, y = y1;
  int xdir, ydir;
- int tmp;
+ int tmp = 0;
  bool bridge_is_okay = false;
  bool found_road = false;
  do {
@@ -1960,8 +1959,10 @@ void overmap::place_specials()
    for (int i = 0; i < NUM_OMSPECS; i++) {
     omspec_place place;
     overmap_special special = overmap_specials[i];
+    int min = special.min_dist_from_city, max = special.max_dist_from_city;
     if ((placed[i] < special.max_appearances || special.max_appearances == 0) &&
-        dist_from_city(p) >= special.min_dist_from_city &&
+        (min == -1 || dist_from_city(p) >= min) &&
+        (max == -1 || dist_from_city(p) <= max) &&
         (place.*special.able)(this, p))
      valid.push_back( omspec_id(i) );
    }
@@ -1980,19 +1981,26 @@ void overmap::place_specials()
 
 void overmap::place_special(overmap_special special, point p)
 {
+ bool rotated = false;
 // First, place terrain...
  ter(p.x, p.y) = special.ter;
 // Next, obey any special effects the flags might have
  if (special.flags & mfb(OMS_FLAG_ROTATE_ROAD)) {
-  if (is_road(p.x + 1, p.y))
+  if (is_road(p.x, p.y - 1))
+   rotated = true;
+  else if (is_road(p.x + 1, p.y)) {
    ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + 1);
-  else if (is_road(p.x, p.y + 1))
+   rotated = true;
+  } else if (is_road(p.x, p.y + 1)) {
    ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + 2);
-  else if (is_road(p.x - 1, p.y))
+   rotated = true;
+  } else if (is_road(p.x - 1, p.y)) {
    ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + 3);
+   rotated = true;
+  }
  }
 
- if (special.flags & mfb(OMS_FLAG_ROTATE_RANDOM))
+ if (!rotated && special.flags & mfb(OMS_FLAG_ROTATE_RANDOM))
   ter(p.x, p.y) = oter_id( int(ter(p.x, p.y)) + rng(0, 3) );
   
  if (special.flags & mfb(OMS_FLAG_3X3)) {
@@ -2003,6 +2011,30 @@ void overmap::place_special(overmap_special special, point p)
     point np(p.x + x, p.y + y);
     ter(np.x, np.y) = special.ter;
    }
+  }
+ }
+
+ if (special.flags & mfb(OMS_FLAG_3X3_SECOND)) {
+  int startx = -1, starty = -1;
+  if (is_road(p.x, p.y - 1)) { // Road to north
+   startx = p.x - 1;
+   starty = p.y;
+  } else if (is_road(p.x + 1, p.y)) { // Road to east
+   startx = p.x - 2;
+   starty = p.y - 1;
+  } else if (is_road(p.x, p.y + 1)) { // Road to south
+   startx = p.x - 1;
+   starty = p.y - 2;
+  } else if (is_road(p.x - 1, p.y)) { // Road to west
+   startx = p.x;
+   starty = p.y - 1;
+  }
+  if (startx != -1) {
+   for (int x = startx; x < startx + 3; x++) {
+    for (int y = starty; y < starty + 3; y++)
+     ter(x, y) = oter_id(special.ter + 1);
+   }
+   ter(p.x, p.y) = special.ter;
   }
  }
 
@@ -2190,7 +2222,6 @@ void overmap::open(game *g, int x, int y, int z)
 {
  std::stringstream plrfilename, terfilename;
  std::ifstream fin;
- char line[OMAPX];
  char datatype;
  int ct, cx, cy, cs, cp;
  city tmp;
@@ -2276,9 +2307,10 @@ void overmap::open(game *g, int x, int y, int z)
   fin.open(plrfilename.str().c_str());
   if (fin.is_open()) {	// Load private seen data
    for (int j = 0; j < OMAPY; j++) {
-    fin.getline(line, OMAPX + 1);
+    std::string dataline;
+    getline(fin, dataline);
     for (int i = 0; i < OMAPX; i++) {
-     if (line[i] == '1')
+     if (dataline[i] == '1')
       seen(i, j) = true;
      else
       seen(i, j) = false;

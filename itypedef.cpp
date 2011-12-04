@@ -12,6 +12,7 @@
 #define C_EYES   c_cyan
 #define C_HAT    c_dkgray
 #define C_STORE  c_green
+#define C_DECOR  c_ltgreen
 
 // GENERAL GUIDELINES
 // When adding a new item, you MUST REMEMBER to insert it in the itype_id enum
@@ -421,8 +422,13 @@ FOOD("pizza",		 8, 80, c_ltred,	VEGGY,	itm_box_small,
 A vegetarian pizza, with delicious tomato sauce and a fluffy crust.  Its\n\
 smell brings back great memories.");
 
-FOOD("MRE",		50,100, c_green,	FLESH,	itm_null,
+FOOD("MRE - beef",		50,100, c_green,	FLESH,	itm_null,
     2,  1,  0, 50,  0,  0,  1,  0,  1, -4,	&iuse::none,	ADD_NULL, "\
+Meal Ready to Eat.  A military ration.  Though not very tasty, it is very\n\
+filling and will not spoil.");
+
+FOOD("MRE - vegetable",		50,100, c_green,	VEGGY,	itm_null,
+    2,  1,  0, 40,  0,  0,  1,  0,  1, -4,	&iuse::none,	ADD_NULL, "\
 Meal Ready to Eat.  A military ration.  Though not very tasty, it is very\n\
 filling and will not spoil.");
 
@@ -580,7 +586,7 @@ MELEE("syringe",	 8, 25, ',', c_ltcyan,	PLASTIC,MNULL,
 A medical syringe.  Used for administering heroin and other drugs.");
 
 MELEE("rag",		72, 10, ';', c_dkgray,	COTTON,	MNULL,
-	 2,  1,-10,  0,  0, 0, "\
+	 1,  1,-10,  0,  0, 0, "\
 A small piece of cloth.  Useful for making molotov cocktails and not much else."
 );
 
@@ -892,6 +898,12 @@ MELEE("walking cane",   10, 160,'/', c_ltred,	WOOD,	MNULL,
 	  8,  7, 10,  0,  2, 0, "\
 Handicapped or not, you always walk in style.  Consisting of a metal\n\
 headpiece and a wooden body, this makes a great bashing weapon in a pinch.");
+
+MELEE("binoculars",	20, 300,';', c_ltgray,	PLASTIC,GLASS,
+	  2,  3,  6,  0, -1, 0, "\
+A tool useful for seeing long distances.  Simply carrying this item in your\n\
+inventory will double the distance that is mapped around you during your\n\
+travels.");
 
 // ARMOR
 #define ARMOR(name,rarity,price,color,mat1,mat2,volume,wgt,dam,to_hit,\
@@ -1285,9 +1297,21 @@ ARMOR("holster",	 8,  90,C_STORE,	LEATHER,	MNULL,
     2,  2,  2, -1,  0,  0,  0,  0,  0,  3,	0, "\
 Provides a bit of extra storage without encumbering you at all.");
 
+//     NAME		RAR PRC	COLOR		MAT1		MAT2
 ARMOR("bootstrap",	 3,  80,C_STORE, 	LEATHER,	MNULL,
+// VOL WGT DAM HIT ENC RES CUT ENV WRM STO	COVERS
     1,  1, -1, -1,  0,  0,  0,  0,  1,  2,	mfb(bp_legs), "\
 A small holster worn on the ankle.");
+
+ARMOR("gold ring",	12, 600,C_DECOR,	SILVER,		MNULL,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,	0,	"\
+A flashy gold ring.  You can wear it if you like, but it won't provide\n\
+any effects.");
+
+ARMOR("silver necklace",14, 500,C_DECOR,	SILVER,		MNULL,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,	0,	"\
+A nice silver necklace.  You can wear it if you like, but it won't provide\n\
+any effects.");
 
 // AMMUNITION
 // Material should be the wrapper--even though shot is made of iron, because
@@ -1706,18 +1730,18 @@ mfb(IF_STR_RELOAD));
 //  NAME		RAR PRC COLOR		MAT1	MAT2
 GUN("compound bow",      2, 700,c_yellow,       STEEL,  PLASTIC,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
-        sk_archery,     AT_ARROW,12, 8,  8,  1,  0, 16,  0,  6,  0,  1, 400, "\
+        sk_archery,     AT_ARROW,12, 8,  8,  1,  0, 16,  0,  6,  0,  1, 100, "\
 A bow with wheels that fires high velocity arrows.  Weaker people can use\n\
 compound bows more easily.  Arrows fired from this weapon have a good chance\n\
 of remaining intact for re-use.",
-mfb(IF_STR8_DRAW));
+mfb(IF_STR8_DRAW)|mfb(IF_RELOAD_AND_SHOOT));
         
 GUN("longbow",           5, 400,c_yellow,       WOOD,   MNULL,
-        sk_archery,     AT_ARROW,8, 4, 10,  0,  0, 12,  0,  6,  0,  1, 400, "\
+        sk_archery,     AT_ARROW,8, 4, 10,  0,  0, 12,  0,  6,  0,  1,  80, "\
 A six-foot wooden bow that fires feathered arrows.  This takes a fair amount\n\
 of strength to draw.  Arrows fired from this weapon have a good chance of\n\
 remaining intact for re-use.",
-mfb(IF_STR10_DRAW));
+mfb(IF_STR10_DRAW)|mfb(IF_RELOAD_AND_SHOOT));
 
 GUN("pipe rifle: .22",	0,  400,c_ltblue,	IRON,	WOOD,
 sk_rifle,	AT_22,	 9, 13, 10,  2, -2, 15,  2,  6,  0,  1, 250, "\

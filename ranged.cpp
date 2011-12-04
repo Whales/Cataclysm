@@ -82,8 +82,8 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
   if (missed_by >= 1) {
 // We missed D:
 // Shoot a random nearby space?
-   tarx += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
-   tary += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
+   tarx += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
+   tary += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
    if (m.sees(p.posx, p.posy, x, y, -1, tart))
     trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
    else
@@ -146,7 +146,9 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     if (i < trajectory.size() - 1) // Unintentional hit
      goodhit = double(rand() / (RAND_MAX + 1.0)) / 2;
     
-    splatter(this, trajectory, dam, &z[mondex]);
+    std::vector<point> blood_traj = trajectory;
+    blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
+    splatter(this, blood_traj, dam, &z[mondex]);
     shoot_monster(this, p, z[mondex], dam, goodhit);
 
 
@@ -161,7 +163,9 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     else
      h = &(active_npc[npc_at(tx, ty)]);
 
-    splatter(this, trajectory, dam);
+    std::vector<point> blood_traj = trajectory;
+    blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
+    splatter(this, blood_traj, dam);
     shoot_player(this, p, h, dam, goodhit);
 
    } else
@@ -222,8 +226,8 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
 // Shoot a random nearby space?
   if (missed_by > 9)
    missed_by = 9;
-  tarx += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
-  tary += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
+  tarx += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
+  tary += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
   if (m.sees(p.posx, p.posy, tarx, tary, -1, tart))
    trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
   else
@@ -527,46 +531,58 @@ void game::hit_monster_with_flags(monster &z, unsigned int flags)
 
 int time_to_fire(player &p, it_gun* firing)
 {
+ int time = 0;
  switch (firing->skill_used) {
- case (sk_pistol):
+
+ case sk_pistol:
   if (p.sklevel[sk_pistol] > 6)
-   return 10;
+   time = 10;
   else
-   return (80 - 10 * p.sklevel[sk_pistol]);
+   time = (80 - 10 * p.sklevel[sk_pistol]);
   break;
- case (sk_shotgun):
+
+ case sk_shotgun:
   if (p.sklevel[sk_shotgun] > 3)
-   return 70;
+   time = 70;
   else
-   return (150 - 25 * p.sklevel[sk_shotgun]);
- break;
- case (sk_smg):
+   time = (150 - 25 * p.sklevel[sk_shotgun]);
+  break;
+
+ case sk_smg:
   if (p.sklevel[sk_smg] > 5)
-   return 20;
+   time = 20;
   else
-   return (80 - 10 * p.sklevel[sk_smg]);
- break;
- case (sk_rifle):
+   time = (80 - 10 * p.sklevel[sk_smg]);
+  break;
+
+ case sk_rifle:
   if (p.sklevel[sk_rifle] > 8)
-   return 30;
+   time = 30;
   else
-   return (150 - 15 * p.sklevel[sk_rifle]);
- case (sk_archery):
+   time = (150 - 15 * p.sklevel[sk_rifle]);
+  break;
+
+ case sk_archery:
   if (p.sklevel[sk_archery] > 8)
-   return 20;
+   time = 20;
   else
-   return (220 - 25 * p.sklevel[sk_archery]); break;
+   time = (220 - 25 * p.sklevel[sk_archery]);
+  break;
+
  case sk_launcher:
   if (p.sklevel[sk_launcher] > 8)
-   return 30;
+   time = 30;
   else
-   return (200 - 20 * p.sklevel[sk_launcher]);
+   time = (200 - 20 * p.sklevel[sk_launcher]);
+  break;
+
  default:
   debugmsg("Why is shooting %s using %s skill?", (firing->name).c_str(),
 		skill_name(firing->skill_used).c_str());
-  return 0;
+  time =  0;
  }
- return 0;
+
+ return time;
 }
 
 void make_gun_sound_effect(game *g, player &p, bool burst)
@@ -810,7 +826,7 @@ void splatter(game *g, std::vector<point> trajectory, int dam, monster* mon)
  int distance = 1;
  if (dam > 50)
   distance = 3;
- else if (dam > 15)
+ else if (dam > 20)
   distance = 2;
 
  std::vector<point> spurt = continue_line(trajectory, distance);

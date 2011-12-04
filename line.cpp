@@ -25,13 +25,6 @@ std::vector <point> line_to(int x1, int y1, int x2, int y2, int t) {
  xmax += abs(dx);
  ymax += abs(dy);
 
-/*
- if (x1 < 0 - SEEX * 3 || x1 > SEEX * 6 ||
-     y1 < 0 - SEEY * 3 || y1 > SEEY * 6 ||
-     x2 < 0 - SEEX * 3 || x2 > SEEX * 6 ||
-     y2 < 0 - SEEY * 3 || y2 > SEEY * 6   )
-  debugmsg("there's gonna be trouble!");
-*/
  if (ax == ay) {
   do {
    cur.y += sy;
@@ -67,7 +60,7 @@ std::vector <point> line_to(int x1, int y1, int x2, int y2, int t) {
 
 int trig_dist(int x1, int y1, int x2, int y2)
 {
- return int(sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2)));
+ return int(sqrt(double(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0))));
 }
 
 int rl_dist(int x1, int y1, int x2, int y2)

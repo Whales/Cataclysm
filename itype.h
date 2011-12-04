@@ -15,7 +15,7 @@
 
 // mfb(n) converts a flag to its appropriate position in covers's bitfield
 #ifndef mfb
-#define mfb(n) long(pow(2,(long)n))
+#define mfb(n) long(pow(2,(double)(n)))
 #endif
 
 enum itype_id {
@@ -43,7 +43,7 @@ itm_apple, itm_orange, itm_lemon, itm_chips, itm_pretzels, itm_chocolate,
  itm_can_tuna, itm_can_catfood, itm_honeycomb, itm_royal_jelly, itm_fetus,
  itm_arm, itm_leg, itm_ant_egg, itm_marloss_berry, itm_flour, itm_sugar,
  itm_salt, itm_potato_raw, itm_potato_baked, itm_bread, itm_pie, itm_pizza,
- itm_mre, itm_tea_raw, itm_coffee_raw,
+ itm_mre_beef, itm_mre_veggy, itm_tea_raw, itm_coffee_raw,
 // Medication
 itm_bandages, itm_1st_aid, itm_vitamins, itm_aspirin, itm_caffeine,
  itm_pills_sleep, itm_iodine, itm_dayquil, itm_nyquil, itm_inhaler, itm_codeine,
@@ -62,6 +62,7 @@ itm_wrapper, itm_syringe, itm_rag, itm_fur, itm_leather, itm_superglue,
  itm_katana, itm_spear_wood, itm_spear_knife, itm_baton, itm_bee_sting,
  itm_wasp_sting, itm_chitin_piece, itm_biollante_bud, itm_canister_empty,
  itm_gold, itm_coal, itm_petrified_eye, itm_spiral_stone, itm_rapier, itm_cane,
+ itm_binoculars,
 // Footwear
 itm_sneakers, itm_boots, itm_boots_steel, itm_boots_winter, itm_mocassins,
  itm_flip_flops, itm_dress_shoes, itm_heels, 
@@ -90,6 +91,8 @@ itm_hat_ball, itm_hat_boonie, itm_hat_cotton, itm_hat_knit, itm_hat_hunting,
  itm_helmet_army, itm_helmet_riot, itm_helmet_motor, itm_helmet_chitin, itm_tophat,
 // High-storage
 itm_backpack, itm_purse, itm_mbag, itm_fanny, itm_holster, itm_bootstrap,
+// Decorative
+itm_ring, itm_necklace,
 // Ammunition
 itm_battery, itm_plut_cell, itm_nail, itm_bb, itm_arrow_wood, itm_arrow_cf, itm_arrow_po,
  itm_bolt_wood, itm_bolt_steel,itm_bolt_po, itm_shot_bird, itm_shot_00, itm_shot_slug,
@@ -197,6 +200,7 @@ IF_STR_RELOAD,  // Reloading time is reduced by Strength * 20
 IF_STR8_DRAW,   // Requires strength 8 to draw
 IF_STR10_DRAW,  // Requires strength 10 to draw
 IF_USE_UPS,	// Draws power from a UPS
+IF_RELOAD_AND_SHOOT, // Reloading and shooting is one action
 
 IF_AMMO_FLAME,	// Sets fire to terrain and monsters
 IF_AMMO_INCENDIARY, // Sparks explosive terrain

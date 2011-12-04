@@ -782,6 +782,7 @@ void iuse::scissors(game *g, player *p, item *it, bool t)
   count -= rng(0, 2);
  if (dice(3, 3) > p->dex_cur)
   count -= rng(1, 3);
+
  if (count <= 0) {
   g->add_msg("You clumsily cut the %s into useless ribbons.",
              cut->tname().c_str());
@@ -1093,6 +1094,15 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
    g->add_msg("You pry, but cannot lift the manhole cover.");
    p->moves -= 100;
   }
+ } else if (g->m.ter(dirx, diry) == t_crate_c) {
+  if (p->str_cur >= rng(3, 30)) {
+   g->add_msg("You pop the crate open.");
+   p->moves -= (150 - (p->str_cur * 5));
+   g->m.ter(dirx, diry) = t_crate_o;
+  } else {
+   g->add_msg("You pry, but cannot open the crate.");
+   p->moves -= 100;
+  } 
  } else {
   int nails = 0, boards = 0;
   ter_id newter;
@@ -1878,6 +1888,8 @@ void iuse::mp3(game *g, player *p, item *it, bool t)
 {
  if (it->charges == 0)
   g->add_msg("The mp3 player's batteries are dead.");
+ else if (p->has_active_item(itm_mp3_on))
+  g->add_msg("You are already listening to an mp3 player!");
  else {
   g->add_msg("You put in the earbuds and start listening to music.");
   it->make(g->itypes[itm_mp3_on]);
@@ -2147,6 +2159,46 @@ void iuse::artifact(game *g, player *p, item *it, bool t)
     }
    }
    break;
+
+  case AEA_BUGS: {
+   int roll = rng(1, 10);
+   mon_id bug = mon_null;
+   int num = 0;
+   std::vector<point> empty;
+   for (int x = p->posx - 1; x <= p->posx + 1; x++) {
+    for (int y = p->posy - 1; y <= p->posy + 1; y++) {
+     if (g->is_empty(x, y))
+      empty.push_back( point(x, y) );
+    }
+   }
+   if (empty.empty() || roll <= 4)
+    g->add_msg("Flies buzz around you.");
+   else if (roll <= 7) {
+    g->add_msg("Giant flies appear!");
+    bug = mon_fly;
+    num = rng(2, 4);
+   } else if (roll <= 9) {
+    g->add_msg("Giant bees appear!");
+    bug = mon_bee;
+    num = rng(1, 3);
+   } else {
+    g->add_msg("Giant wasps appear!");
+    bug = mon_wasp;
+    num = rng(1, 2);
+   }
+   if (bug != mon_null) {
+    monster spawned(g->mtypes[bug]);
+    spawned.friendly = -1;
+    for (int i = 0; i < num && !empty.empty(); i++) {
+     int index = rng(0, empty.size() - 1);
+     point spawnp = empty[index];
+     empty.erase(empty.begin() + index);
+     spawned.spawn(spawnp.x, spawnp.y);
+     g->z.push_back(spawned);
+    }
+   }
+  } break;
+    
 
   case AEA_RADIATION:
    g->add_msg("Horrible gasses are emitted!");

@@ -19,6 +19,7 @@
 #include "construction.h"
 #include "calendar.h"
 #include "posix_time.h"
+#include "artifact.h"
 #include <vector>
 
 #define LONG_RANGE 10
@@ -124,12 +125,14 @@ class game
   point look_around();// Look at nearby terrain	';'
   void refresh_all();
   void update_map(int &x, int &y);  // Called by plmove when the map updates
+  void update_overmap_seen(); // Update which overmap tiles we can see
 
   faction* random_good_faction();
   faction* random_evil_faction();
 
   itype* new_artifact();
   void process_artifact(item *it, player *p, bool wielded = false);
+  void add_artifact_messages(std::vector<art_effect_passive> effects);
 
   char inv(std::string title = "Inventory:");
   std::vector<item> multidrop();
@@ -243,6 +246,7 @@ class game
   mon_id valid_monster_from(std::vector<mon_id> group);
   int valid_group(mon_id type, int x, int y);// Picks a group from cur_om
   moncat_id mt_to_mc(mon_id type);// Monster type to monster category
+  void set_adjacent_overmaps(bool from_scratch = false);
 
 // Routine loop functions, approximately in order of execution
   void monmove();          // Monster movement
@@ -292,12 +296,14 @@ class game
   quit_status uquit;    // Set to true if the player quits ('Q')
 
   calendar nextspawn; // The turn on which monsters will spawn next.
+  calendar nextweather; // The turn on which weather will shift next.
+  overmap om_hori, om_vert, om_diag; // Adjacent overmaps
   int next_npc_id, next_faction_id, next_mission_id; // Keep track of UIDs
   signed char temperature;              // The air temperature
   weather_type weather;			// Weather pattern--SEE weather.h
   std::vector <std::string> messages;   // Messages to be printed
   unsigned char curmes;	  // The last-seen message.  Older than 256 is deleted.
-  int grscent[SEEX * 3][SEEY * 3];	// The scent map
+  int grscent[SEEX * MAPSIZE][SEEY * MAPSIZE];	// The scent map
   int nulscent;				// Returned for OOB scent checks
   std::vector<event> events;	        // Game events to be processed
   int kills[num_monsters];	        // Player's kill count
