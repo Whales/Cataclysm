@@ -1268,6 +1268,11 @@ void consume_tools(game *g, std::vector<component> tools)
  else if (map_has.size() == 1 && player_has.size() == 0)
   g->m.use_charges(point(g->u.posx, g->u.posy), PICKUP_RANGE,
                    map_has[0].type, map_has[0].count);
+ else if(map_has.size() == 0 && player_has.size() == 0){
+	 //shouldn't happen but does for some reason.
+	 //Causes segfault if not caught like this
+	 debugmsg("Neither map nor the player had the tools");
+ }
  else { // Variety of options, list them and pick one
 // Populate the list
   std::vector<std::string> options;

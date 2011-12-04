@@ -5404,6 +5404,7 @@ void game::spawn_mon(int shiftx, int shifty)
    temp.attitude = NPCATT_NULL;
    active_npc.push_back(temp);
   }
+<<<<<<< HEAD
 
   */
 
