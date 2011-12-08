@@ -89,7 +89,7 @@ void monster::plan(game *g)
   }
   for (int i = 0; i < g->active_npc.size(); i++) {
    npc *me = &(g->active_npc[i]);
-   if (rl_dist(posx, posy, me->posx, me->posy) < dist &&
+   if (!is_friend(*me) && rl_dist(posx, posy, me->posx, me->posy) < dist &&
        g->m.sees(posx, posy, me->posx, me->posy, sightrange, tc)) {
     dist = rl_dist(posx, posy, me->posx, me->posy);
     closest = i;

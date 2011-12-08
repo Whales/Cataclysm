@@ -238,6 +238,17 @@ bool monster::is_friend(player &p)
 	return false;
 }
 
+bool monster::is_friend(npc &p)
+{
+	if(has_effect(ME_RAGING))
+		return false;
+	if(friendly != 0)
+		return true;
+	if(p.has_trait(PF_ANIMALEMPATH) && has_flag(MF_ANIMAL))
+		return true;
+	return false;
+}
+
 bool monster::can_hear()
 {
  return has_flag(MF_HEARS) && !has_effect(ME_DEAF);
