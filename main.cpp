@@ -15,7 +15,7 @@
 void print_trace(int signum) {
     int child_pid = fork();
     if (!child_pid) {
-    	sleep(1);
+    	sleep(1); //wait for child to crash
         execlp("gdb", "gdb", "--batch","-ex","set logging on", "-ex", "bt full", "-c","core","-f","cataclysm", NULL);
         abort(); /* If gdb failed to start */
     } else {

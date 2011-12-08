@@ -415,8 +415,8 @@ void monster::hit_player(game *g, player &p)
   g->add_msg("The %s misses %s.", name().c_str(), you.c_str());
  else if (dam > 0) {
   if (u_see)
-   g->add_msg("The %s hits %s %s.", name().c_str(), your.c_str(),
-              body_part_name(bphit, side).c_str());
+   g->add_msg("The %s hits %s %s for %d damage.", name().c_str(), your.c_str(),
+              body_part_name(bphit, side).c_str(), dam);
   if (!is_npc) {
    if (g->u.activity.type == ACT_RELOAD)
     g->add_msg("You stop reloading.");
