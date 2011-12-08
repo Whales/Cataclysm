@@ -15,7 +15,7 @@
 
 // mfb(n) converts a flag to its appropriate position in covers's bitfield
 #ifndef mfb
-#define mfb(n) long(pow(2,(long)n))
+#define mfb(n) long(pow(2,(double)(n)))
 #endif
 
 enum itype_id {
@@ -24,7 +24,8 @@ itm_corpse,
 // Special crafting-only pseudoitems
 itm_fire, itm_toolset,
 // Drinks
-itm_water,itm_water_iodine, itm_sewage, itm_salt_water, itm_oj, itm_apple_cider,
+itm_water,itm_water_iodine, itm_sewage,
+ itm_salt_water, itm_oj, itm_apple_cider,
  itm_energy_drink, itm_cola, itm_rootbeer, itm_milk, itm_V8, itm_broth,
  itm_soup, itm_whiskey, itm_vodka, itm_rum, itm_tequila, itm_beer, itm_bleach,
  itm_ammonia, itm_mutagen, itm_purifier, itm_tea, itm_coffee,
@@ -42,7 +43,7 @@ itm_apple, itm_orange, itm_lemon, itm_chips, itm_pretzels, itm_chocolate,
  itm_can_tuna, itm_can_catfood, itm_honeycomb, itm_royal_jelly, itm_fetus,
  itm_arm, itm_leg, itm_ant_egg, itm_marloss_berry, itm_flour, itm_sugar,
  itm_salt, itm_potato_raw, itm_potato_baked, itm_bread, itm_pie, itm_pizza,
- itm_mre, itm_tea_raw, itm_coffee_raw,
+ itm_mre_beef, itm_mre_veggy, itm_tea_raw, itm_coffee_raw,
 // Medication
 itm_bandages, itm_1st_aid, itm_vitamins, itm_aspirin, itm_caffeine,
  itm_pills_sleep, itm_iodine, itm_dayquil, itm_nyquil, itm_inhaler, itm_codeine,
@@ -90,6 +91,8 @@ itm_hat_ball, itm_hat_boonie, itm_hat_cotton, itm_hat_knit, itm_hat_hunting,
  itm_helmet_army, itm_helmet_riot, itm_helmet_motor, itm_helmet_chitin, itm_tophat,
 // High-storage
 itm_backpack, itm_purse, itm_mbag, itm_fanny, itm_holster, itm_bootstrap,
+// Decorative
+itm_ring, itm_necklace,
 // Ammunition
 itm_battery, itm_plut_cell, itm_nail, itm_bb, itm_arrow_wood, itm_arrow_cf, itm_arrow_po,
  itm_bolt_wood, itm_bolt_steel,itm_bolt_po, itm_shot_bird, itm_shot_00, itm_shot_slug,
@@ -197,8 +200,7 @@ IF_STR_RELOAD,  // Reloading time is reduced by Strength * 20
 IF_STR8_DRAW,   // Requires strength 8 to draw
 IF_STR10_DRAW,  // Requires strength 10 to draw
 IF_USE_UPS,	// Draws power from a UPS
-
-<<<<<<< HEAD
+IF_RELOAD_AND_SHOOT, // Reloading and shooting is one action
 IF_AMMO_FLAME,	// Sets fire to terrain and monsters
 IF_AMMO_INCENDIARY, // Sparks explosive terrain
 IF_AMMO_EXPLOSIVE, // Small explosion
@@ -210,18 +212,6 @@ IF_AMMO_SMOKE,  // Smoke burst
 IF_AMMO_TRAIL,	// Leaves a trail of smoke
 IF_AMMO_FLASHBANG, // Disorients and blinds
 IF_AMMO_RAGE,   // Poisons Monster into a rage.
-=======
-IF_AMMO_FLAME,		// Sets fire to terrain and monsters
-IF_AMMO_INCENDIARY,	// Sparks explosive terrain
-IF_AMMO_EXPLOSIVE,	// Small explosion
-IF_AMMO_FRAG,		// Frag explosion
-IF_AMMO_NAPALM,		// Firey explosion
-IF_AMMO_EXPLOSIVE_BIG,	// Big explosion!
-IF_AMMO_TEARGAS,	// Teargas burst
-IF_AMMO_SMOKE,  	// Smoke burst
-IF_AMMO_TRAIL,		// Leaves a trail of smoke
-IF_AMMO_FLASHBANG,	// Disorients and blinds
->>>>>>> 0f9e9bf4f53e9a9be567038779c2ba201c92c1d0
 NUM_ITEM_FLAGS
 };
 
