@@ -119,6 +119,7 @@ class game
   void plswim(int x, int y); // Called by plmove.  Handles swimming
   void nuke(int x, int y);
   std::vector<faction *> factions_at(int x, int y);
+  std::string causeofdeath;// What killed the player?
   int& scent(int x, int y);
   unsigned char light_level();
   int assign_npc_id();
@@ -303,7 +304,6 @@ class game
   int turnssincelastmon; // turns since the last monster was spotted needed for auto run mode
   quit_status uquit;    // Set to true if the player quits ('Q')
 
-  std::string causeofdeath // What killed the player?
 
   calendar nextspawn; // The turn on which monsters will spawn next.
   calendar nextweather; // The turn on which weather will shift next.

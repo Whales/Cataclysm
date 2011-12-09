@@ -255,7 +255,7 @@ void mattack::science(game *g, monster *z)	// I said SCIENCE again!
  case 1:	// Shock the player
   g->add_msg("The %s shocks you!", z->name().c_str());
   z->moves -= 150;
-  g->u.hurtall(rng(1, 2));
+  g->u.hurtall(g,rng(1, 2),z->name());
   if (one_in(6) && !one_in(30 - g->u.str_cur)) {
    g->add_msg("You're paralyzed!");
    g->u.moves -= 300;
@@ -342,7 +342,7 @@ void mattack::growplants(game *g, monster *z)
        hit = bp_feet;
       g->add_msg("A tree bursts forth from the earth and pierces your %s!",
                  body_part_name(hit, side).c_str());
-      g->u.hit(g, hit, side, 0, rng(10, 30));
+      g->u.hit(g, hit, side, 0, rng(10, 30),z->name());
      } else {
       int npcdex = g->npc_at(z->posx + i, z->posy + j);
       if (npcdex != -1) {	// An NPC got hit
@@ -356,7 +356,7 @@ void mattack::growplants(game *g, monster *z)
         g->add_msg("A tree bursts forth from the earth and pierces %s's %s!",
                    g->active_npc[npcdex].name.c_str(),
                    body_part_name(hit, side).c_str());
-       g->active_npc[npcdex].hit(g, hit, side, 0, rng(10, 30));
+       g->active_npc[npcdex].hit(g, hit, side, 0, rng(10, 30),"");
       }
      }
      g->m.ter(z->posx + i, z->posy + j) = t_tree_young;
@@ -394,7 +394,7 @@ void mattack::growplants(game *g, monster *z)
         hit = bp_feet;
        g->add_msg("The underbrush beneath your feet grows and pierces your %s!",
                   body_part_name(hit, side).c_str());
-       g->u.hit(g, hit, side, 0, rng(10, 30));
+       g->u.hit(g, hit, side, 0, rng(10, 30),z->name());
       } else {
        int npcdex = g->npc_at(z->posx + i, z->posy + j);
        if (npcdex != -1) {
@@ -408,7 +408,7 @@ void mattack::growplants(game *g, monster *z)
          g->add_msg("Underbrush grows into a tree, and it pierces %s's %s!",
                     g->active_npc[npcdex].name.c_str(),
                     body_part_name(hit, side).c_str());
-        g->active_npc[npcdex].hit(g, hit, side, 0, rng(10, 30));
+        g->active_npc[npcdex].hit(g, hit, side, 0, rng(10, 30),"");
        }
       }
      }
@@ -452,7 +452,7 @@ void mattack::vine(game *g, monster *z)
     int side = rng(0, 1);
     g->add_msg("The %s lashes your %s!", z->name().c_str(),
                body_part_name(bphit, side).c_str());
-    g->u.hit(g, bphit, side, 4, 4);
+    g->u.hit(g, bphit, side, 4, 4,z->name());
     z->sp_timeout = z->type->sp_freq;
     z->moves -= 100;
     return;
@@ -532,7 +532,7 @@ void mattack::spit_sap(game *g, monster *z)
  if (dam <= 0)
   return;
  g->add_msg("A glob of sap hits you!");
- g->u.hit(g, bp_torso, 0, dam, 0);
+ g->u.hit(g, bp_torso, 0, dam, 0,z->name());
  g->u.add_disease(DI_SAP, dam, g);
 }
 
@@ -862,7 +862,7 @@ void mattack::tentacle(game *g, monster *z)
  int dam = rng(10, 20), side = rng(0, 1);
  g->add_msg("Your %s is hit for %d damage!", body_part_name(hit, side).c_str(),
             dam);
- g->u.hit(g, hit, side, dam, 0);
+ g->u.hit(g, hit, side, dam, 0,z->name());
 }
 
 void mattack::vortex(game *g, monster *z)
@@ -914,7 +914,7 @@ void mattack::vortex(game *g, monster *z)
        int side = rng(0, 1);
        g->add_msg("A %s hits your %s for %d damage!", thrown.tname().c_str(),
                   body_part_name(hit, side).c_str(), dam);
-       g->u.hit(g, hit, side, dam, 0);
+       g->u.hit(g, hit, side, dam, 0,z->name());
        dam = 0;
       }
 // TODO: Hit NPCs
@@ -1023,7 +1023,7 @@ void mattack::vortex(game *g, monster *z)
      int damage_copy = damage;
      g->m.shoot(g, traj[i].x, traj[i].y, damage_copy, false, 0);
      if (damage_copy < damage)
-      g->u.hit(g, bp_torso, 0, damage - damage_copy, 0);
+      g->u.hit(g, bp_torso, 0, damage - damage_copy, 0,z->name());
     }
     if (hit_wall)
      damage *= 2;
@@ -1031,7 +1031,7 @@ void mattack::vortex(game *g, monster *z)
      g->u.posx = traj[traj.size() - 1].x;
      g->u.posy = traj[traj.size() - 1].y;
     }
-    g->u.hit(g, bp_torso, 0, damage, 0);
+    g->u.hit(g, bp_torso, 0, damage, 0,z->name());
     g->update_map(g->u.posx, g->u.posy);
    } // Done with checking for player
   }

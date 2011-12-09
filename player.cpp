@@ -2130,7 +2130,7 @@ int player::intimidation()
  return ret;
 }
 
-void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
+void player::hit(game *g, body_part bphurt, int side, int dam, int cut,std::string name)
 {
  int painadd = 0;
  if (has_disease(DI_SLEEP)) {
@@ -2144,7 +2144,8 @@ void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
  dam += cut;
  if (dam <= 0)
   return;
-
+ if(!is_npc())
+    g->causeofdeath = name;
  if (has_artifact_with(AEP_SNAKES) && dam >= 6) {
   int snakes = int(dam / 6);
   std::vector<point> valid;
@@ -2360,8 +2361,10 @@ void player::healall(int dam)
  }
 }
 
-void player::hurtall(int dam)
+void player::hurtall(game *g,int dam, std::string name)
 {
+ if(!is_npc())
+	 g->causeofdeath = name;
  for (int i = 0; i < num_hp_parts; i++) {
   int painadd = 0;
   hp_cur[i] -= dam;
@@ -2695,7 +2698,7 @@ void player::suffer(game *g)
    rem_disease(DI_SLEEP);
    g->add_msg("You wake up!");
   }
-  hurtall(1);
+  hurtall(g,1,"sunlight");
  }
  if (has_trait(PF_TROGLO) && g->is_in_sunlight(posx, posy)) {
   str_cur -= 4;
@@ -2747,7 +2750,7 @@ void player::suffer(game *g)
  }
  if (has_bionic(bio_dis_acid) && one_in(1500)) {
   g->add_msg("You suffer a burning acidic discharge!");
-  hurtall(1);
+  hurtall(g,1,"bad bionic");
  }
  if (has_bionic(bio_drain) && power_level > 0 && one_in(600)) {
   g->add_msg("Your batteries discharge slightly.");
@@ -2793,7 +2796,7 @@ void player::vomit(game *g)
  rem_disease(DI_PKILL3);
  if (has_disease(DI_SLEEP) && one_in(4)) { // Pulled a Hendrix!
   g->add_msg("You choke on your vomit and die...");
-  hurtall(500);
+  hurtall(g,500,"vomit");
  }
  rem_disease(DI_SLEEP);
 }

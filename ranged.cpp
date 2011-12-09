@@ -799,7 +799,7 @@ void shoot_player(game *g, player &p, player *h, int &dam, double goodhit)
                (g->u_see(p.posx, p.posy, junk) ? p.name.c_str() : "Someone"),
                h->name.c_str(), body_part_name(hit, side).c_str());
   }
-  h->hit(g, hit, side, 0, dam);
+  h->hit(g, hit, side, 0, dam,p.name.c_str());
   if (h != &(g->u)) {
    int npcdex = g->npc_at(h->posx, h->posy);
    if (g->active_npc[npcdex].hp_cur[hp_head]  <= 0 ||

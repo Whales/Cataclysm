@@ -375,9 +375,9 @@ int player::hit_mon(game *g, monster *z)
 // Dump its contents on the ground
   for (int i = 0; i < weapon.contents.size(); i++)
    g->m.add_item(posx, posy, weapon.contents[i]);
-  hit(g, bp_arms, 1, 0, rng(0, weapon.volume() * 2));// Take damage
+  hit(g, bp_arms, 1, 0, rng(0, weapon.volume() * 2),weapon.tname(g));// Take damage
   if (weapon.is_two_handed(this))// Hurt left arm too, if it was big
-   hit(g, bp_arms, 0, 0, rng(0, weapon.volume()));
+   hit(g, bp_arms, 0, 0, rng(0, weapon.volume()),weapon.tname(g));
   dam += rng(0, 5 + int(weapon.volume() * 1.5));// Hurt the monster extra
   remove_weapon();
  }

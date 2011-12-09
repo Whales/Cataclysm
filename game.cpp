@@ -610,7 +610,7 @@ bool game::do_turn()
   if (u.has_trait(PF_REGEN) && !one_in(3))
    u.healall(1);
   if (u.has_trait(PF_ROT) && !one_in(3))
-   u.hurtall(1);
+   u.hurtall(this,1,"rotting");
   if (u.radiation > 1 && one_in(3))
    u.radiation--;
   u.get_sick(this);
@@ -2756,12 +2756,12 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
      kill_mon(mon_hit);
    }
    if (npc_hit != -1) {
-    active_npc[npc_hit].hit(this, bp_torso, 0, rng(dam / 2, dam * 1.5), 0);
-    active_npc[npc_hit].hit(this, bp_head,  0, rng(dam / 3, dam),       0);
-    active_npc[npc_hit].hit(this, bp_legs,  0, rng(dam / 3, dam),       0);
-    active_npc[npc_hit].hit(this, bp_legs,  1, rng(dam / 3, dam),       0);
-    active_npc[npc_hit].hit(this, bp_arms,  0, rng(dam / 3, dam),       0);
-    active_npc[npc_hit].hit(this, bp_arms,  1, rng(dam / 3, dam),       0);
+    active_npc[npc_hit].hit(this, bp_torso, 0, rng(dam / 2, dam * 1.5), 0,"");
+    active_npc[npc_hit].hit(this, bp_head,  0, rng(dam / 3, dam),       0,"");
+    active_npc[npc_hit].hit(this, bp_legs,  0, rng(dam / 3, dam),       0,"");
+    active_npc[npc_hit].hit(this, bp_legs,  1, rng(dam / 3, dam),       0,"");
+    active_npc[npc_hit].hit(this, bp_arms,  0, rng(dam / 3, dam),       0,"");
+    active_npc[npc_hit].hit(this, bp_arms,  1, rng(dam / 3, dam),       0,"");
     if (active_npc[npc_hit].hp_cur[hp_head]  <= 0 ||
         active_npc[npc_hit].hp_cur[hp_torso] <= 0   ) {
      active_npc[npc_hit].die(this, true);
@@ -2770,12 +2770,12 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
    }
    if (u.posx == i && u.posy == j) {
     add_msg("You're caught in the explosion!");
-    u.hit(this, bp_torso, 0, rng(dam / 2, dam * 1.5), 0);
-    u.hit(this, bp_head,  0, rng(dam / 3, dam),       0);
-    u.hit(this, bp_legs,  0, rng(dam / 3, dam),       0);
-    u.hit(this, bp_legs,  1, rng(dam / 3, dam),       0);
-    u.hit(this, bp_arms,  0, rng(dam / 3, dam),       0);
-    u.hit(this, bp_arms,  1, rng(dam / 3, dam),       0);
+    u.hit(this, bp_torso, 0, rng(dam / 2, dam * 1.5), 0,"explosion");
+    u.hit(this, bp_head,  0, rng(dam / 3, dam),       0,"explosion");
+    u.hit(this, bp_legs,  0, rng(dam / 3, dam),       0,"explosion");
+    u.hit(this, bp_legs,  1, rng(dam / 3, dam),       0,"explosion");
+    u.hit(this, bp_arms,  0, rng(dam / 3, dam),       0,"explosion");
+    u.hit(this, bp_arms,  1, rng(dam / 3, dam),       0,"explosion");
    }
    if (fire) {
     if (m.field_at(i, j).type == fd_smoke)
@@ -2837,7 +2837,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
     else if (hit == bp_torso)
      dam = rng(1.5 * dam, 3 * dam);
     int npcdex = npc_at(tx, ty);
-    active_npc[npcdex].hit(this, hit, rng(0, 1), 0, dam);
+    active_npc[npcdex].hit(this, hit, rng(0, 1), 0, dam,"");
     if (active_npc[npcdex].hp_cur[hp_head] <= 0 ||
         active_npc[npcdex].hp_cur[hp_torso] <= 0) {
      active_npc[npcdex].die(this);
@@ -2847,7 +2847,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
     body_part hit = random_body_part();
     int side = rng(0, 1);
     add_msg("Shrapnel hits your %s!", body_part_name(hit, side).c_str());
-    u.hit(this, hit, rng(0, 1), 0, dam);
+    u.hit(this, hit, rng(0, 1), 0, dam,"shrapnel");
    } else
     m.shoot(this, tx, ty, dam, j == traj.size() - 1, 0);
   }
@@ -3263,9 +3263,9 @@ void game::smash()
    for (int i = 0; i < u.weapon.contents.size(); i++)
     m.add_item(u.posx, u.posy, u.weapon.contents[i]);
    sound(u.posx, u.posy, 16, "");
-   u.hit(this, bp_hands, 1, 0, rng(0, u.weapon.volume()));
+   u.hit(this, bp_hands, 1, 0, rng(0, u.weapon.volume()),u.weapon.tname(this));
    if (u.weapon.volume() > 20)// Hurt left arm too, if it was big
-    u.hit(this, bp_hands, 0, 0, rng(0, u.weapon.volume() * .5));
+    u.hit(this, bp_hands, 0, 0, rng(0, u.weapon.volume() * .5),u.weapon.tname(this));
    u.remove_weapon();
   }
  } else
@@ -4866,13 +4866,13 @@ void game::plmove(int x, int y)
     for (int i = 0; i < u.weapon.contents.size(); i++)
      m.add_item(x, y, u.weapon.contents[i]);
     sound(u.posx, u.posy, 16, "");
-    u.hit(this, bp_hands, 1, 0, rng(0, u.weapon.volume() * 2));
+    u.hit(this, bp_hands, 1, 0, rng(0, u.weapon.volume() * 2),u.weapon.tname(this));
     if (u.weapon.is_two_handed(&u))// Hurt left arm too, if it was big
-     u.hit(this, bp_hands, 0, 0, rng(0, u.weapon.volume()));
+     u.hit(this, bp_hands, 0, 0, rng(0, u.weapon.volume()),u.weapon.tname(this));
     hitcut += rng(0, int(u.weapon.volume() * 1.5));	// Hurt the monster
     u.remove_weapon();
    }
-   active_npc[npcdex].hit(this, bphit, side, hitdam, hitcut);
+   active_npc[npcdex].hit(this, bphit, side, hitdam, hitcut,"");
    if (active_npc[npcdex].hp_cur[hp_head]  <= 0 ||
        active_npc[npcdex].hp_cur[hp_torso] <= 0   ) {
     active_npc[npcdex].die(this, true);
@@ -4955,14 +4955,14 @@ void game::plmove(int x, int y)
   if (m.has_flag(rough, x, y)) {
    if (one_in(5) && u.armor_bash(bp_feet) < rng(1, 5)) {
     add_msg("You hurt your feet on the %s!", m.tername(x, y).c_str());
-    u.hit(this, bp_feet, 0, 0, 1);
-    u.hit(this, bp_feet, 1, 0, 1);
+    u.hit(this, bp_feet, 0, 0, 1,m.tername(x, y));
+    u.hit(this, bp_feet, 1, 0, 1,m.tername(x, y));
    }
   }
   if (m.has_flag(sharp, x, y) && !one_in(3) && !one_in(40 - int(u.dex_cur/2))) {
    if (!u.has_trait(PF_PARKOUR) || one_in(4)) {
     add_msg("You cut yourself on the %s!", m.tername(x, y).c_str());
-    u.hit(this, bp_torso, 0, 0, rng(1, 4));
+    u.hit(this, bp_torso, 0, 0, rng(1, 4),m.tername(x, y));
    }
   }
   if (!u.has_artifact_with(AEP_STEALTH)) {
@@ -5270,7 +5270,7 @@ void game::vertical_move(int movez, bool force)
    add_msg("You fall expertly and take no damage.");
   else {
    add_msg("You fall heavily, taking %d damage.", dam);
-   u.hurtall(dam);
+   u.hurtall(this,dam,"falling");
   }
  }
 
