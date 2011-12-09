@@ -303,6 +303,8 @@ class game
   int turnssincelastmon; // turns since the last monster was spotted needed for auto run mode
   quit_status uquit;    // Set to true if the player quits ('Q')
 
+  std::string causeofdeath // What killed the player?
+
   calendar nextspawn; // The turn on which monsters will spawn next.
   calendar nextweather; // The turn on which weather will shift next.
   overmap om_hori, om_vert, om_diag; // Adjacent overmaps

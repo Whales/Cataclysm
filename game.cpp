@@ -69,7 +69,7 @@ game::game()
  autorunmode = true;
 
  turn.season = SPRING;    // ... with winter conveniently a long ways off
-
+ causeofdeath = "BUG"; // We havn't been killed.
  for (int i = 0; i < num_monsters; i++)	// Reset kill counts to 0
   kills[i] = 0;
 // Set the scent map to 0
@@ -1100,6 +1100,7 @@ void game::get_input()
   u.moves = 0;
   uquit = QUIT_SAVED;
  } else if (ch == 'Q' && query_yn("Commit suicide?")) {
+  causeofdeath = "himself";
   u.moves = 0;
   std::vector<item> tmp = u.inv_dump();
   item your_body;

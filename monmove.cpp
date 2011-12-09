@@ -448,6 +448,12 @@ void monster::hit_player(game *g, player &p)
     g->add_msg("You feel poison flood your body, wracking you with pain...");
    p.add_disease(DI_BADPOISON, 40, g);
   }
+  if(!is_npc)
+  causeofdeath = name();
+  /*the last thing that hit us is probably the thing
+   * that killed us when we die.
+   * Have to think about glass, starving, water etc.
+   */
  }
  if (is_npc) {
   if (p.hp_cur[hp_head] <= 0 || p.hp_cur[hp_torso] <= 0) {
