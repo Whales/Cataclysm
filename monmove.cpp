@@ -7,7 +7,12 @@
 #include "rng.h"
 #include "pldata.h"
 #include <stdlib.h>
-#include <curses.h>
+
+#if (defined _WIN32 || defined WINDOWS)
+	#include "catacurse.h"
+#else
+	#include <curses.h>
+#endif
 
 #ifndef SGN
 #define SGN(a) (((a)<0) ? -1 : 1)
@@ -74,6 +79,30 @@ void monster::plan(game *g)
 
 //TODO this doesn't deal with NPCs yet, is_friend is probably
  // usable with npcs though, won't test it till NPCs are bugfree
+ if (friendly != 0) {	// Target monsters, not the player!
+  for (int i = 0; i < g->z.size(); i++) {
+   monster *tmp = &(g->z[i]);
+   if (tmp->friendly == 0 && rl_dist(posx, posy, tmp->posx, tmp->posy) < dist &&
+       g->m.sees(posx, posy, tmp->posx, tmp->posy, sightrange, tc)) {
+    closest = i;
+    dist = rl_dist(posx, posy, tmp->posx, tmp->posy);
+    stc = tc;
+   }
+  }
+  if (has_effect(ME_DOCILE))
+   closest = -1;
+  if (closest >= 0)
+   set_dest(g->z[closest].posx, g->z[closest].posy, stc);
+  else if (friendly > 0 && one_in(3))	// Grow restless with no targets
+   friendly--;
+  else if (friendly < 0 && g->sees_u(posx, posy, tc)) {
+   if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2)
+    set_dest(g->u.posx, g->u.posy, tc);
+   else
+    plans.clear();
+  }
+  return;
+ }
  if (is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc) &&
      !is_friend(g->u)) {
   wandx = posx * 2 - g->u.posx;
