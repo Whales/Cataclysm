@@ -1890,7 +1890,7 @@ void iuse::tazer(game *g, player *p, item *it, bool t)
   g->add_msg("You shock %s!", foe->name.c_str());
   int shock = rng(5, 20);
   foe->moves -= shock * 100;
-  foe->hurtall(shock);
+  foe->hurtall(g,shock,"");
   if (foe->hp_cur[hp_head]  <= 0 || foe->hp_cur[hp_torso] <= 0) {
    foe->die(g, true);
    g->active_npc.erase(g->active_npc.begin() + npcdex);

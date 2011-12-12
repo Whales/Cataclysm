@@ -76,6 +76,9 @@ void monster::plan(game *g)
  int closest = -1;
  int dist = 1000;
  int tc, stc;
+
+//TODO this doesn't deal with NPCs yet, is_friend is probably
+ // usable with npcs though, won't test it till NPCs are bugfree
  if (friendly != 0) {	// Target monsters, not the player!
   for (int i = 0; i < g->z.size(); i++) {
    monster *tmp = &(g->z[i]);
@@ -101,21 +104,21 @@ void monster::plan(game *g)
   return;
  }
  if (is_fleeing(g->u) && can_see() && g->sees_u(posx, posy, tc) &&
-     (!g->u.has_trait(PF_ANIMALEMPATH) || !has_flag(MF_ANIMAL))) {
+     !is_friend(g->u)) {
   wandx = posx * 2 - g->u.posx;
   wandy = posy * 2 - g->u.posy;
   wandf = 40;
  }
 // If we can see, and we can see a character, start moving towards them
  if (!is_fleeing(g->u) && can_see()) {
-  if (g->sees_u(posx, posy, tc)) {
+  if (g->sees_u(posx, posy, tc)&& !is_friend(g->u)) {
    dist = rl_dist(posx, posy, g->u.posx, g->u.posy);
    closest = -2;
    stc = tc;
   }
   for (int i = 0; i < g->active_npc.size(); i++) {
    npc *me = &(g->active_npc[i]);
-   if (rl_dist(posx, posy, me->posx, me->posy) < dist &&
+   if (!is_friend(*me) && rl_dist(posx, posy, me->posx, me->posy) < dist &&
        g->m.sees(posx, posy, me->posx, me->posy, sightrange, tc)) {
     dist = rl_dist(posx, posy, me->posx, me->posy);
     closest = i;
@@ -124,7 +127,7 @@ void monster::plan(game *g)
   }
   for (int i = 0; i < g->z.size(); i++) {
    monster *mon = &(g->z[i]);
-   if (mon->friendly != 0 && rl_dist(posx, posy, mon->posx, mon->posy) < dist &&
+   if (!mon->is_friend(this) && rl_dist(posx, posy, mon->posx, mon->posy) < dist &&
        g->m.sees(posx, posy, mon->posx, mon->posy, sightrange, tc)) {
     dist = rl_dist(posx, posy, mon->posx, mon->posy);
     closest = -3 - i;
@@ -137,6 +140,12 @@ void monster::plan(game *g)
    set_dest(g->z[-3 - closest].posx, g->z[-3 - closest].posy, stc);
   else if (closest >= 0)
    set_dest(g->active_npc[closest].posx, g->active_npc[closest].posy, stc);
+  else if (is_friend(g->u) && g->sees_u(posx, posy, tc)) {
+     if (rl_dist(posx, posy, g->u.posx, g->u.posy) > 2)
+      set_dest(g->u.posx, g->u.posy, tc);
+     else
+      plans.clear();
+    }
  }
 }
  
@@ -171,8 +180,7 @@ void monster::move(game *g)
   moves = 0;
   return;
  }
- if (friendly != 0 ||
-     (g->u.has_trait(PF_ANIMALEMPATH) && has_flag(MF_ANIMAL))) {
+ if (is_friend(g->u)) {
   if (friendly > 0)
    friendly--;
   friendly_move(g);
@@ -192,7 +200,8 @@ void monster::move(game *g)
  int mondex = (plans.size() > 0 ? g->mon_at(plans[0].x, plans[0].y) : -1);
 
  if (plans.size() > 0 &&
-     (mondex == -1 || g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)) &&
+     (mondex == -1 || has_flag(MF_ATTACKMON) ||
+    		!g->z[mondex].is_friend(this)) &&
      (can_move_to(g->m, plans[0].x, plans[0].y) ||
       (plans[0].x == g->u.posx && plans[0].y == g->u.posy) || 
      (g->m.has_flag(bashable, plans[0].x, plans[0].y) && has_flag(MF_BASHES)))){
@@ -224,7 +233,7 @@ void monster::move(game *g)
   if (next.x == g->u.posx && next.y == g->u.posy && type->melee_dice > 0)
    hit_player(g, g->u);
   else if (mondex != -1 && type->melee_dice > 0 &&
-           (g->z[mondex].friendly != 0 || has_flag(MF_ATTACKMON)))
+           (!g->z[mondex].is_friend(this) || has_flag(MF_ATTACKMON)))
    hit_monster(g, mondex);
   else if (npcdex != -1 && type->melee_dice > 0)
    hit_player(g, g->active_npc[npcdex]);
@@ -244,8 +253,7 @@ void monster::move(game *g)
  }
 
 // If we're close to our target, we get focused and don't stumble
- if ((has_flag(MF_STUMBLES) && (plans.size() > 3 || plans.size() == 0)) ||
-     !moved)
+ if ((has_flag(MF_STUMBLES) && (plans.size() > 3 || plans.size() == 0)) || !moved)
   stumble(g, moved);
 }
 
@@ -436,8 +444,8 @@ void monster::hit_player(game *g, player &p)
   g->add_msg("The %s misses %s.", name().c_str(), you.c_str());
  else if (dam > 0) {
   if (u_see)
-   g->add_msg("The %s hits %s %s.", name().c_str(), your.c_str(),
-              body_part_name(bphit, side).c_str());
+   g->add_msg("The %s hits %s %s for %d damage.", name().c_str(), your.c_str(),
+              body_part_name(bphit, side).c_str(), dam);
   if (!is_npc) {
    if (g->u.activity.type == ACT_RELOAD)
     g->add_msg("You stop reloading.");
@@ -459,7 +467,7 @@ void monster::hit_player(game *g, player &p)
               (g->u.has_trait(PF_QUILLS) ? "quills" : "spines"));
    hurt(spine);
   }
-  p.hit(g, bphit, side, dam, type->melee_cut);
+  p.hit(g, bphit, side, dam, type->melee_cut,name());
   if (has_flag(MF_VENOM)) {
    if (!is_npc)
     g->add_msg("You're poisoned!");

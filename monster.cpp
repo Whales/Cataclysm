@@ -218,6 +218,41 @@ bool monster::can_see()
  return has_flag(MF_SEES) && !has_effect(ME_BLIND);
 }
 
+bool monster::is_friend(monster *m)
+{
+	if(has_effect(ME_RAGING))
+		return false;
+	if(m->has_effect(ME_RAGING))
+		return false;
+	if(friendly == 0 && m->friendly != 0)
+		return false;
+	if(friendly != 0 && m->friendly == 0)
+		return false;
+
+	return true;
+}
+bool monster::is_friend(player &p)
+{
+	if(has_effect(ME_RAGING))
+		return false;
+	if(friendly != 0)
+		return true;
+	if(p.has_trait(PF_ANIMALEMPATH) && has_flag(MF_ANIMAL))
+		return true;
+	return false;
+}
+
+bool monster::is_friend(npc &p)
+{
+	if(has_effect(ME_RAGING))
+		return false;
+	if(friendly != 0)
+		return true;
+	if(p.has_trait(PF_ANIMALEMPATH) && has_flag(MF_ANIMAL))
+		return true;
+	return false;
+}
+
 bool monster::can_hear()
 {
  return has_flag(MF_HEARS) && !has_effect(ME_DEAF);

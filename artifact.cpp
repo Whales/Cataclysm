@@ -322,7 +322,7 @@ void game::process_artifact(item *it, player *p, bool wielded)
     case ARTC_HP:
      if (turn.second == 0) {
       add_msg("You feel your body decaying.");
-      p->hurtall(1);
+      p->hurtall(this,1,"artifact");
       it->charges++;
      }
      break;

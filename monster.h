@@ -18,6 +18,7 @@ ME_ONFIRE,		// Lit aflame
 ME_STUNNED,		// Stumbling briefly
 ME_BLIND,		// Can't use sight
 ME_DEAF,		// Can't use hearing
+ME_RAGING,               // Raging, will attack everything
 ME_TARGETED,		// Targeting locked on--for robots that shoot guns
 ME_DOCILE,		// If friendly, stops attacking monsters for a while
 NUM_MONSTER_EFFECTS
@@ -48,6 +49,9 @@ class monster {
  nc_color color_with_effects();	// Color with fire, beartrapped, etc.
 				// Inverts color if inv==true
  bool has_flag(m_flags f);	// Returns true if f is set (see mtype.h)
+ bool is_friend(monster *m); // Selfexplaining, true most of the times
+ bool is_friend(player &m); // selfexplaining, false most the times
+ bool is_friend(npc &m); // selfexplaining, false most the times
  bool can_see();		// MF_SEES and no ME_BLIND
  bool can_hear();		// MF_HEARS and no ME_DEAF
  bool made_of(material m);	// Returns true if it's made of m

@@ -1259,7 +1259,7 @@ void npc::melee_player(game *g, player &foe)
   g->add_msg("%s hits your %s with %s %s.", name.c_str(),
              body_part_name(hit, side).c_str(), (male ? "his" : "her"),
              weapname(false).c_str());
-  g->u.hit(g, hit, side, dam, cut);
+  g->u.hit(g, hit, side, dam, cut,name);
  } else
   g->add_msg("%s swings %s %s at you, but misses.", name.c_str(),
              (male ? "his" : "her"), weapname(false).c_str());

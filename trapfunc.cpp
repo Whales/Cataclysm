@@ -13,13 +13,14 @@ void trapfuncm::bubble(game *g, monster *z, int x, int y)
 {
  g->sound(x, y, 18, "Pop!");
  g->m.tr_at(x, y) = tr_null;
+
 }
 
 void trapfunc::beartrap(game *g, int x, int y)
 {
  g->add_msg("A bear trap closes on your foot!");
  g->sound(x, y, 8, "SNAP!");
- g->u.hit(g, bp_legs, rng(0, 1), 10, 16);
+ g->u.hit(g, bp_legs, rng(0, 1), 10, 16,(g->traps[g->m.tr_at(x, y)])->name);
  g->u.add_disease(DI_BEARTRAP, -1, g);
  g->m.tr_at(x, y) = tr_null;
  g->m.add_item(x, y, g->itypes[itm_beartrap], g->turn);
@@ -41,8 +42,8 @@ void trapfuncm::beartrap(game *g, monster *z, int x, int y)
 void trapfunc::board(game *g, int x, int y)
 {
  g->add_msg("You step on a spiked board!");
- g->u.hit(g, bp_feet, 0, 0, rng(6, 10));
- g->u.hit(g, bp_feet, 1, 0, rng(6, 10));
+ g->u.hit(g, bp_feet, 0, 0, rng(6, 10),g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_feet, 1, 0, rng(6, 10),g->traps[g->m.tr_at(x, y)]->name);
 }
 
 void trapfuncm::board(game *g, monster *z, int x, int y)
@@ -73,7 +74,7 @@ void trapfunc::tripwire(game *g, int x, int y)
  }
  g->u.moves -= 150;
  if (rng(5, 20) > g->u.dex_cur)
-  g->u.hurtall(rng(1, 4));
+  g->u.hurtall(g,rng(1, 4),g->traps[g->m.tr_at(x, y)]->name);
 }
 
 void trapfuncm::tripwire(game *g, monster *z, int x, int y)
@@ -106,7 +107,7 @@ void trapfunc::crossbow(game *g, int x, int y)
   }
   int side = rng(0, 1);
   g->add_msg("Your %s is hit!", body_part_name(hit, side).c_str());
-  g->u.hit(g, hit, side, 0, rng(20, 30));
+  g->u.hit(g, hit, side, 0, rng(20, 30),g->traps[g->m.tr_at(x, y)]->name);
   add_bolt = !one_in(10);
  } else
   g->add_msg("You dodge the shot!");
@@ -158,7 +159,7 @@ void trapfunc::shotgun(game *g, int x, int y)
   }
   int side = rng(0, 1);
   g->add_msg("Your %s is hit!", body_part_name(hit, side).c_str());
-  g->u.hit(g, hit, side, 0, rng(40 * shots, 60 * shots));
+  g->u.hit(g, hit, side, 0, rng(40 * shots, 60 * shots),g->traps[g->m.tr_at(x, y)]->name);
  } else
   g->add_msg("You dodge the shot!");
  if (shots == 2 || g->m.tr_at(x, y) == tr_shotgun_1) {
@@ -200,7 +201,7 @@ void trapfuncm::shotgun(game *g, monster *z, int x, int y)
 void trapfunc::blade(game *g, int x, int y)
 {
  g->add_msg("A machete swings out and hacks your torso!");
- g->u.hit(g, bp_torso, 0, 12, 30);
+ g->u.hit(g, bp_torso, 0, 12, 30,g->traps[g->m.tr_at(x, y)]->name);
 }
 
 void trapfuncm::blade(game *g, monster *z, int x, int y)
@@ -291,8 +292,8 @@ void trapfunc::goo(game *g, int x, int y)
  g->u.infect(DI_SLIMED, bp_feet, 6, 20, g);
  if (one_in(3)) {
   g->add_msg("The acidic goo eats away at your feet.");
-  g->u.hit(g, bp_feet, 0, 0, 5);
-  g->u.hit(g, bp_feet, 1, 0, 5);
+  g->u.hit(g, bp_feet, 0, 0, 5,g->traps[g->m.tr_at(x, y)]->name);
+  g->u.hit(g, bp_feet, 1, 0, 5,g->traps[g->m.tr_at(x, y)]->name);
  }
  g->m.tr_at(x, y) = tr_null;
 }
@@ -314,16 +315,16 @@ void trapfunc::dissector(game *g, int x, int y)
 {
  g->add_msg("Electrical beams emit from the floor and slice your flesh!");
  g->sound(x, y, 10, "BRZZZAP!");
- g->u.hit(g, bp_head,  0, 0, 15);
- g->u.hit(g, bp_torso, 0, 0, 20);
- g->u.hit(g, bp_arms,  0, 0, 12);
- g->u.hit(g, bp_arms,  1, 0, 12);
- g->u.hit(g, bp_hands, 0, 0, 10);
- g->u.hit(g, bp_hands, 1, 0, 10);
- g->u.hit(g, bp_legs,  0, 0, 12);
- g->u.hit(g, bp_legs,  1, 0, 12);
- g->u.hit(g, bp_feet,  0, 0, 10);
- g->u.hit(g, bp_feet,  1, 0, 10);
+ g->u.hit(g, bp_head,  0, 0, 15,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_torso, 0, 0, 20,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_arms,  0, 0, 12,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_arms,  1, 0, 12,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_hands, 0, 0, 10,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_hands, 1, 0, 10,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_legs,  0, 0, 12,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_legs,  1, 0, 12,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_feet,  0, 0, 10,g->traps[g->m.tr_at(x, y)]->name);
+ g->u.hit(g, bp_feet,  1, 0, 10,g->traps[g->m.tr_at(x, y)]->name);
 }
 
 void trapfuncm::dissector(game *g, monster *z, int x, int y)
@@ -340,9 +341,9 @@ void trapfunc::pit(game *g, int x, int y)
  int damage = rng(10, 20) - rng(dodge, dodge * 5);
  if (damage > 0) {
   g->add_msg("You hurt yourself!");
-  g->u.hurtall(rng(int(damage / 2), damage));
-  g->u.hit(g, bp_legs, 0, damage, 0);
-  g->u.hit(g, bp_legs, 1, damage, 0);
+  g->u.hurtall(g,rng(int(damage / 2), damage),g->traps[g->m.tr_at(x, y)]->name);
+  g->u.hit(g, bp_legs, 0, damage, 0,g->traps[g->m.tr_at(x, y)]->name);
+  g->u.hit(g, bp_legs, 1, damage, 0,g->traps[g->m.tr_at(x, y)]->name);
  } else
   g->add_msg("You land nimbly.");
  g->u.add_disease(DI_IN_PIT, -1, g);
@@ -382,7 +383,7 @@ void trapfunc::pit_spikes(game *g, int x, int y)
   }
   int side = rng(0, 1);
   g->add_msg("The spikes impale your %s!", body_part_name(hit, side).c_str());
-  g->u.hit(g, hit, side, 0, damage);
+  g->u.hit(g, hit, side, 0, damage,g->traps[g->m.tr_at(x, y)]->name);
  }
  if (one_in(4)) {
   g->add_msg("The spears break!");

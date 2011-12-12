@@ -643,7 +643,7 @@ void computer::activate_failure(game *g, computer_failure fail)
 
   case COMPFAIL_DAMAGE:
    g->add_msg("The console electrocutes you!");
-   g->u.hurtall(rng(1, 10));
+   g->u.hurtall(g,rng(1, 10),"console");
    break;
 
   case COMPFAIL_PUMP_EXPLODE:

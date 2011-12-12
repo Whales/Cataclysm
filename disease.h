@@ -181,7 +181,7 @@ void dis_effect(game *g, player &p, disease &dis)
   break;
 
  case DI_ONFIRE:
-  p.hurtall(3);
+  p.hurtall(g,3,"fire");
   for (int i = 0; i < p.worn.size(); i++) {
    if (p.worn[i].made_of(VEGGY) || p.worn[i].made_of(PAPER) ||
        p.worn[i].made_of(PAPER)) {
@@ -600,7 +600,7 @@ void dis_effect(game *g, player &p, disease &dis)
   if (dis.duration > 1200) {
    if (!p.is_npc())
     g->add_msg("Your asthma overcomes you.  You stop breathing and die...");
-   p.hurtall(500);
+   p.hurtall(g,500,"asthma");
   }
   p.str_cur -= 2;
   p.dex_cur -= 3;

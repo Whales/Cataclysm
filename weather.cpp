@@ -14,8 +14,11 @@ void weather_effect::glare(game *g)
 
 void weather_effect::wet(game *g)
 {
- if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE && one_in(2))
+ if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE && one_in(2) &&
+     !g->u.has_trait(PF_HYDROPHILE))
   g->u.add_morale(MORALE_WET, -1, -30);
+ else if(g->u.has_trait(PF_HYDROPHILE))
+  g->u.add_morale(MORALE_WET, 1, 30);
 // Put out fires and reduce scent
  for (int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++) {
   for (int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++) {
@@ -32,8 +35,11 @@ void weather_effect::wet(game *g)
 
 void weather_effect::very_wet(game *g)
 {
- if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE)
+ if (!g->u.is_wearing(itm_coat_rain) && PLAYER_OUTSIDE &&
+   !g->u.has_trait(PF_HYDROPHILE))
   g->u.add_morale(MORALE_WET, -1, -60);
+ else if(g->u.has_trait(PF_HYDROPHILE))
+  g->u.add_morale(MORALE_WET, 1, 60);
 // Put out fires and reduce scent
  for (int x = g->u.posx - SEEX * 2; x <= g->u.posx + SEEX * 2; x++) {
   for (int y = g->u.posy - SEEY * 2; y <= g->u.posy + SEEY * 2; y++) {
@@ -91,20 +97,20 @@ void weather_effect::acid(game *g)
  if (PLAYER_OUTSIDE) {
   g->add_msg("The acid rain burns!");
   if (one_in(6))
-   g->u.hit(g, bp_head, 0, 0, 1);
+   g->u.hit(g, bp_head, 0, 0, 1,"acid rain");
   if (one_in(10)) {
-   g->u.hit(g, bp_legs, 0, 0, 1);
-   g->u.hit(g, bp_legs, 1, 0, 1);
+   g->u.hit(g, bp_legs, 0, 0, 1,"acid rain");
+   g->u.hit(g, bp_legs, 1, 0, 1,"acid rain");
   }
   if (one_in(8)) {
-   g->u.hit(g, bp_feet, 0, 0, 1);
-   g->u.hit(g, bp_feet, 1, 0, 1);
+   g->u.hit(g, bp_feet, 0, 0, 1,"acid rain");
+   g->u.hit(g, bp_feet, 1, 0, 1,"acid rain");
   }
   if (one_in(6))
-   g->u.hit(g, bp_torso, 0, 0, 1);
+   g->u.hit(g, bp_torso, 0, 0, 1,"acid rain");
   if (one_in(8)) {
-   g->u.hit(g, bp_arms, 0, 0, 1);
-   g->u.hit(g, bp_arms, 1, 0, 1);
+   g->u.hit(g, bp_arms, 0, 0, 1,"acid rain");
+   g->u.hit(g, bp_arms, 1, 0, 1,"acid rain");
   }
  }
  if (g->levz >= 0) {

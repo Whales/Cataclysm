@@ -57,6 +57,10 @@ DRINK("water",		90, 50,	c_ltcyan, itm_bottle_plastic,
 	50,  0,  0,  0,  0,  0,  1,  0,&iuse::none,	ADD_NULL, "\
 Water, the stuff of life, the best thirst-quencher available.");
 
+DRINK("iodine water",      30, 50, c_ltcyan, itm_bottle_plastic,
+    50,  0,  0,  0,  0,  0,  1, -1,&iuse::none,   ADD_NULL, "\
+Water, it's clean but has a nasty taste.");
+
 DRINK("sewage sample",	 5,  5, c_ltgreen, itm_bottle_plastic,
 	 5,  0,  0,  0,-10,  0,  1,-20,&iuse::sewage,	ADD_NULL, "\
 A sample of sewage from a treatment plant.  Gross.");
@@ -1365,6 +1369,12 @@ High-tech carbon fiber shafts and 100 grain broadheads. Very light weight,\n\
 fast, and notoriously fragile.",
 0);
 
+AMMO("poisoned arrow",0,500,AT_ARROW,       c_green,        PLASTIC,
+         2, 60, 16,  3, 10, 14,  0,  12, "\
+A poisoned arrow with the capability to confuse the mind of his victim,\n\
+letting it fall in a murderous rage.",
+mfb(IF_AMMO_RAGE));
+
 AMMO("wood crossbow bolt",8,500,AT_BOLT,	c_green,	WOOD,
 	 1, 40, 16,  4, 10, 16,  0,  15, "\
 A sharpened bolt carved from wood.  It's lighter than steel bolts, and does\n\
@@ -1379,6 +1389,14 @@ AMMO("steel crossbow bolt",7,900,AT_BOLT,	c_green,	STEEL,
 A sharp bolt made from steel.  Deadly in skilled hands.  Stands an excellent\n\
 chance of remaining intact once fired.",
 0);
+
+//  NAME		RAR PRC TYPE		COLOR		MAT
+AMMO("poisoned crossbow bolt",0,900,AT_BOLT,	c_green,	WOOD,
+//	VOL WGT DMG  AP RNG ACC REC COUNT
+	1, 40, 16,  4, 10, 16,  0,  10, "\
+A poisoned crossbow bolt with the capability to confuse the mind of his victim,\n\
+letting it fall in a murderous rage.",
+mfb(IF_AMMO_RAGE));
 
 AMMO("birdshot",	 8, 500,AT_SHOT,	c_red,		PLASTIC,
 	 2, 25, 18,  0,  5,  2, 18,  25, "\

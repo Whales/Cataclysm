@@ -97,6 +97,7 @@ struct player_activity
  
 enum pl_flag {
  PF_FLEET = 0,	// -10%% terrain movement cost
+ PF_HYDROPHILE, // Loves getting wet, swims faster
  PF_PARKOUR,	// Terrain movement cost of 3 or 4 are both 2
  PF_QUICK,	// +5%% movement points
  PF_OPTIMISTIC,	// Morale boost
@@ -199,6 +200,10 @@ const trait traits[] = {
 {"Fleet-Footed", 3, false, "\
 You can run more quickly than most, resulting in a 15%% speed bonus on sure\n\
 footing."},
+{"Hydrophile", 3, false, "\
+You love water, swim 10%% faster and reduce the effect of encumbrance on\n\
+swimming speed by 25%%. Getting wet improves your morale instead of\n\
+decreasing it."},
 {"Parkour Expert", 2, false, "\
 You're skilled at clearing obstacles; terrain like railings or counters are\n\
 as easy for you to move on as solid ground."},

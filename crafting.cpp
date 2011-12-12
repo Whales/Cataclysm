@@ -128,6 +128,16 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
   COMP(itm_2x4, 1, NULL);
   COMP(itm_nail, 1, NULL);
 
+ RECIPE(itm_bolt_po, CC_WEAPON, sk_archery, sk_survival, 2, 2000);
+ COMP(itm_superglue, 1, NULL);
+ COMP(itm_bolt_wood, 10,itm_bolt_steel,10, NULL);
+ COMP(itm_adderall, 5,itm_meth,1,itm_coke,2,itm_caffeine,5, NULL);
+
+ RECIPE(itm_arrow_po, CC_WEAPON, sk_archery, sk_survival, 2, 2000);
+ COMP(itm_superglue, 1, NULL);
+ COMP(itm_arrow_wood, 12,itm_arrow_cf,12, NULL);
+ COMP(itm_adderall, 5,itm_meth,1,itm_coke,2,itm_caffeine,5, NULL);
+
  RECIPE(itm_shot_he, CC_WEAPON, sk_mechanics, sk_gun, 4, 2000);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
   COMP(itm_superglue, 1, NULL);
@@ -196,6 +206,11 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   COMP(itm_meat, 1, NULL);
   COMP(itm_veggy,1, NULL);
   COMP(itm_water,1, NULL);
+
+  RECIPE(itm_water_iodine, CC_FOOD, sk_cooking, sk_null, 0, 50);
+   COMP(itm_bottle_plastic, 1, NULL);
+   COMP(itm_iodine, 1, NULL);
+   COMP(itm_water, 1, NULL);
 
  RECIPE(itm_veggy_cooked, CC_FOOD, sk_cooking, sk_null, 0, 4000);
   TOOL(itm_hotplate, 5, itm_toolset, 3, itm_fire, -1, NULL);
@@ -1258,6 +1273,11 @@ void consume_tools(game *g, std::vector<component> tools)
  else if (map_has.size() == 1 && player_has.size() == 0)
   g->m.use_charges(point(g->u.posx, g->u.posy), PICKUP_RANGE,
                    map_has[0].type, map_has[0].count);
+ else if(map_has.size() == 0 && player_has.size() == 0){
+	 //shouldn't happen but does for some reason.
+	 //Causes segfault if not caught like this
+	 debugmsg("Neither map nor the player had the tools");
+ }
  else { // Variety of options, list them and pick one
 // Populate the list
   std::vector<std::string> options;
@@ -1277,7 +1297,9 @@ void consume_tools(game *g, std::vector<component> tools)
    g->m.use_charges(point(g->u.posx, g->u.posy), PICKUP_RANGE,
                     map_has[selection].type, map_has[selection].count);
   else {
-   selection -= map_has.size();
+   selection -= map_has.size(); // was -2
+   //SEGFAULT below! Not sure why. type is NULL, 0-length menu.
+   //It seems like it has failed to populate map_has and player_has
    g->u.use_charges(player_has[selection].type, player_has[selection].count);
   }
  }

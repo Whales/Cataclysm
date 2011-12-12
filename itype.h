@@ -24,7 +24,8 @@ itm_corpse,
 // Special crafting-only pseudoitems
 itm_fire, itm_toolset,
 // Drinks
-itm_water, itm_sewage, itm_salt_water, itm_oj, itm_apple_cider,
+itm_water,itm_water_iodine, itm_sewage,
+ itm_salt_water, itm_oj, itm_apple_cider,
  itm_energy_drink, itm_cola, itm_rootbeer, itm_milk, itm_V8, itm_broth,
  itm_soup, itm_whiskey, itm_vodka, itm_rum, itm_tequila, itm_beer, itm_bleach,
  itm_ammonia, itm_mutagen, itm_purifier, itm_tea, itm_coffee,
@@ -94,8 +95,8 @@ itm_backpack, itm_purse, itm_mbag, itm_fanny, itm_holster, itm_bootstrap,
 // Decorative
 itm_ring, itm_necklace,
 // Ammunition
-itm_battery, itm_plut_cell, itm_nail, itm_bb, itm_arrow_wood, itm_arrow_cf,
- itm_bolt_wood, itm_bolt_steel, itm_shot_bird, itm_shot_00, itm_shot_slug,
+itm_battery, itm_plut_cell, itm_nail, itm_bb, itm_arrow_wood, itm_arrow_cf, itm_arrow_po,
+ itm_bolt_wood, itm_bolt_steel,itm_bolt_po, itm_shot_bird, itm_shot_00, itm_shot_slug,
  itm_shot_he, itm_22_lr, itm_22_cb, itm_22_ratshot, itm_9mm, itm_9mmP,
  itm_9mmP2, itm_38_special, itm_38_super, itm_10mm, itm_40sw, itm_44magnum,
  itm_45_acp, itm_45_jhp, itm_45_super, itm_57mm, itm_46mm, itm_762_m43,
@@ -203,17 +204,17 @@ IF_STR10_DRAW,  // Requires strength 10 to draw
 IF_USE_UPS,	// Draws power from a UPS
 IF_RELOAD_AND_SHOOT, // Reloading and shooting is one action
 IF_FIRE_100,	// Fires 100 rounds at once! (e.g. flamethrower)
-
-IF_AMMO_FLAME,		// Sets fire to terrain and monsters
-IF_AMMO_INCENDIARY,	// Sparks explosive terrain
-IF_AMMO_EXPLOSIVE,	// Small explosion
-IF_AMMO_FRAG,		// Frag explosion
-IF_AMMO_NAPALM,		// Firey explosion
-IF_AMMO_EXPLOSIVE_BIG,	// Big explosion!
-IF_AMMO_TEARGAS,	// Teargas burst
-IF_AMMO_SMOKE,  	// Smoke burst
-IF_AMMO_TRAIL,		// Leaves a trail of smoke
-IF_AMMO_FLASHBANG,	// Disorients and blinds
+IF_AMMO_FLAME,	// Sets fire to terrain and monsters
+IF_AMMO_INCENDIARY, // Sparks explosive terrain
+IF_AMMO_EXPLOSIVE, // Small explosion
+IF_AMMO_FRAG,	// Frag explosion
+IF_AMMO_NAPALM,	// Firey explosion
+IF_AMMO_EXPLOSIVE_BIG, // Big explosion!
+IF_AMMO_TEARGAS,// Teargas burst
+IF_AMMO_SMOKE,  // Smoke burst
+IF_AMMO_TRAIL,	// Leaves a trail of smoke
+IF_AMMO_FLASHBANG, // Disorients and blinds
+IF_AMMO_RAGE,   // Poisons Monster into a rage.
 NUM_ITEM_FLAGS
 };
 

@@ -295,19 +295,34 @@ int player::current_speed()
 
 int player::swim_speed()
 {
- int ret = 440 + 2 * weight_carried() - 50 * sklevel[sk_swimming];
+  int ret = 440 + 2 * weight_carried() - 50 * sklevel[sk_swimming];
  if (has_trait(PF_WEBBED))
   ret -= 100 + str_cur * 10;
- ret += (50 - sklevel[sk_swimming] * 2) * abs(encumb(bp_legs));
- ret += (80 - sklevel[sk_swimming] * 3) * abs(encumb(bp_torso));
- if (sklevel[sk_swimming] < 10) {
-  for (int i = 0; i < worn.size(); i++)
-   ret += (worn[i].volume() * (10 - sklevel[sk_swimming])) / 2;
+ if (has_trait(PF_HYDROPHILE)) {
+  int encumlegs =(abs(encumb(bp_legs))==0 ? 0 : abs(encumb(bp_legs)) -1);
+  int encumtorso =(abs(encumb(bp_torso))==0 ? 0 : abs(encumb(bp_torso)) -1);
+  ret += (50 - sklevel[sk_swimming] * 2) * encumlegs;
+  ret += (80 - sklevel[sk_swimming] * 3) * encumtorso;
+  if (sklevel[sk_swimming] < 10) {
+   for (int i = 0; i < worn.size(); i++)
+    ret += (worn[i].volume() * 0.75 * (10 - sklevel[sk_swimming])) / 2;
+  }
  }
+ else {
+  ret += (50 - sklevel[sk_swimming] * 2) * abs(encumb(bp_legs));
+  ret += (80 - sklevel[sk_swimming] * 3) * abs(encumb(bp_torso));
+  if (sklevel[sk_swimming] < 10) {
+   for (int i = 0; i < worn.size(); i++)
+    ret += (worn[i].volume() * (10 - sklevel[sk_swimming])) / 2;
+  }
+ }
+
  ret -= str_cur * 6 + dex_cur * 4;
 // If (ret > 500), we can not swim; so do not apply the underwater bonus.
  if (underwater && ret < 500)
   ret -= 50;
+ if(has_trait(PF_HYDROPHILE))
+	 ret -=ret *0.1;
  if (ret < 30)
   ret = 30;
  return ret;
@@ -2122,7 +2137,7 @@ int player::intimidation()
  return ret;
 }
 
-void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
+void player::hit(game *g, body_part bphurt, int side, int dam, int cut,std::string name)
 {
  int painadd = 0;
  if (has_disease(DI_SLEEP)) {
@@ -2136,7 +2151,8 @@ void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
  dam += cut;
  if (dam <= 0)
   return;
-
+ if(!is_npc())
+    g->causeofdeath = name;
  if (has_artifact_with(AEP_SNAKES) && dam >= 6) {
   int snakes = int(dam / 6);
   std::vector<point> valid;
@@ -2352,8 +2368,10 @@ void player::healall(int dam)
  }
 }
 
-void player::hurtall(int dam)
+void player::hurtall(game *g,int dam, std::string name)
 {
+ if(!is_npc())
+	 g->causeofdeath = name;
  for (int i = 0; i < num_hp_parts; i++) {
   int painadd = 0;
   hp_cur[i] -= dam;
@@ -2687,7 +2705,7 @@ void player::suffer(game *g)
    rem_disease(DI_SLEEP);
    g->add_msg("You wake up!");
   }
-  hurtall(1);
+  hurtall(g,1,"sunlight");
  }
  if (has_trait(PF_TROGLO) && g->is_in_sunlight(posx, posy)) {
   str_cur -= 4;
@@ -2739,7 +2757,7 @@ void player::suffer(game *g)
  }
  if (has_bionic(bio_dis_acid) && one_in(1500)) {
   g->add_msg("You suffer a burning acidic discharge!");
-  hurtall(1);
+  hurtall(g,1,"bad bionic");
  }
  if (has_bionic(bio_drain) && power_level > 0 && one_in(600)) {
   g->add_msg("Your batteries discharge slightly.");
@@ -2785,7 +2803,7 @@ void player::vomit(game *g)
  rem_disease(DI_PKILL3);
  if (has_disease(DI_SLEEP) && one_in(4)) { // Pulled a Hendrix!
   g->add_msg("You choke on your vomit and die...");
-  hurtall(500);
+  hurtall(g,500,"vomit");
  }
  rem_disease(DI_SLEEP);
 }
