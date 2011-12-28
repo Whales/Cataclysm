@@ -100,7 +100,7 @@ perform a centrifuge analysis of it.";
    case TALK_MISSION_ACCEPTED:
     return "\
 Excellent.  Take this vacutainer; once you've produced a zombie corpse, use it \
-to extrace blood from the body, then take it to a hospital for analysis.";
+to extract blood from the body, then take it to a hospital for analysis.";
    case TALK_MISSION_REJECTED:
     return "\
 Are you sure?  The scientific value of that blood data could be priceless...";
