@@ -3429,7 +3429,7 @@ void game::smash()
  wrefresh(w_terrain);
  char ch = input();
  last_action += ch;
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -3470,7 +3470,7 @@ void game::smash()
 void game::use_item()
 {
  char ch = inv("Use item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -3495,7 +3495,7 @@ void game::examine()
  int examx, examy;
  char ch = input();
  last_action += ch;
- if (ch == KEY_ESCAPE || ch == 'e' || ch == 'q')
+ if (ch == KEY_ESCAPE || ch == 'e' || ch == 'q' || ch == ' ' || ch == '\n')
   return;
  get_direction(examx, examy, ch);
  if (examx == -2 || examy == -2) {
@@ -4425,7 +4425,7 @@ void game::drop_in_direction()
 void game::reassign_item()
 {
  char ch = inv("Reassign item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -4741,7 +4741,7 @@ void game::eat()
   return;
  }
  char ch = inv("Consume item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -4764,7 +4764,7 @@ void game::eat()
 void game::wear()
 {
  char ch = inv("Wear item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
