@@ -3778,10 +3778,11 @@ point game::look_around()
   if (!u_see(lx, ly, junk))
    mvwputch(w_terrain, ly - u.posy + SEEY, lx - u.posx + SEEX, c_black, ' ');
   draw_ter();
-  get_direction(mx, my, ch);
+  bool shift;
+  get_direction(mx, my, ch, &shift);
   if (mx != -2 && my != -2) {	// Directional key pressed
-   lx += mx;
-   ly += my;
+   lx += mx * (shift ? 5 : 1);
+   ly += my * (shift ? 5 : 1);
    if (lx < u.posx - SEEX)
     lx = u.posx - SEEX;
    if (lx > u.posx + SEEX)

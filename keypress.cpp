@@ -22,8 +22,25 @@ long input()
  }
 }
 
-void get_direction(int &x, int &y, char ch)
+void get_direction(int &x, int &y, char ch, bool *shift)
 {
+ if (shift) {
+  switch (ch) {
+  case 'Y':
+  case 'U':
+  case 'H':
+  case 'J':
+  case 'K':
+  case 'L':
+  case 'B':
+  case 'N':
+   *shift = true;
+   ch = ch | 0x20;
+   break;
+  default:
+   *shift = false;
+  }
+ }
  x = 0;
  y = 0;
  switch (ch) {
