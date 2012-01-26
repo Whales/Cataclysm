@@ -2475,13 +2475,13 @@ void game::remove_item(item *it)
  }
 }
 
-bool vector_has(std::vector<int> vec, int test)
+int vector_pos(std::vector<int> vec, int test)
 {
  for (int i = 0; i < vec.size(); i++) {
   if (vec[i] == test)
-   return true;
+   return i;
  }
- return false;
+ return -1;
 }
 
 void game::mon_info()
@@ -2493,6 +2493,9 @@ void game::mon_info()
 // 3 4 5
 // 6 7 8
  std::vector<int> unique_types[10];
+// false = boring (peacefuls)
+// true = not boring (NPCs, hostiles)
+ std::vector<bool> notability[10];
  int direction;
  for (int i = 0; i < z.size(); i++) {
   if (u_see(&(z[i]), buff)) {
@@ -2521,8 +2524,14 @@ void game::mon_info()
      direction = 4;
    }
 
-   if (!vector_has(unique_types[direction], z[i].type->id))
+   int m_pos = vector_pos(unique_types[direction], z[i].type->id);
+   if (m_pos == -1) {
     unique_types[direction].push_back(z[i].type->id);
+    notability[direction].push_back(!z[i].is_fleeing(u) && z[i].friendly == 0);
+   } else {
+    if (!z[i].is_fleeing(u) && z[i].friendly == 0)
+     notability[direction][m_pos] = true;
+   }
   }
  }
  for (int i = 0; i < active_npc.size(); i++) {
@@ -2552,6 +2561,7 @@ void game::mon_info()
      direction = 4;
    }
    unique_types[direction].push_back(-1 - i);
+   notability[direction].push_back(true);
   }
  }
 
@@ -2597,8 +2607,12 @@ void game::mon_info()
     mvwputch (w_moninfo, line, 0, tmpcol, '@');
     mvwprintw(w_moninfo, line, 2, active_npc[(buff + 1) * -1].name.c_str());
    } else {
+    switch (notability[i][j]) {
+     case false: tmpcol = c_dkgray; break;
+     case true:  tmpcol = c_ltgray; break;
+    }
     mvwputch (w_moninfo, line, 0, mtypes[buff]->color, mtypes[buff]->sym);
-    mvwprintw(w_moninfo, line, 2, mtypes[buff]->name.c_str());
+    mvwprintz(w_moninfo, line, 2, tmpcol, mtypes[buff]->name.c_str());
    }
    line++;
   }
