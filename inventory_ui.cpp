@@ -290,8 +290,8 @@ std::vector<item> game::multidrop()
     }
     if (start != new_start) {
      start = new_start;
-     for (int i = 2; i < 23; i++)
-      mvwprintw(w_inv, i, 0, "                                    ");
+     for (int i = 1; i < 25; i++)
+      mvwprintz(w_inv, i, 0, c_black, "                                        ");
      mvwprintw(w_inv, maxitems + 2, 0, "         ");
      mvwprintw(w_inv, maxitems + 2, 12, "            ");
     }
