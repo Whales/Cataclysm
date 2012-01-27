@@ -4123,6 +4123,8 @@ void game::pickup(int posx, int posy, int min)
 // At this point we've selected our items, now we add them to our inventory
  int curmit = 0;
  bool got_water = false;	// Did we try to pick up water?
+ int pickup_num = 0;	// To display a suitable message afterwards.
+ int pickup_index = -1;	// Print item if a single item is picked up.
  for (int i = 0; i < here.size(); i++) {
   iter = 0;
 // This while loop guarantees the inventory letter won't be a repeat. If it
@@ -4152,6 +4154,8 @@ void game::pickup(int posx, int posy, int min)
      if (u.weapon.type->id < num_items && // Not a bionic
          query_yn("Drop your %s and pick up %s?",
                   u.weapon.tname(this).c_str(), here[i].tname(this).c_str())) {
+      pickup_num++;
+      pickup_index = i;
       m.add_item(posx, posy, u.remove_weapon());
       u.i_add(here[i]);
       u.wield(this, u.inv.size() - 1);
@@ -4176,6 +4180,8 @@ void game::pickup(int posx, int posy, int min)
      } else
       nextinv--;
     } else {
+     pickup_num++;
+     pickup_index = i;
      u.i_add(here[i]);
      u.wield(this, u.inv.size() - 1);
      m.i_rem(posx, posy, curmit);
@@ -4200,6 +4206,8 @@ void game::pickup(int posx, int posy, int min)
    } else if (!u.is_armed() &&
             (u.volume_carried() + here[i].volume() > u.volume_capacity() - 2 ||
               here[i].is_weap())) {
+    pickup_num++;
+    pickup_index = i;
     u.weapon = here[i];
     m.i_rem(posx, posy, curmit);
     u.moves -= 100;
@@ -4223,6 +4231,8 @@ void game::pickup(int posx, int posy, int min)
       tutorial_message(LESSON_GOT_FOOD);
     }
    } else {
+    pickup_num++;
+    pickup_index = i;
     u.i_add(here[i]);
     m.i_rem(posx, posy, curmit);
     u.moves -= 100;
@@ -4245,6 +4255,12 @@ void game::pickup(int posx, int posy, int min)
    }
   }
   curmit++;
+ }
+ if (pickup_num == 1) {
+  item *single = &here[pickup_index];
+  add_msg("%c - %s", single->invlet, single->tname(this).c_str());
+ } else if (pickup_num > 1) {
+  add_msg("You pick up several items.");
  }
  if (got_water)
   add_msg("You can't pick up a liquid!");
