@@ -1,4 +1,5 @@
 #include "keypress.h"
+#include <ctype.h>
 
 long input()
 {
@@ -35,7 +36,7 @@ void get_direction(int &x, int &y, char ch, bool *shift)
   case 'B':
   case 'N':
    *shift = true;
-   ch = ch | 0x20;
+   ch = tolower(ch);
    break;
   default:
    *shift = false;

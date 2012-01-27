@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <ctype.h>
 
 #define MAX_MONSTERS_MOVING 40 // Efficiency!
 
@@ -4040,10 +4041,10 @@ void game::pickup(int posx, int posy, int min)
    mvwprintw(w_pickup, maxitems + 2, 12, "            ");
   }
 // Uppercase? Show item info, but don't toggle pickup.
-  if ((ch | 0x20) >= 'a' && (ch | 0x20) <= 'a' + here.size() - 1) {
-   bool toggle = !!(ch & 0x20);
+  if (tolower(ch) >= 'a' && tolower(ch) <= 'a' + here.size() - 1) {
+   bool toggle = islower(ch);
    if (!toggle)
-    ch = ch | 0x20;
+    ch = tolower(ch);
    ch -= 'a';
    last_sel_hilite = ch;
    if (toggle)
