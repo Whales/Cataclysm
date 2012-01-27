@@ -4089,14 +4089,14 @@ void game::pickup(int posx, int posy, int min)
              "                                        ");
    if (cur_it < here.size()) {
     nc_color item_color = here[cur_it].color(&u);
-    if (cur_it == last_sel_hilite)
-     item_color = hilite(item_color);
     mvwputch(w_pickup, 1 + (cur_it % maxitems), 0, item_color,
              char(cur_it + 'a'));
     if (getitem[cur_it])
      wprintw(w_pickup, " + ");
     else
      wprintw(w_pickup, " - ");
+    if (cur_it == last_sel_hilite)
+     item_color = hilite(item_color);
     wprintz(w_pickup, item_color, here[cur_it].tname(this).c_str());
     if (here[cur_it].charges > 0)
      wprintz(w_pickup, item_color, " (%d)", here[cur_it].charges);
