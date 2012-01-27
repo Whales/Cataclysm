@@ -4022,6 +4022,7 @@ void game::pickup(int posx, int posy, int min)
  int start = 0, cur_it, iter;
  int new_weight = u.weight_carried(), new_volume = u.volume_carried();
  bool update = true;
+ int last_sel_hilite = -1;
  mvwprintw(w_pickup, 0,  0, "PICK UP");
 // Now print the two lists; those on the ground and about to be added to inv
 // Continue until we hit return or space
@@ -4038,25 +4039,27 @@ void game::pickup(int posx, int posy, int min)
    start += maxitems;
    mvwprintw(w_pickup, maxitems + 2, 12, "            ");
   }
-  if (ch >= 'a' && ch <= 'a' + here.size() - 1) {
+// Uppercase? Show item info, but don't toggle pickup.
+  if ((ch | 0x20) >= 'a' && (ch | 0x20) <= 'a' + here.size() - 1) {
+   bool toggle = !!(ch & 0x20);
+   if (!toggle)
+    ch = ch | 0x20;
    ch -= 'a';
-   getitem[ch] = !getitem[ch];
+   last_sel_hilite = ch;
+   if (toggle)
+    getitem[ch] = !getitem[ch];
    start = (ch / maxitems) * maxitems;
    wclear(w_item_info);
-   if (getitem[ch]) {
+   if (!toggle || getitem[ch])
     mvwprintw(w_item_info, 1, 0, here[ch].info().c_str());
-    wborder(w_item_info, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-                         LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-    wrefresh(w_item_info);
-    new_weight += here[ch].weight();
-    new_volume += here[ch].volume();
-    update = true;
-   } else {
-    wborder(w_item_info, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-                         LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-    wrefresh(w_item_info);
-    new_weight -= here[ch].weight();
-    new_volume -= here[ch].volume();
+   else
+    last_sel_hilite = -1;
+   wborder(w_item_info, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
+                        LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
+   wrefresh(w_item_info);
+   if (toggle) {
+    new_weight = new_weight + here[ch].weight() * (getitem[ch] ? 1 : -1);
+    new_volume = new_volume + here[ch].volume() * (getitem[ch] ? 1 : -1);
     update = true;
    }
   }
@@ -4078,20 +4081,24 @@ void game::pickup(int posx, int posy, int min)
     new_volume = u.volume_carried();
    }
    update = true;
+   last_sel_hilite = -1;
   }
   for (cur_it = start; cur_it < start + maxitems; cur_it++) {
    mvwprintw(w_pickup, 1 + (cur_it % maxitems), 0,
              "                                        ");
    if (cur_it < here.size()) {
-    mvwputch(w_pickup, 1 + (cur_it % maxitems), 0, here[cur_it].color(&u),
+    nc_color item_color = here[cur_it].color(&u);
+    if (cur_it == last_sel_hilite)
+     item_color = hilite(item_color);
+    mvwputch(w_pickup, 1 + (cur_it % maxitems), 0, item_color,
              char(cur_it + 'a'));
     if (getitem[cur_it])
      wprintw(w_pickup, " + ");
     else
      wprintw(w_pickup, " - ");
-    wprintz(w_pickup, here[cur_it].color(&u), here[cur_it].tname(this).c_str());
+    wprintz(w_pickup, item_color, here[cur_it].tname(this).c_str());
     if (here[cur_it].charges > 0)
-     wprintz(w_pickup, here[cur_it].color(&u), " (%d)", here[cur_it].charges);
+     wprintz(w_pickup, item_color, " (%d)", here[cur_it].charges);
    }
   }
   if (start > 0)
