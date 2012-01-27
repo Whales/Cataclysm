@@ -276,6 +276,25 @@ std::vector<item> game::multidrop()
      }
     }
    } else {
+    int new_start = 0;
+    int tmp_line = 0; // Loops every 21 lines.
+    for (int tmp_item = 0; tmp_item <= index; tmp_item++, tmp_line++) {
+     if (tmp_line >= 21) {
+      tmp_line = 0;
+      new_start = tmp_item;
+     }
+     for (int i = 0; i < 8; i++) {
+      if (tmp_item == firsts[i])
+       tmp_line++;
+     }
+    }
+    if (start != new_start) {
+     start = new_start;
+     for (int i = 2; i < 23; i++)
+      mvwprintw(w_inv, i, 0, "                                    ");
+     mvwprintw(w_inv, maxitems + 2, 0, "         ");
+     mvwprintw(w_inv, maxitems + 2, 12, "            ");
+    }
     int old_drop_count = dropping[index];
     if (count == 0) {
      if (dropping[index] == 0)

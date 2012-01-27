@@ -4041,6 +4041,7 @@ void game::pickup(int posx, int posy, int min)
   if (ch >= 'a' && ch <= 'a' + here.size() - 1) {
    ch -= 'a';
    getitem[ch] = !getitem[ch];
+   start = (ch / maxitems) * maxitems;
    wclear(w_item_info);
    if (getitem[ch]) {
     mvwprintw(w_item_info, 1, 0, here[ch].info().c_str());
