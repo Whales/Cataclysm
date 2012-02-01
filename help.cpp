@@ -87,7 +87,7 @@ good weapon or a strong character.\n\
 There may be times when you want to move more quickly by holding down a\n\
 movement key. However, fast movement in this fashion may lead to the player\n\
 getting into a dangerous situation or even killed before they have a chance\n\
-to react. Pressing '!' will toggle \"Run Mode.\" While this is on, any\n\
+to react. Pressing '!' will toggle \"Safe Mode.\" While this is on, any\n\
 movement will be ignored if new monsters enter the player's view.");
    getch();
    break;
@@ -642,10 +642,10 @@ really need it.");
    break;
   case '5':
    mvprintz(0, 0, c_white, "\
-Q: What is Run Mode, and why does it prevent me from moving?\n\
-A: Run Mode is a way to guarantee that you won't die by holding a movement\n\
+Q: What is Safe Mode, and why does it prevent me from moving?\n\
+A: Safe Mode is a way to guarantee that you won't die by holding a movement\n\
    key down.  When a monster comes into view, your movement will be ignored\n\
-   until Run Mode is turned off with the ! key.  This ensures that the\n\
+   until Safe Mode is turned off with the ! key.  This ensures that the\n\
    sudden appearence of a monster won't catch you off guard.\n\
 \n\
 Q: It seems like everything I eat makes me sick!  What's wrong?\n\
