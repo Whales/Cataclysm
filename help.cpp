@@ -629,7 +629,7 @@ making them very good at clearing out large numbers of enemies.");
    mvprintz(10, 0, c_magenta, "( Energy Weapons");
    mvprintz(11, 0, c_white, "\
 Energy weapons is an umbrella term used to describe a variety of rifles and\n\
-handguns which fire lasers, plasma, or energy atttacks.  They started to\n\
+handguns which fire lasers, plasma, or energy attacks.  They started to\n\
 appear in military use just prior to the start of the apocalypse, and as such\n\
 are very difficult to find.\n\
 Energy weapons have no recoil at all; they are nearly silent, have a long\n\
