@@ -251,7 +251,7 @@ Some recipes require a set of tools.  These are not used up when crafting, so\n\
 you can keep your tool set.  All recipes require one or more ingredients.\n\
 These ARE used up in crafting.\n\
 \n\
-To craft items, press '&'.  There are five categories; Weapons, Food,\n\
+To craft items, press '&'.  There are five categories: Weapons, Food,\n\
 Electronics, Armor, and Miscellaneous.  While a few items require no skill to\n\
 create, the majority require you to have some knowledge:\n\
 \n\
@@ -309,7 +309,7 @@ these containers and loot their contents.\n\
 All items may be used as a melee weapon, though some are better than others.\n\
 You can check the melee attributes of an item you're carrying by hitting 'i'\n\
 to enter your inventory, then pressing the letter of the item.  There are 3\n\
-melee values, bashing, cutting, and to-hit bonus (or penalty).\n\
+melee values: bashing, cutting, and to-hit bonus (or penalty).\n\
 Bashing damage is universally effective, but is capped by low strength.\n\
 Cutting damage is a guaranteed increase in damage, but it may be reduced by\n\
 a monster's natural armor.\n\
@@ -460,7 +460,7 @@ ITEM TYPES:\n\
 (       Firearm\n\
     This weapon may be loaded with ammunition with 'r', unloaded with 'U', and\n\
  fired with 'f'. Some have automatic fire, which may be used with 'F' at a\n\
- penalty to accuracy. The color refers to the type; handguns are gray, shotguns\n\
+ penalty to accuracy. The color refers to the type: handguns are gray, shotguns\n\
  are red, submachine guns are cyan, rifles are brown, assault rifles are blue,\n\
  and heavy machine guns are light red. Each has an accuracy rating, a bonus to\n\
  damage, a rate of fire, and a maximum load. Note that most firearms load\n\
