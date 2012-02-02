@@ -45,8 +45,8 @@ m: Survival tips\n\
 4: Description of gun types\n\
 5: Frequently Asked Questions (Some spoilers!)\n\
 \n\
-q: Return to game");
- 
+q: Return to menu");
+
   ch = getch();
   switch (ch) {
   case 'a':
@@ -65,9 +65,10 @@ yourself hydrated, and sleep periodically.\n\
 While Cataclysm has more challenges than many roguelikes, the near-future\n\
 setting makes some tasks easier. Firearms, medications, and a wide variety of\n\
 tools are all available to help you survive.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
- 
+
   case 'b':
   case 'B':
    erase();
@@ -89,6 +90,7 @@ movement key. However, fast movement in this fashion may lead to the player\n\
 getting into a dangerous situation or even killed before they have a chance\n\
 to react. Pressing '!' will toggle \"Safe Mode.\" While this is on, any\n\
 movement will be ignored if new monsters enter the player's view.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -114,6 +116,7 @@ You may not always fall asleep right away.  Sleeping indoors, especially on a\n\
 bed, will help; or you can always use sleeping pills.  While sleeping, you'll\n\
 slowly replenish lost hit points.  You'll also be vulnerable to attack, so\n\
 try to find a safe place, or set traps for unwary intruders.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -142,8 +145,9 @@ notably intelligence, making them useful study aids.  There are two drawbacks\n\
 to stimulants; they make it more difficult to sleep, and, more importantly,\n\
 most are highly addictive.  Stimulants range from the caffeine rush of cola to\n\
 the more intense high of Adderall and methamphetamine.");
-  getch();
-  break;
+   mvprintw(24, 0, "Press any key to return to help");
+   getch();
+   break;
 
   case 'e':
   case 'E':
@@ -157,8 +161,9 @@ days, and will leave you very weak, so try to do it in a safe area.\n\
 \n\
 If you are suffering from drug withdrawal, taking more of the drug will cause\n\
 the effects to cease immediately, but may deepen your dependance.");
-  getch();
-  break;
+   mvprintw(24, 0, "Press any key to return to help");
+   getch();
+   break;
 
   case 'f':
   case 'F':
@@ -181,9 +186,8 @@ Low morale will make you sluggish and unmotivated.  It will also reduce your\n\
 stats, particularly intelligence.  If your morale drops very low, you may\n\
 even commit suicide.  Very high morale fills you with gusto and energy, and\n\
 you will find yourself moving faster.  At extremely high levels, you will\n\
-receive stat bonuses.\n\
-\n\
-Press any key for more...");
+receive stat bonuses.");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -195,6 +199,7 @@ skills cannot be improved except through the use of books.\n\
 Your XP pool will not fill unless your morale is at least 0.  A morale level\n\
 between 0 and 100 gives the percentage chance for your XP to increase by 1\n\
 each turn.  Above 100, you get 1 XP point each turn for every 100 morale.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -212,6 +217,7 @@ these mutations will be negative; however, many are beneficial, and others\n\
 have both positive and negative effects.  Your mutations may change your play\n\
 style considerably.  It is possible to find substances that will remove\n\
 mutations, though these are extremely rare.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -236,6 +242,7 @@ installation.  Performing such a task requires high levels of first aid,\n\
 mechanics, and/or electronics, and failure may cripple you!  Bionics canisters\n\
 are difficult to find, but they may be purchased from certain NPCs for a very\n\
 high price.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -265,6 +272,7 @@ and beneficial elixirs.\n\
 In addition to the primary crafting skills, other skills may be necessary to\n\
 create certain items.  Traps skill, Firearms skill, and First Aid skill are\n\
 all required for certain items.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -292,7 +300,7 @@ is a chance that you will set off the trap, suffering the consequences.\n\
 Many traps are fully or partially hidden.  Your ability to detect traps is\n\
 entirely dependant upon your Perception.  Should you stumble into a trap, you\n\
 may have a chance to avoid it, depending on your Dodge skill.");
-
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -323,6 +331,7 @@ your inventory, or will be dropped on the ground if there is no space.\n\
 To wear a piece of clothing, press 'W' then the proper letter.  Armor reduces\n\
 damage and helps you resist things like smoke.  To take off an item, press\n\
 'T' then the proper letter.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -354,8 +363,9 @@ Unlike most roguelikes, fleeing will often be your best option, especially\n\
 when overwhelmed by a swarm of zombies.  Try to avoid getting cornered inside\n\
 a building.  Ducking down into the subways or sewers is often an excellent\n\
 escape tactic.");
-  getch();
-  break;
+   mvprintw(24, 0, "Press any key to return to help");
+   getch();
+   break;
 
   case 'm':
   case 'M':
@@ -385,6 +395,7 @@ unwanted attention. Save the guns for emergencies, and melee when you can.\n\
 Try to keep your inventory as full as possible without being overloaded.  You\n\
 never know when you might need an item, most are good to sell, and you can\n\
 easily drop unwanted items on the floor.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    break;
 
@@ -422,6 +433,7 @@ Note that 'a' is context-sensitive, and can be used in place of 'W', 'E', or\n\
 'R', if you like.");
    getch();
    break;
+
   case '2':
    erase();
    mvprintz(0, 0, c_white, "\
@@ -443,8 +455,8 @@ ITEM TYPES:\n\
 )       Container\n\
     These items may hold other items. Someare passable weapons. Many will be\n\
  listed with their contents, e.g. \"plastic bottle of water\". Those containing\n\
- comestibles may be eaten with 'E'; this may leave you with an empty container.\n\
-Press any key to continue...");
+ comestibles may be eaten with 'E'; this may leave you with an empty container.");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    clear();
    mvprintz(0, 0, c_white, "\
@@ -469,8 +481,8 @@ ITEM TYPES:\n\
 =       Ammunition\n\
     Ammunition is worthless without a gun to load it into. Generally, there\n\
  are several variants for any particular calibre. Ammunition has a damage\n\
- rating, an accuracy, a range, and an armor-piercing quality.\n\
-Press any key to continue...");
+ rating, an accuracy, a range, and an armor-piercing quality.");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -484,9 +496,11 @@ ITEM TYPES:\n\
     This can be read for training or entertainment by pressing 'R'. Most\n\
  require a basic level of intelligence; some require some base knowledge in\n\
  the relevant subject.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    erase();
    break;
+
   case '3':
    erase();
    mvprintz( 0, 0, c_ltgray,  "MAP SYMBOLS:");
@@ -505,7 +519,6 @@ F           Forest - May be dense or sparse.  Slow moving; foragable food.");
    mvputch(3,  8, c_dkgray, LINE_XOXX);
    mvputch(3,  9, c_dkgray, LINE_OXXX);
    mvputch(3, 10, c_dkgray, LINE_XXXX);
- 
    mvprintz( 3, 12, c_dkgray,  "\
 Road - Safe from burrowing animals.");
    mvprintz( 4, 0, c_dkgray,  "\
@@ -540,9 +553,11 @@ O           Parking lot - Empty lot, few items.  Mostly useless.");
 ^>v< are always man-made buildings.  The pointed side indicates the front door."
             );
    mvprintw(22, 0, "There are many others out there... search for them!");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    erase();
    break;
+
   case '4':
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -568,7 +583,7 @@ given enough Mechanics skill.  Likewise, it is possible to make wooden bolts\n\
 from any number of wooden objects, though these are much less effective than\n\
 steel bolts.\n\
 Crossbows use the handgun skill.");
-   mvprintz(24, 0, c_white, "Press any key to continue...");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -591,7 +606,7 @@ of bullets.  However, they are more effective when firing single shots, so\n\
 use discretion.  They mainly use the 9mm and .45 ammunition; however, other\n\
 SMGs exist.  They reload moderately quickly, and are suitable for close or\n\
 medium-long range combat.");
-   mvprintz(22, 0, c_white, "Press any key to continue...");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -614,7 +629,7 @@ fire, so save it for when you're highly skilled.\n\
 Assault rifles are an excellent choice for medium or long range combat, or\n\
 even close-range bursts again a large number of enemies.  They are difficult\n\
 to use, and are best saved for skilled riflemen.");
-   mvprintz(24, 0, c_white, "Press any key to continue...");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -636,11 +651,13 @@ Energy weapons have no recoil at all; they are nearly silent, have a long\n\
 range, and are fairly damaging.  The biggest drawback to energy weapons is\n\
 scarcity of ammunition; it is wise to reserve the precious ammo for when you\n\
 really need it.");
-   mvprintz(24, 0, c_white, "Press any key to continue...");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    erase();
    break;
+
   case '5':
+   erase();
    mvprintz(0, 0, c_white, "\
 Q: What is Safe Mode, and why does it prevent me from moving?\n\
 A: Safe Mode is a way to guarantee that you won't die by holding a movement\n\
@@ -666,6 +683,7 @@ A: You'll need a hammer, nails, and two by fours.  Use the hammer and choose\n\
 Q: How can I prevent monsters from attacking while I sleep?\n\
 A: Find a safe place to sleep, in a building far from the front door.  Set\n\
    traps if you have them, or build a fire.");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -690,6 +708,7 @@ Q: Why does my crafting fail so often?\n\
 A: Check the difficulty of the recipe, and the primary skill used; your skill\n\
    level should be around one and a half times the difficulty to be confident\n\
    that it will succeed.");
+   mvprintw(24, 0, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -703,10 +722,10 @@ A: You have the Schizophrenic trait, which might make the game seem buggy.\n\
 Q: I have a question that's not addressed here.  How can I get an answer?\n\
 A: Email your question to fivedozenwhales@gmail.com.  I'll answer it for you,\n\
    and possibly include it on this list.");
+   mvprintw(24, 0, "Press any key to return to help");
    getch();
    erase();
    break;
-
   }
  } while (ch != 'q' && ch != KEY_ESCAPE);
 }
