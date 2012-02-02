@@ -262,12 +262,12 @@ To craft items, press '&'.  There are five categories: Weapons, Food,\n\
 Electronics, Armor, and Miscellaneous.  While a few items require no skill to\n\
 create, the majority require you to have some knowledge:\n\
 \n\
-->Mechanic skill is used for weapons, traps, and a few tools.\n\
-->Cooking skill, at low levels, is used for making tasty recipes; at higher\n\
-levels, you have an understanding of chemistry and can make chemical weapons\n\
-and beneficial elixirs.\n\
-->Electronics skill lets you make a wide variety of tools with intricate uses.\n\
-->Tailoring skill is used to create basic clothing, and later tough armor.\n\
+Mechanic    - weapons, traps, and a few tools.\n\
+Cooking     - at low levels, for making tasty recipes; at higher levels you\n\
+              have an understanding of chemistry and can make chemical weapons\n\
+              and beneficial elixirs.\n\
+Electronics - a wide variety of tools with intricate uses.\n\
+Tailoring   - repair/create basic clothing, and later tough armor.\n\
 \n\
 In addition to the primary crafting skills, other skills may be necessary to\n\
 create certain items.  Traps skill, Firearms skill, and First Aid skill are\n\
