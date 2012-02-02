@@ -53,17 +53,17 @@ q: Return to menu");
   case 'A':
    erase();
    mvprintz(0, 0, c_white, "\
-Cataclysm is a roguelike with a monster apocalypse setting. You have survived\n\
+Cataclysm is a roguelike with a monster apocalypse setting.  You have survived\n\
 the original onslaught, and are ready to set out in search of safety.\n\
 \n\
-Cataclysm differs from most roguelikes in several ways. Rather than exploring\n\
+Cataclysm differs from most roguelikes in several ways.  Rather than exploring\n\
 an underground dungeon, with a limited area on each level, you are exploring\n\
 a truly infinite world, stretching in all four cardinal directions.\n\
 As in most roguelikes, you will have to find food; you also need to keep\n\
 yourself hydrated, and sleep periodically.\n\
 \n\
 While Cataclysm has more challenges than many roguelikes, the near-future\n\
-setting makes some tasks easier. Firearms, medications, and a wide variety of\n\
+setting makes some tasks easier.  Firearms, medications, and a wide variety of\n\
 tools are all available to help you survive.");
    mvprintw(24, 0, "Press any key to return to help");
    getch();
@@ -73,22 +73,22 @@ tools are all available to help you survive.");
   case 'B':
    erase();
    mvprintz(0, 0, c_white, "\
-Movement is performed using the numpad, or vikeys. Each step will take 100\n\
+Movement is performed using the numpad, or vikeys.  Each step will take 100\n\
                     movement points (or more, depending on the terrain); you\n\
 y  k  u   7  8  9   will then replenish a variable amount of movement points,\n\
  \\ | /     \\ | /    depending on many factors (press '@' to see the exact\n\
-  \\|/       \\|/     amount). To attempt to hit a monster with your weapon,\n\
-h--.--l   4--5--6   simply move into it. You may find doors, ('+'); these may\n\
-  /|\\       /|\\     be opened with 'o' or closed with 'c'. Some doors are\n\
- / | \\     / | \\    locked. Locked doors, windows, and some other obstacles\n\
+  \\|/       \\|/     amount).  To attempt to hit a monster with your weapon,\n\
+h--.--l   4--5--6   simply move into it.  You may find doors, ('+'); these may\n\
+  /|\\       /|\\     be opened with 'o' or closed with 'c'.  Some doors are\n\
+ / | \\     / | \\    locked.  Locked doors, windows, and some other obstacles\n\
 b  j  n   1  2  3   can be destroyed by smashing them ('s', then choose a\n\
-                    direction). Smashing down obstacles is much easier with a\n\
+                    direction).  Smashing down obstacles is much easier with a\n\
 good weapon or a strong character.\n\
 \n\
 There may be times when you want to move more quickly by holding down a\n\
-movement key. However, fast movement in this fashion may lead to the player\n\
+movement key.  However, fast movement in this fashion may lead to the player\n\
 getting into a dangerous situation or even killed before they have a chance\n\
-to react. Pressing '!' will toggle \"Safe Mode.\" While this is on, any\n\
+to react.  Pressing '!' will toggle \"Safe Mode.\" While this is on, any\n\
 movement will be ignored if new monsters enter the player's view.");
    mvprintw(24, 0, "Press any key to return to help");
    getch();
@@ -100,10 +100,10 @@ movement will be ignored if new monsters enter the player's view.");
    mvprintz(0, 0, c_white, "\
 As time passes, you will begin to feel hunger and thirst.  A status warning\n\
 at the bottom of the screen will appear.  As hunger and thirst reach critical\n\
-levels, you will begin to suffer movement penalties. Thirst is more dangerous\n\
+levels, you will begin to suffer movement penalties.  Thirst is more dangerous\n\
 than hunger.  Finding food in a city is usually easy; outside of a city, you\n\
 may have to hunt an animal, then stand over its corpse and 'B'utcher it into\n\
-small chunks of meat. Likewise, outside of a city you may have to drink water\n\
+small chunks of meat.  Likewise, outside of a city you may have to drink water\n\
 from a river or other natural source; stand in shallow water and press 'g' or\n\
 ',' to pick it up.  You'll need a watertight container.  Be forewarned that\n\
 some sources of water aren't trustworthy and may produce diseased water.  To\n\
@@ -308,10 +308,10 @@ may have a chance to avoid it, depending on your Dodge skill.");
   case 'K':
    erase();
    mvprintz(0, 0, c_white, "\
-There are a wide variety of items available for your use. You may find them\n\
+There are a wide variety of items available for your use.  You may find them\n\
 lying on the ground; if so, simply press ',' or 'g' to pick up items on the\n\
-same square. Some items are found inside a container, drawn as a { with a\n\
-blue background. Pressing 'e', then a direction, will allow you to examine\n\
+same square.  Some items are found inside a container, drawn as a { with a\n\
+blue background.  Pressing 'e', then a direction, will allow you to examine\n\
 these containers and loot their contents.\n\
 \n\
 All items may be used as a melee weapon, though some are better than others.\n\
@@ -339,11 +339,11 @@ damage and helps you resist things like smoke.  To take off an item, press\n\
   case 'L':
    erase();
    mvprintz(0, 0, c_white, "\
-After 30 minutes of warmup time, monsters will begin to appear. They are\n\
+After 30 minutes of warmup time, monsters will begin to appear.  They are\n\
 represented by letters on your screen; a list of monster names, and their\n\
 positions relative to you, is displayed on the right side of the screen.\n\
 \n\
-To attack a monster with a melee weapon, simply move into them. The time it\n\
+To attack a monster with a melee weapon, simply move into them.  The time it\n\
 takes to attack depends on the size and weight of your weapon.  Small, light\n\
 weapons are the fastest; unarmed attacks increase in speed with your Unarmed\n\
 Combat skill, and will eventually be VERY fast.  A successful hit with a\n\
@@ -353,10 +353,10 @@ stuck in it will move much more slowly.  A miss may make you stumble and lose\n\
 movement points.  If a monster hits you, your clothing may absorb some damage,\n\
 but you will absorb the excess.\n\
 \n\
-Swarms of monsters may call for firearms. If you find one, wield it first,\n\
-then reload by pressing 'r'. If you wish to change ammo, you must unload the\n\
-weapon by pressing 'U', then reload again. To fire, press 'f', move the\n\
-cursor to the relevant space, then hit '.' or 'f'. Some guns have automatic\n\
+Swarms of monsters may call for firearms.  If you find one, wield it first,\n\
+then reload by pressing 'r'.  If you wish to change ammo, you must unload the\n\
+weapon by pressing 'U', then reload again.  To fire, press 'f', move the\n\
+cursor to the relevant space, then hit '.' or 'f'.  Some guns have automatic\n\
 fire; to shoot a burst, press 'F'.  This will severely reduce accuracy.\n\
 \n\
 Unlike most roguelikes, fleeing will often be your best option, especially\n\
@@ -371,26 +371,26 @@ escape tactic.");
   case 'M':
    erase();
    mvprintz(0, 0, c_white, "\
-The first thing to do is to check your home for useful items. Your initial\n\
+The first thing to do is to check your home for useful items.  Your initial\n\
 storage is limited, and a backpack, trenchcoat, or other storage medium will\n\
-let you carry a lot more. Finding a weapon is important; frying pans, butcher\n\
+let you carry a lot more.  Finding a weapon is important; frying pans, butcher\n\
 knives, and more are common in your home; hardware stores may carry others.\n\
 Unless you plan on concentrating on melee combat, seek out gun stores as soon\n\
 as possible and load up on more than one type.\n\
 \n\
 It's also important to carry a few medications; painkillers are a must-have,\n\
 and drugs such as cigarettes will make life easier (but beware addiction).\n\
-Leave cities as soon as you have a good stockpile of equipment. Their high\n\
+Leave cities as soon as you have a good stockpile of equipment.  Their high\n\
 concentration of zombies makes them a deathtrap--but a necessary resource for\n\
 food and ammunition.\n\
 \n\
-Combat is much easier if you can fight just one monster at once. Use doorways\n\
+Combat is much easier if you can fight just one monster at once.  Use doorways\n\
 as a choke point, or stand behind a window and strike as the zombies slowly\n\
-climb through. Never be afraid to just run if you can outpace your enemies.\n\
+climb through.  Never be afraid to just run if you can outpace your enemies.\n\
 Irregular terrain, like forests, may help you lose monsters.\n\
 \n\
 Firearms are the easiest way to kill an enemy, but the sound will attract\n\
-unwanted attention. Save the guns for emergencies, and melee when you can.\n\
+unwanted attention.  Save the guns for emergencies, and melee when you can.\n\
 \n\
 Try to keep your inventory as full as possible without being overloaded.  You\n\
 never know when you might need an item, most are good to sell, and you can\n\
@@ -441,20 +441,20 @@ ITEM TYPES:\n\
 ~       Liquid\n\
 %%%%       Food\n\
 !       Medication\n\
-    These are all consumed by using 'E'. They provide a certain amount of\n\
+    These are all consumed by using 'E'.  They provide a certain amount of\n\
  nutrition, quench your thirst, may be a stimulant or a depressant, and may\n\
- provide morale. There may also be more subtle effects.\n\
+ provide morale.  There may also be more subtle effects.\n\
 \n\
 /       Large weapon\n\
 ;       Small weapon or tool\n\
 ,       Tiny item\n\
     These are all generic items, useful only to be wielded as a weapon.\n\
  However, some have special uses; they will show up under the TOOLS section\n\
- in your inventory. Press 'a' to use these.\n\
+ in your inventory.  Press 'a' to use these.\n\
 \n\
 )       Container\n\
-    These items may hold other items. Someare passable weapons. Many will be\n\
- listed with their contents, e.g. \"plastic bottle of water\". Those containing\n\
+    These items may hold other items.  Someare passable weapons.  Many will be\n\
+ listed with their contents, e.g. \"plastic bottle of water\".  Those containing\n\
  comestibles may be eaten with 'E'; this may leave you with an empty container.");
    mvprintw(24, 0, "Press any key to continue...");
    getch();
@@ -462,25 +462,25 @@ ITEM TYPES:\n\
    mvprintz(0, 0, c_white, "\
 ITEM TYPES:\n\
 [       Clothing\n\
-    This may be worn with the 'W' key or removed with the 'T' key. It may\n\
+    This may be worn with the 'W' key or removed with the 'T' key.  It may\n\
  cover one or more body parts; you can wear multiple articles of clothing on\n\
- any given body part, but this will encumber you severely. Each article of\n\
+ any given body part, but this will encumber you severely.  Each article of\n\
  clothing may provide storage space, warmth, an encumberment, and a resistance\n\
- to bashing and/or cutting attacks. Some may protect against environmental\n\
+ to bashing and/or cutting attacks.  Some may protect against environmental\n\
  effects.\n\
 \n\
 (       Firearm\n\
     This weapon may be loaded with ammunition with 'r', unloaded with 'U', and\n\
- fired with 'f'. Some have automatic fire, which may be used with 'F' at a\n\
- penalty to accuracy. The color refers to the type: handguns are gray, shotguns\n\
+ fired with 'f'.  Some have automatic fire, which may be used with 'F' at a\n\
+ penalty to accuracy.  The color refers to the type: handguns are gray, shotguns\n\
  are red, submachine guns are cyan, rifles are brown, assault rifles are blue,\n\
- and heavy machine guns are light red. Each has an accuracy rating, a bonus to\n\
- damage, a rate of fire, and a maximum load. Note that most firearms load\n\
+ and heavy machine guns are light red.  Each has an accuracy rating, a bonus to\n\
+ damage, a rate of fire, and a maximum load.  Note that most firearms load\n\
  fully in one action, while shotguns must be loaded one shell at a time.\n\
 \n\
 =       Ammunition\n\
-    Ammunition is worthless without a gun to load it into. Generally, there\n\
- are several variants for any particular calibre. Ammunition has a damage\n\
+    Ammunition is worthless without a gun to load it into.  Generally, there\n\
+ are several variants for any particular calibre.  Ammunition has a damage\n\
  rating, an accuracy, a range, and an armor-piercing quality.");
    mvprintw(24, 0, "Press any key to continue...");
    getch();
@@ -493,7 +493,7 @@ ITEM TYPES:\n\
  thrown, such as grenades, molotov cocktails, or tear gas.\n\
 \n\
 ?       Book or magazine\n\
-    This can be read for training or entertainment by pressing 'R'. Most\n\
+    This can be read for training or entertainment by pressing 'R'.  Most\n\
  require a basic level of intelligence; some require some base knowledge in\n\
  the relevant subject.");
    mvprintw(24, 0, "Press any key to return to help");
