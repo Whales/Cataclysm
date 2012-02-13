@@ -1378,14 +1378,18 @@ bool game::load_master()
   return false;
 
  char datatype;
+
+ fin >> datatype;
+ getline(fin, data);
+
  while (!fin.eof()) {
-  fin >> datatype;
   if (datatype == 'F') {
-   getline(fin, data);
    faction tmp;
    tmp.load_info(data);
    factions.push_back(tmp);
   }
+  fin >> datatype;
+  getline(fin, data);
  }
  fin.close();
  return true;
