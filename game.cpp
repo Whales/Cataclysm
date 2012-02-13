@@ -6129,6 +6129,11 @@ nc_color sev(int a)
 void game::display_scent()
 {
  int div = query_int("Sensitivity");
+
+ // Avoid dividing by zero further on. 
+ if(div == 0)
+  return;
+
  draw_ter();
  for (int x = u.posx - SEEX; x <= u.posx + SEEX; x++) {
   for (int y = u.posy - SEEY; y <= u.posy + SEEY; y++) {
