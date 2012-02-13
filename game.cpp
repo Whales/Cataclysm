@@ -356,7 +356,7 @@ fivedozenwhales@gmail.com.");
      mvwprintw(w_open, i, 0, "                                                 \
                                 ");
    }
-   if (ch == 'l' || ch == '\n' || ch == '>') {
+   if ((ch == 'l' || ch == '\n' || ch == '>') && templates.size() > 0) {
     if (!u.create(this, PLTYPE_TEMPLATE, templates[sel1])) {
      u = player();
      delwin(w_open);
