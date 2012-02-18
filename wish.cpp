@@ -28,7 +28,7 @@ void game::wish()
     search = false;
     found = true;
     ch = '.';
-   } else if (ch == KEY_BACKSPACE || ch == 127) {
+   } else if (ch == KEY_BACKSPACE || ch == 127 || ch == 7) { // backspace seems to be processed as 7 (\a) on some debian systems.
     if (pattern.length() > 0)
      pattern.erase(pattern.end() - 1);
    } else if (ch == '>') {
@@ -85,7 +85,7 @@ void game::wish()
   } else {	// Not searching; scroll by keys
    if (ch == 'j') a++;
    if (ch == 'k') a--;
-   if (ch == '/') { 
+   if (ch == '/') {
     search = true;
     pattern =  "";
     found = false;
@@ -236,7 +236,7 @@ void game::monster_wish()
    if (ch == 'j') a++;
    if (ch == 'k') a--;
    if (ch == 'f') friendly = !friendly;
-   if (ch == '/') { 
+   if (ch == '/') {
     search = true;
     pattern =  "";
     found = false;
@@ -386,7 +386,7 @@ void game::mutation_wish()
   } else {	// Not searching; scroll by keys
    if (ch == 'j') a++;
    if (ch == 'k') a--;
-   if (ch == '/') { 
+   if (ch == '/') {
     search = true;
     pattern =  "";
     found = false;
