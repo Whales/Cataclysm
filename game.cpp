@@ -4598,8 +4598,11 @@ void game::plfire(bool burst)
  // target() sets x and y, and returns an empty vector if we canceled (Esc)
  std::vector <point> trajectory = target(x, y, x0, y0, x1, y1, mon_targets,
                                          passtarget, &u.weapon);
- if (trajectory.size() == 0)
+ if (trajectory.size() == 0) {
+  if(u.weapon.has_flag(IF_RELOAD_AND_SHOOT))
+   unload(); //If this is a bow or something, unload our ammo because we're canceling the shot.
   return;
+ }
  if (passtarget != -1) { // We picked a real live target
   last_target = targetindices[passtarget]; // Make it our default for next time
   z[targetindices[passtarget]].add_effect(ME_HIT_BY_PLAYER, 100);
