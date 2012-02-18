@@ -3573,44 +3573,46 @@ void game::examine()
    add_msg("The nearby doors slide into the floor.");
    u.use_amount(card_type, 1);
   }
-  bool using_electrohack = (u.has_amount(itm_electrohack, 1) &&
-                            query_yn("Use electrohack on the reader?"));
-  bool using_fingerhack = (!using_electrohack && u.has_bionic(bio_fingerhack) &&
-                           u.power_level > 0 &&
-                           query_yn("Use fingerhack on the reader?"));
-  if (using_electrohack || using_fingerhack) {
-   u.moves -= 500;
-   u.practice(sk_computer, 20);
-   int success = rng(u.sklevel[sk_computer]/4 - 2, u.sklevel[sk_computer] * 2);
-   success += rng(-3, 3);
-   if (using_fingerhack)
-    success++;
-   if (u.int_cur < 8)
-    success -= rng(0, int((8 - u.int_cur) / 2));
-   else if (u.int_cur > 8)
-    success += rng(0, int((u.int_cur - 8) / 2));
-   if (success < 0) {
-    add_msg("You cause a short circuit!");
-    if (success <= -5) {
-     if (using_electrohack) {
-      add_msg("Your electrohack is ruined!");
-      u.use_amount(itm_electrohack, 1);
-     } else {
-      add_msg("Your power is drained!");
-      u.charge_power(0 - rng(0, u.power_level));
+  else { //If we already selected ID, don't try to hack.
+   bool using_electrohack = (u.has_amount(itm_electrohack, 1) &&
+                             query_yn("Use electrohack on the reader?"));
+   bool using_fingerhack = (!using_electrohack && u.has_bionic(bio_fingerhack) &&
+                            u.power_level > 0 &&
+                            query_yn("Use fingerhack on the reader?"));
+   if (using_electrohack || using_fingerhack) {
+    u.moves -= 500;
+    u.practice(sk_computer, 20);
+    int success = rng(u.sklevel[sk_computer]/4 - 2, u.sklevel[sk_computer] * 2);
+    success += rng(-3, 3);
+    if (using_fingerhack)
+     success++;
+    if (u.int_cur < 8)
+     success -= rng(0, int((8 - u.int_cur) / 2));
+    else if (u.int_cur > 8)
+     success += rng(0, int((u.int_cur - 8) / 2));
+    if (success < 0) {
+     add_msg("You cause a short circuit!");
+     if (success <= -5) {
+      if (using_electrohack) {
+       add_msg("Your electrohack is ruined!");
+       u.use_amount(itm_electrohack, 1);
+      } else {
+       add_msg("Your power is drained!");
+       u.charge_power(0 - rng(0, u.power_level));
+      }
      }
-    }
-    m.ter(examx, examy) = t_card_reader_broken;
-   } else if (success < 6)
-    add_msg("Nothing happens.");
-   else {
-    add_msg("You activate the panel!");
-    add_msg("The nearby doors slide into the floor.");
-    m.ter(examx, examy) = t_card_reader_broken;
-    for (int i = -3; i <= 3; i++) {
-     for (int j = -3; j <= 3; j++) {
-      if (m.ter(examx + i, examy + j) == t_door_metal_locked)
-       m.ter(examx + i, examy + j) = t_floor;
+     m.ter(examx, examy) = t_card_reader_broken;
+    } else if (success < 6)
+     add_msg("Nothing happens.");
+    else {
+     add_msg("You activate the panel!");
+     add_msg("The nearby doors slide into the floor.");
+     m.ter(examx, examy) = t_card_reader_broken;
+     for (int i = -3; i <= 3; i++) {
+      for (int j = -3; j <= 3; j++) {
+       if (m.ter(examx + i, examy + j) == t_door_metal_locked)
+        m.ter(examx + i, examy + j) = t_floor;
+      }
      }
     }
    }
