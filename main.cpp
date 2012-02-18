@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
 {
  srand(time(NULL));
 
+ setenv("ESCDELAY", "25", 1); // Lower ESCDELAY from 1000 to 25, so that processing KEY_ESCAPE doesn't take forever.
+
 // ncurses stuff
  initscr(); // Initialize ncurses
  noecho();  // Don't echo keypresses
