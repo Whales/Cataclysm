@@ -1894,7 +1894,15 @@ std::string random_first_name(bool male)
            (male ? "NAMES_MALE" : "NAMES_FEMALE"));
   return "";
  }
- int line = rng(1, 100);	// TODO: Don't assume 100 first names.
+
+ int num_lines = 0;
+ while(getline(fin, name))
+  num_lines++;
+
+ fin.clear();
+ fin.seekg(0); // File ready to be re-read from start
+
+  int line = rng(1, num_lines);
  for (int i = 0; i < line; i++)
   fin.getline(buff, 256);
  name = buff;
@@ -1911,7 +1919,15 @@ std::string random_last_name()
   debugmsg("Could not open npc last names list (NAMES_LAST)");
   return "";
  }
- int line = rng(1, 100);	// TODO: Shouldn't 100 last names.
+
+ int num_lines = 0;
+ while(getline(fin, lastname))
+  num_lines++;
+
+ fin.clear();
+ fin.seekg(0); // File ready to be re-read from start
+
+ int line = rng(1, num_lines);
  char buff[256];
  for (int i = 0; i < line; i++)
   fin.getline(buff, 256);
