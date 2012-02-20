@@ -202,7 +202,7 @@ std::string item::save_info()
  * curammo isn't NULL.  The crashes seem to occur most frequently when saving an
  * NPC, or when saving map data containing an item an NPC has dropped.
  */
- if (is_gun() && curammo != NULL)
+ if (curammo != NULL)
   ammotmp = curammo->id;
  if (ammotmp < 0 || ammotmp > num_items)
   ammotmp = 0; // Saves us from some bugs
@@ -257,7 +257,7 @@ void item::load_info(std::string data, game *g)
  active = false;
  if (acttmp == 1)
   active = true;
- if (is_gun() && ammotmp > 0)
+ if (ammotmp > 0)
   curammo = dynamic_cast<it_ammo*>(g->itypes[ammotmp]);
  else
   curammo = NULL;
