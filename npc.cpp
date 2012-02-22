@@ -1883,55 +1883,54 @@ void npc::die(game *g, bool your_fault)
 std::string random_first_name(bool male)
 {
  std::ifstream fin;
- std::string name;
- char buff[256];
- if (male)
-  fin.open("data/NAMES_MALE");
- else
-  fin.open("data/NAMES_FEMALE");
+ std::vector<std::string> names;
+ const std::string filename = (male ? "NAMES_MALE" : "NAMES_FEMALE");
+
+ // Open file for reading
+ fin.open( ("data/" + filename).c_str() );
  if (!fin.is_open()) {
-  debugmsg("Could not open npc first names list (%s)",
-           (male ? "NAMES_MALE" : "NAMES_FEMALE"));
+  debugmsg("Could not open npc first names list (" + filename + ")");
   return "";
  }
 
- int num_lines = 0;
- while(getline(fin, name))
-  num_lines++;
-
- fin.clear();
- fin.seekg(0); // File ready to be re-read from start
-
-  int line = rng(1, num_lines);
- for (int i = 0; i < line; i++)
-  fin.getline(buff, 256);
- name = buff;
+ // Read names
+ std::string tmp;
+ while(getline(fin, tmp))
+  names.push_back(tmp);
  fin.close();
- return name;
+
+ // Pick a name at random
+ if(names.size() > 0)
+  return names[rng(0, names.size() - 1)];
+ else { // File is probably empty
+  debugmsg("No names returned from npc first names list (" + filename + ")");
+  return "";
+ }
 }
 
 std::string random_last_name()
 {
- std::string lastname;
  std::ifstream fin;
+ std::vector<std::string> names;
+
+ // Open file for reading
  fin.open("data/NAMES_LAST");
  if (!fin.is_open()) {
   debugmsg("Could not open npc last names list (NAMES_LAST)");
   return "";
  }
 
- int num_lines = 0;
- while(getline(fin, lastname))
-  num_lines++;
-
- fin.clear();
- fin.seekg(0); // File ready to be re-read from start
-
- int line = rng(1, num_lines);
- char buff[256];
- for (int i = 0; i < line; i++)
-  fin.getline(buff, 256);
- lastname = buff;
+ // Read names
+ std::string tmp;
+ while(getline(fin, tmp))
+  names.push_back(tmp);
  fin.close();
- return lastname;
+
+ // Pick a name at random
+ if(names.size() > 0)
+  return names[rng(0, names.size() - 1)];
+ else { // File is probably empty
+  debugmsg("No names returned from npc last names list (NAMES_LAST)");
+  return "";
+ }
 }

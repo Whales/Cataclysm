@@ -295,6 +295,12 @@ void debugmsg(const char *mes, ...)
  attroff(c_red);
 }
 
+// For using real strings
+void debugmsg(std::string mes)
+{
+ debugmsg(mes.c_str());
+}
+
 bool query_yn(const char *mes, ...)
 {
  va_list ap;
