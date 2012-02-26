@@ -44,6 +44,7 @@ int  menu(const char *mes, ...);
 void popup_top(const char *mes, ...); // Displayed at the top of the screen
 void popup(const char *mes, ...);
 void full_screen_popup(const char *mes, ...);
+int select_item(std::string heading, std::vector<std::string> const* items); // Generic function that prompts the player to select one of several strings in a vector. Returns -1 if canceled/error, otherwise returns selected vector index.
 
 nc_color hilite(nc_color c);
 nc_color invert_color(nc_color c);

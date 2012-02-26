@@ -1579,34 +1579,30 @@ bool game::event_queued(event_type type)
 
 void game::debug()
 {
- WINDOW* w = newwin(13, 45, 6, 10);
+ WINDOW* w = newwin(14, 45, 6, 10);
  wattron(w, c_white);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
 
-  mvwprintw(w, 1, 1,  "Debug Functions - Using these is CHEATING!");
-  mvwprintw(w, 2, 1,  "1: Wish for an item");
-  mvwprintw(w, 3, 1,  "2: Teleport - Short Range");
-  mvwprintw(w, 4, 1,  "3: Teleport - Long Range");
-  mvwprintw(w, 5, 1,  "4: Reveal map");
-  mvwprintw(w, 6, 1,  "5: Spawn NPC");
-  mvwprintw(w, 7, 1,  "6: Spawn Monster");
-  mvwprintw(w, 8, 1,  "7: Check game state...");
-  mvwprintw(w, 9, 1,  "8: Kill NPCs");
-  mvwprintw(w, 10, 1, "9: Mutate");
-  mvwprintw(w, 11, 1, "0: Display Scent Map...");
+ mvwprintw(w, 1, 1,  "Debug Functions - Using these is CHEATING!");
+ mvwprintw(w, 2, 1,  "1: Wish for an item");
+ mvwprintw(w, 3, 1,  "2: Teleport - Short Range");
+ mvwprintw(w, 4, 1,  "3: Teleport - Long Range");
+ mvwprintw(w, 5, 1,  "4: Reveal map");
+ mvwprintw(w, 6, 1,  "5: Spawn NPC");
+ mvwprintw(w, 7, 1,  "6: Spawn Monster");
+ mvwprintw(w, 8, 1,  "7: Check game state...");
+ mvwprintw(w, 9, 1,  "8: Kill NPCs");
+ mvwprintw(w, 10, 1, "9: Mutate");
+ mvwprintw(w, 11, 1, "0: Display Scent Map...");
+ mvwprintw(w, 12, 1, "a: Spawn Field...");
 
  wrefresh(w);
 
- long ch;
+ long ch = getch();
 
- do {
-  ch = getch();
-
-  if(ch == KEY_ESCAPE)
-   return;
- }
- while (ch < '0' || ch > '9');
+ if(ch == KEY_ESCAPE)
+  return;
 
  werase(w);
  wrefresh(w);
@@ -1680,6 +1676,10 @@ int(turn), int(nextspawn), z.size(), events.size());
 
   case '0':
    display_scent();
+   break;
+   
+  case 'a':
+   field_wish();
    break;
 
  }

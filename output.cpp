@@ -676,6 +676,68 @@ void full_screen_popup(const char* mes, ...)
  refresh();
 }
 
+// Generic function that prompts the player to select one of several strings in a vector. Returns -1 if canceled/error, otherwise returns selected vector index.
+int select_item(std::string heading, std::vector<std::string> const* items)
+{
+ WINDOW *w_select = newwin(25, 80, 0, 0);
+ 
+ if(items == NULL) {
+  debugmsg("NULL pointer sent to select_item");
+  return -1;
+ }
+ 
+ if(items->size() == 0) {
+  debugmsg("Empty vector sent to select_item");
+  return -1;
+ }
+ 
+ int a = 0, offset = 0, ret = -1;
+ nc_color col;
+ long ch;
+ const int size = items->size();
+ 
+ while(true) {
+  wclear(w_select);
+ 
+  for(int i = 0; i <= 23 && i < size; i++) {
+   col = ((i + offset) == a ? h_white : c_white);
+ 
+   mvwprintw(w_select, 0, 0, heading.c_str());
+ 
+   mvwprintz(w_select, 2 + i, 0, col,(*items)[i+offset].c_str());
+  }
+ 
+  wrefresh(w_select);
+ 
+  ch = input();
+ 
+  if(ch == 'j') {
+   a = (++a < (size-1) ? a : (size-1) );
+ 
+   if(a-offset >= 23)
+    offset++;
+  }
+ 
+  if(ch == 'k') {
+   a = (--a > 0 ? a : 0);
+ 
+   if(a < offset)
+    offset--;
+  }
+ 
+  if(ch == KEY_ESCAPE)
+   break;
+ 
+  if(ch == '\n') {
+   ret = a;
+   break;
+  }
+ }
+ 
+ return ret;
+ 
+}
+
 char rand_char()
 {
  switch (rng(0, 9)) {

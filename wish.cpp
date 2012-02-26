@@ -471,3 +471,26 @@ void game::mutation_wish()
  delwin(w_info);
  delwin(w_list);
 }
+
+// Allows player to spawn a field type at a selected point near the player.
+void game::field_wish()
+{
+ std::vector<std::string> vec;
+ 
+ for(int i = 1; i < num_fields; i++) { // Start from 1 to skip fd_null
+  if(i == fd_fire_vent)
+   vec.push_back("fire vent"); // Fire vent doesn't have any display name, this hack adds one to the selection list.
+  else
+   vec.push_back(fieldlist[i].name[2]);
+ }
+ 
+ field_id id = (field_id) (select_item("Select a field: ", &vec) + 1); // Add 1 to skip fd_null
+ 
+ if(id > fd_null) { // Basically if select_item didn't return -1 (canceled by player)
+  refresh_all();
+  wrefresh(w_terrain);
+ 
+  point spawn = look_around();
+  m.add_field(this, spawn.x, spawn.y, id, 3);
+ }
+}

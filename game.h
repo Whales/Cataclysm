@@ -218,6 +218,7 @@ class game
   void wish();	// Cheat by wishing for an item 'Z'
   void monster_wish(); // Create a monster
   void mutation_wish(); // Mutate
+  void field_wish(); // Allows player to spawn a field type at a selected point near the player.
 
   void plmove(int x, int y); // Standard movement; handles attacks, traps, &c
   void wait();	// Long wait (player action)	'^'
