@@ -1,6 +1,3 @@
-#ifndef _OUTPUT_H_
-#define _OUTPUT_H_
-
 #if (defined _WIN32 || defined WINDOWS)
 	#include "catacurse.h"
 #else
@@ -754,4 +751,3 @@ char rand_char()
  }
  return '?';
 }
-#endif
