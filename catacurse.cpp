@@ -702,6 +702,11 @@ int curs_set(int visibility)
     return 1;
 };
 
+int set_escdelay(int delay)
+{
+    return 1;
+}
+
 int mvaddch(int y, int x, const chtype ch)
 {
     return mvwaddch(&_windows[0],y,x,ch);
