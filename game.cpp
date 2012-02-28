@@ -1607,6 +1607,9 @@ void game::debug()
  werase(w);
  wrefresh(w);
  delwin(w);
+ 
+ refresh_all();
+ wrefresh(w_terrain);
 
  switch (ch) {
   case '1':

@@ -477,19 +477,18 @@ void game::field_wish()
 {
  std::vector<std::string> vec;
  
- for(int i = 1; i < num_fields; i++) { // Start from 1 to skip fd_null
+ for(int i = 0; i < num_fields; i++) {
   if(i == fd_fire_vent)
    vec.push_back("fire vent"); // Fire vent doesn't have any display name, this hack adds one to the selection list.
+  else if(i == fd_null)
+   vec.push_back("null field"); // Ditto for null field
   else
    vec.push_back(fieldlist[i].name[2]);
  }
  
- field_id id = (field_id) (select_item("Select a field: ", &vec) + 1); // Add 1 to skip fd_null
+ field_id id = (field_id) select_item("Select a field: ", &vec);
  
- if(id > fd_null) { // Basically if select_item didn't return -1 (canceled by player)
-  refresh_all();
-  wrefresh(w_terrain);
- 
+ if(id != -1) {
   point spawn = look_around();
   m.add_field(this, spawn.x, spawn.y, id, 3);
  }
