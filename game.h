@@ -125,6 +125,7 @@ class game
   void process_missions(); // Process missions, see if time's run out
 
   void teleport(player *p = NULL);
+  void teleport(player *p, int x, int y);
   void plswim(int x, int y); // Called by plmove.  Handles swimming
   void nuke(int x, int y);
   std::vector<faction *> factions_at(int x, int y);

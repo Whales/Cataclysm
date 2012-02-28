@@ -1616,9 +1616,11 @@ void game::debug()
    wish();
    break;
 
-  case '2':
-   teleport();
+  case '2': {
+   point p = look_around();
+   teleport(&u, p.x, p.y);
    break;
+  }
 
   case '3': {
    point tmp = cur_om.choose_point(this);
@@ -6039,32 +6041,43 @@ void game::teleport(player *p)
 {
  if (p == NULL)
   p = &u;
- int newx, newy, t, tries = 0;
+    
+ int newx, newy, tries = 0;
+ 
+ do {
+ newx = p->posx + rng(0, SEEX * 2) - SEEX;
+ newy = p->posy + rng(0, SEEY * 2) - SEEY;
+ tries++;
+ } while (tries < 15 && !is_empty(newx, newy));
+ 
+ if(is_empty(newx, newy))
+  teleport(p, newx, newy);
+}
+
+void game::teleport(player *p, int x, int y)
+{ 
+ int t;
  bool is_u = (p == &u);
  p->add_disease(DI_TELEGLOW, 300, this);
- do {
-  newx = p->posx + rng(0, SEEX * 2) - SEEX;
-  newy = p->posy + rng(0, SEEY * 2) - SEEY;
-  tries++;
- } while (tries < 15 && !is_empty(newx, newy));
- bool can_see = (is_u || u_see(newx, newy, t));
+
+ bool can_see = (is_u || u_see(x, y, t));
  std::string You = (is_u ? "You" : p->name);
- p->posx = newx;
- p->posy = newy;
- if (tries == 15) {
-  if (m.move_cost(newx, newy) == 0) {	// TODO: If we land in water, swim
-   if (can_see)
-    add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
-            (is_u ? "" : "s"), m.tername(newx, newy).c_str());
-   p->hurt(this, bp_torso, 0, 500);
-  } else if (mon_at(newx, newy) != -1) {
-   int i = mon_at(newx, newy);
-   if (can_see)
-    add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
-            (is_u ? "" : "s"), z[i].name().c_str());
-   explode_mon(i);
-  }
+ p->posx = x;
+ p->posy = y;
+
+ if (m.move_cost(x, y) == 0) {	// TODO: If we land in water, swim
+  if (can_see)
+   add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
+           (is_u ? "" : "s"), m.tername(x, y).c_str());
+  p->hurt(this, bp_torso, 0, 500);
+ } else if (mon_at(x, y) != -1) {
+  int i = mon_at(x, y);
+  if (can_see)
+   add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
+           (is_u ? "" : "s"), z[i].name().c_str());
+  explode_mon(i);
  }
+ 
  if (is_u)
   update_map(u.posx, u.posy);
 }
