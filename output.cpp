@@ -675,20 +675,15 @@ void full_screen_popup(const char* mes, ...)
 }
 
 // Generic function that prompts the player to select one of several strings in a vector. Returns -1 if canceled/error, otherwise returns selected vector index.
-int select_item(const std::string &heading, const std::vector<std::string> *items)
+int select_item(const std::string &heading, const std::vector<std::string> &items)
 {
-    
- if(items == NULL) {
-  debugmsg("NULL pointer sent to select_item");
-  return -1;
- }
- 
- if(items->size() == 0) {
+
+ if(items.size() == 0) {
   debugmsg("Empty vector sent to select_item");
   return -1;
  }
  
- const int size = items->size();
+ const int size = items.size();
  
  // Set height to size of items list, cap at 10. Add +2 for borders.
  int height = std::min(10 + 2, size + 2);
@@ -696,7 +691,7 @@ int select_item(const std::string &heading, const std::vector<std::string> *item
  // Set width to match our longest string, either from heading or from items. Add +2 for borders.
  int width = heading.length() + 2;
  for(int i = 0; i < size; i++)
-  width = std::max(width, (int) (*items)[i].length() + 2);
+  width = std::max(width, (int) items[i].length() + 2);
   
  // Center window on screen
  int x = std::max(0, (80 / 2) - (width / 2));
@@ -718,7 +713,7 @@ int select_item(const std::string &heading, const std::vector<std::string> *item
  
    mvwprintw(w_select, 1, 1, heading.c_str());
  
-   mvwprintz(w_select, 2 + i, 1, col,(*items)[i+offset].c_str());
+   mvwprintz(w_select, 2 + i, 1, col,items[i+offset].c_str());
   }
  
   wrefresh(w_select);

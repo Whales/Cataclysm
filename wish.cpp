@@ -486,7 +486,7 @@ void game::field_wish()
    vec.push_back(fieldlist[i].name[2]);
  }
  
- field_id id = (field_id) select_item("Select a field: ", &vec);
+ field_id id = (field_id) select_item("Select a field: ", vec);
  
  if(id != -1) {
   point spawn = look_around();
