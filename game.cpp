@@ -6049,9 +6049,9 @@ void game::teleport(player *p)
  newy = p->posy + rng(0, SEEY * 2) - SEEY;
  tries++;
  } while (tries < 15 && !is_empty(newx, newy));
- 
- if(is_empty(newx, newy))
-  teleport(p, newx, newy);
+
+ // If we still haven't found a suitable teleport destination after 15 tries, someone or something will get hurt in the process. 
+ teleport(p, newx, newy);
 }
 
 void game::teleport(player *p, int x, int y)
@@ -6065,17 +6065,19 @@ void game::teleport(player *p, int x, int y)
  p->posx = x;
  p->posy = y;
 
- if (m.move_cost(x, y) == 0) {	// TODO: If we land in water, swim
-  if (can_see)
-   add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
-           (is_u ? "" : "s"), m.tername(x, y).c_str());
-  p->hurt(this, bp_torso, 0, 500);
- } else if (mon_at(x, y) != -1) {
-  int i = mon_at(x, y);
-  if (can_see)
-   add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
-           (is_u ? "" : "s"), z[i].name().c_str());
-  explode_mon(i);
+ if(!is_empty(x, y)) {
+  if (m.move_cost(x, y) == 0) {	// TODO: If we land in water, swim
+   if (can_see)
+    add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
+            (is_u ? "" : "s"), m.tername(x, y).c_str());
+   p->hurt(this, bp_torso, 0, 500);
+  } else if (mon_at(x, y) != -1) {
+   int i = mon_at(x, y);
+   if (can_see)
+    add_msg("%s teleport%s into the middle of a %s!", You.c_str(),
+            (is_u ? "" : "s"), z[i].name().c_str());
+   explode_mon(i);
+  }
  }
  
  if (is_u)
