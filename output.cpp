@@ -351,6 +351,15 @@ int query_int(const char *mes, ...)
  return temp-48;
 }
 
+int query_int(int max, const std::string &mes, int min/* = 0*/)
+{
+ int ret = atoi(string_input_popup(mes.c_str()).c_str());
+ ret = std::max(min, ret);
+ ret = std::min(max, ret);
+ 
+ return ret;
+}
+
 std::string string_input_popup(const char *mes, ...)
 {
  std::string ret;
@@ -685,8 +694,8 @@ int select_item(const std::string &heading, const std::vector<std::string> &item
  
  const int size = items.size();
  
- // Set height to size of items list, cap at 10. Add +2 for borders.
- int height = std::min(10 + 2, size + 2);
+ // Set height to size of items list, cap at 15. Add +3 for borders+heading.
+ int height = std::min(15, size) + 3;
  
  // Set width to match our longest string, either from heading or from items. Add +2 for borders.
  int width = heading.length() + 2;

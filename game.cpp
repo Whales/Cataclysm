@@ -1579,7 +1579,7 @@ bool game::event_queued(event_type type)
 
 void game::debug()
 {
- WINDOW* w = newwin(14, 45, 6, 10);
+ WINDOW* w = newwin(15, 45, 6, 10);
  wattron(w, c_white);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
@@ -1596,6 +1596,7 @@ void game::debug()
  mvwprintw(w, 10, 1, "9: Mutate");
  mvwprintw(w, 11, 1, "0: Display Scent Map...");
  mvwprintw(w, 12, 1, "a: Spawn Field...");
+ mvwprintw(w, 13, 1, "b: Modify Character...");
 
  wrefresh(w);
 
@@ -1685,6 +1686,10 @@ int(turn), int(nextspawn), z.size(), events.size());
    
   case 'a':
    field_wish();
+   break;
+   
+  case 'b':
+   modify_character();
    break;
 
  }
