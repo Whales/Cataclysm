@@ -437,13 +437,13 @@ void computer::activate_function(game *g, computer_action action)
     }
    }
 // For each level between here and the surface, remove the missile
+   tmp_om = g->cur_om;
    for (int level = g->cur_om.posz; level < 0; level++) {
-    tmp_om = g->cur_om;
     g->cur_om = overmap(g, tmp_om.posx, tmp_om.posy, level);
     tinymap tmpmap(&g->itypes, &g->mapitems, &g->traps);
     tmpmap.load(g, g->levx, g->levy);
     tmpmap.translate(t_missile, t_hole);
-    tmpmap.save(&tmp_om, g->turn, g->levx, g->levy);
+    tmpmap.save(&g->cur_om, g->turn, g->levx, g->levy);
    }
    g->cur_om = tmp_om;
    for (int x = target.x - 2; x <= target.x + 2; x++) {
