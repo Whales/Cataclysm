@@ -2,6 +2,8 @@
 #include "output.h"
 #include "keypress.h"
 #include "skill.h"
+#include "line.h"
+#include "bodypart.h"
 #include <sstream>
 
 #define LESS(a, b) ((a)<(b)?(a):(b))
@@ -477,8 +479,10 @@ void game::mutation_wish()
 void game::field_wish()
 {
  std::vector<std::string> vec;
+ int selection, input;
  
- for(int i = 0; i < num_fields; i++) {
+ for(int i = 0; i < num_fields; i++) 
+ {
   if(i == fd_fire_vent)
    vec.push_back("fire vent"); // Fire vent doesn't have any display name, this hack adds one to the selection list.
   else if(i == fd_null)
@@ -486,12 +490,24 @@ void game::field_wish()
   else
    vec.push_back(fieldlist[i].name[2]);
  }
- 
- field_id id = (field_id) select_item("Select a field: ", vec);
- 
- if(id != -1) {
+
+ selection = select_item("Select a field type: ", vec);
+
+ if(selection != -1)
+ {
   point spawn = look_around();
-  m.add_field(this, spawn.x, spawn.y, id, 3);
+  if(spawn.x != -1)
+  {
+   input = query_int(1000, "Set cloud radius", 1);
+   for(int x = spawn.x - input; x <= spawn.x + input; x++)
+   {
+    for(int y = spawn.y - input; y <= spawn.y + input; y++)
+    {
+     if(trig_dist(spawn.x, spawn.y, x, y) < input)
+      m.add_field(this, x, y, (field_id) selection, 3);
+    }
+   }
+  }
  }
 }
 
@@ -500,76 +516,107 @@ void game::modify_character()
  std::vector<std::string> vec;
  int selection, input;
  
+ vec.clear();
  vec.push_back("Modify stats...");
  vec.push_back("Modify skills...");
  vec.push_back("Set HP...");
+ vec.push_back(std::string("Toggle God Mode! [Currently ") + (godmode ? "ON" : "OFF") + "]");
  
- selection = select_item("Modify Character", vec); 
- 
- vec.clear();
+ selection = select_item("Modify character", vec); 
+ if(selection == -1)
+  return;
  
  if(selection == 0) // Modify stats
  {
-  vec.push_back("Set all stats to 20");
+  vec.clear();
+  vec.push_back("Set all stats...");
   vec.push_back("Set str...");
   vec.push_back("Set dex...");
   vec.push_back("Set int...");
   vec.push_back("Set per...");
   
   selection = select_item("Modify stats", vec);
-  vec.clear();
+  if(selection == -1)
+   return;
   
-  if(selection == 0) // Set all stats to 20
-  {
-   u.str_max = u.str_cur = 20;
-   u.dex_max = u.dex_cur = 20;
-   u.int_max = u.int_cur = 20;
-   u.per_max = u.per_cur = 20;
-  }
-  
-  else if(selection >= 1 && selection <= 4) // Set individual stats
-  {
-   input = query_int(100, "Input a number from 0-100");
-   if(selection == 1)
-    u.str_max = u.str_cur = input;
-   else if(selection == 2)
-    u.dex_max = u.dex_cur = input;
-   else if(selection == 3)
-    u.int_max = u.int_cur = input;
-   else if(selection == 4)
-    u.per_max = u.per_cur = input;
-  }
+  input = query_int(100, "Input a number from 0-100");
+  if(input == -1)
+   return;
 
-   
-   
+  if(selection == 0) // Set all stats
+  {
+   u.str_max = u.str_cur = input;
+   u.dex_max = u.dex_cur = input;
+   u.int_max = u.int_cur = input;
+   u.per_max = u.per_cur = input;
+  }
+  else if(selection == 1)
+   u.str_max = u.str_cur = input;
+  else if(selection == 2)
+   u.dex_max = u.dex_cur = input;
+  else if(selection == 3)
+   u.int_max = u.int_cur = input;
+  else if(selection == 4)
+   u.per_max = u.per_cur = input;
  }
  else if(selection == 1) // Modify skills
  {
-  vec.push_back("Set all skills to 20");
+  vec.clear();
+  vec.push_back("Set all skills...");
   
   for(int i = 1; i < num_skill_types; i++)
    vec.push_back("Set " + skill_name(i) + "...");
   
   selection = select_item("Modify skills", vec);
-  vec.clear();
+  if(selection == -1)
+   return;
+   
+  input = query_int(100, "Input a number from 0-100");
+  if(input == -1)
+   return;
   
-  if(selection == 0) // Set all skills to 20
+  if(selection == 0) // Set all skills
   {
    for(int i = 1; i < num_skill_types; i++)
-    u.sklevel[i] = 20;
+    u.sklevel[i] = input;
   }
-  
   else if(selection >= 1 && selection < num_skill_types) // Set individual skills
   {
-   input = query_int(100, "Input a number from 0-100");
    u.sklevel[selection] = input;
-  }
+  }  
  }
- 
  else if(selection == 2) // Set HP
  {
-  input = query_int(10000, "Input a number from 0-10000");
+  vec.clear();
+  vec.push_back("Set HP on all bodyparts...");
+  
   for(int i = 0; i < num_hp_parts; i++)
-   u.hp_max[i] = u.hp_cur[i] = input;
+   vec.push_back("Set HP on " + hp_part_name[i] + "...");
+  
+  selection = select_item("Set HP", vec);
+  if(selection == -1)
+   return;
+   
+  input = query_int(50000, "Input a number from 0-50000");
+  if(input == -1)
+   return;
+  
+  if(selection == 0) // Set HP on all bodyparts
+  {
+   for(int i = 0; i < num_hp_parts; i++)
+    u.hp_max[i] = u.hp_cur[i] = input;
+  }
+  else if(selection >= 1 && selection <= num_hp_parts) // Set HP on specific bodypart
+  {
+   u.hp_max[selection-1] = u.hp_cur[selection-1] = input;
+  }
+ }
+ else if(selection == 3) // God mode!
+ {
+  refresh_all();
+  wrefresh(w_terrain);
+  
+  godmode = !godmode;
+  popup("Godmode %s!", (godmode ? "enabled" : "disabled"));
  }
 }

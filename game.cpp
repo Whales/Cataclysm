@@ -65,6 +65,7 @@ game::game()
  curmes = 0;		// We haven't read any messages yet
  uquit = QUIT_NO;	// We haven't quit the game
  debugmon = false;	// We're not printing debug messages
+ godmode = false; // Godmode is NOT activated by default, or the game would be kinda easy.
  in_tutorial = false;	// We're not in a tutorial game
  weather = WEATHER_CLEAR; // Start with some nice weather...
  nextweather = MINUTES(STARTING_MINUTES + 30); // Weather shift in 30
@@ -1315,6 +1316,11 @@ bool game::is_game_over()
 {
  if (uquit != QUIT_NO)
   return true;
+  
+ // Don't bother evaulating for QUIT_DIED if godmode is activated.
+ if(godmode)
+  return false;
+  
  for (int i = 0; i <= hp_torso; i++) {
   if (u.hp_cur[i] < 1) {
    std::vector<item> tmp = u.inv_dump();

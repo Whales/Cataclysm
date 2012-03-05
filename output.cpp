@@ -351,9 +351,14 @@ int query_int(const char *mes, ...)
  return temp-48;
 }
 
+// Returns -1 if canceled, don't use this for querying negative values.
 int query_int(int max, const std::string &mes, int min/* = 0*/)
 {
- int ret = atoi(string_input_popup(mes.c_str()).c_str());
+ std::string s = string_input_popup(mes.c_str());
+ if(s.empty())
+  return -1;
+  
+ int ret = atoi(s.c_str());
  ret = std::max(min, ret);
  ret = std::min(max, ret);
  
@@ -744,7 +749,7 @@ int select_item(const std::string &heading, const std::vector<std::string> &item
   }
  
   if(ch == KEY_ESCAPE)
-   break;
+   return -1;
  
   if(ch == '\n') {
    ret = a;
