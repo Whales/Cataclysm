@@ -1585,7 +1585,7 @@ bool game::event_queued(event_type type)
 
 void game::debug()
 {
- WINDOW* w = newwin(15, 45, 6, 10);
+ WINDOW* w = newwin(16, 45, 6, 10);
  wattron(w, c_white);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
@@ -1603,6 +1603,7 @@ void game::debug()
  mvwprintw(w, 11, 1, "0: Display Scent Map...");
  mvwprintw(w, 12, 1, "a: Spawn Field...");
  mvwprintw(w, 13, 1, "b: Modify Character...");
+ mvwprintw(w, 14, 1, "c: Launch nuke!");
 
  wrefresh(w);
 
@@ -1625,7 +1626,8 @@ void game::debug()
 
   case '2': {
    point p = look_around();
-   teleport(&u, p.x, p.y);
+   if(p.x != -1)
+    teleport(&u, p.x, p.y);
    break;
   }
 
@@ -1697,6 +1699,21 @@ int(turn), int(nextspawn), z.size(), events.size());
   case 'b':
    modify_character();
    break;
+   
+  case 'c':
+  {
+   point target = cur_om.choose_point(this);
+   if(target.x != -1)
+   {
+    refresh_all();
+    wrefresh(w_terrain);
+    
+    popup("Nuke launched!");
+    
+    nuke(target.x, target.y);
+    m.load(this, levx, levy);
+   }
+  } break;
 
  }
  erase();
