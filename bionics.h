@@ -127,11 +127,12 @@ nutrients.  The net effect is a greatly reduced need to eat and drink."},
 You have been outfitted with three synthetic stomachs and industrial-grade\n\
 intestines.  Not only can you extract much more nutrition from food, but you\n\
 are highly resistant to foodborne illness, and can sometimes eat rotten food."},
-{"Integrated Toolset", false, false, 0, 0, "\
+{"Integrated Toolset", false, true, 2, 0, "\
 Implanted in your hands and fingers is a complete tool set - screwdriver,\n\
-hammer, wrench, and heating elements.  You can use this in place of many\n\
-tools when crafting."},
-{"Electroshock Unit", false, false, 1, 0, "\
+hammer, wrench, hack saw and heating elements.  You can use this in place of\n\
+many tools when crafting or activate all in once to use as improvised weapon."},
+// Here is no more place to mention pick up & wielding hampering
+{"Electroshock Unit", false, false, 2, 0, "\
 While fighting unarmed, or with a weapon that conducts electricity, there is\n\
 a chance that a successful hit will shock your opponent, inflicting extra\n\
 damage and disabling them temporarily at the cost of some energy."},

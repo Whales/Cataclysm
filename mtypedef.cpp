@@ -876,7 +876,7 @@ wearing only a pair of white underwear."
 
 // ROBOTS
 mon("eyebot",	species_robot, 'r',	c_ltblue,	MS_SMALL,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_FLIES)|mfb(MF_ELECTRONIC)),
+	(mfb(MF_SEES)|mfb(MF_FLIES)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	 20,  2,  2,120, 0,  0,  0,  0,  3,   0, 10, 70,  20, 30,
 	&mdeath::normal,	&mattack::photograph, "\
@@ -887,7 +887,7 @@ Frequently used for reconaissance."
 );
 
 mon("manhack",	species_robot, 'r',	c_green,	MS_TINY,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_FLIES)|mfb(MF_NOHEAD)|mfb(MF_ELECTRONIC)),
+	(mfb(MF_SEES)|mfb(MF_FLIES)|mfb(MF_NOHEAD)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	 18,  7,  5,130, 12,  1,  1,  8,  2,  0,  0, 10,  5, 0,
 	&mdeath::normal,	&mattack::none, "\
@@ -897,7 +897,7 @@ and has one small, glowing red eye."
 );
 
 mon("skitterbot",species_robot, 'r',	c_ltred,	MS_SMALL,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_ELECTRONIC)),
+	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	 10, 13,  4,105,  0,  0,  0,  0,  0,  0, 12, 60, 40, 5,
 	&mdeath::normal,	&mattack::tazer, "\
@@ -908,8 +908,7 @@ prods at the ready."
 );
 
 mon("secubot",	species_robot, 'R',	c_dkgray,	MS_SMALL,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_BASHES)|mfb(MF_ATTACKMON)|
-	 mfb(MF_ELECTRONIC)),
+	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_BASHES)|mfb(MF_ATTACKMON)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  7, 19,  5, 70,  0,  0,  0,  0,  0,  0, 14, 80, 80, 8,
 	&mdeath::explode,	&mattack::smg, "\
@@ -920,8 +919,7 @@ heavily armored."
 );
 
 mon("copbot",	species_robot, 'R',	c_dkgray,	MS_MEDIUM,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_BASHES)|mfb(MF_ATTACKMON)|
-	 mfb(MF_ELECTRONIC)),
+	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_BASHES)|mfb(MF_ATTACKMON)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  0, 12,  3,100,  4,  3,  2,  0,  8,  0,  8, 80, 80, 3,
 	&mdeath::normal,	&mattack::copbot, "\
@@ -931,7 +929,7 @@ readied, and appears to be well-armored."
 );
 
 mon("molebot",	species_robot, 'R',	c_brown,	MS_MEDIUM,	STEEL,
-	(mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_DIGS)|mfb(MF_ELECTRONIC)),
+	(mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_DIGS)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  2, 17,  5, 40, 13,  1,  4, 10,  0,  0, 14, 82, 80, 0,
 	&mdeath::normal,	&mattack::none,	"\
@@ -942,8 +940,7 @@ covered head."
 );
 
 mon("tripod robot",species_robot, 'R',	c_white,	MS_LARGE,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_BASHES)|
-	 mfb(MF_ELECTRONIC)),
+	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_BASHES)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  5, 26,  5, 90, 15,  2,  4,  7,  0,  4,  8, 82, 80, 10,
 	&mdeath::normal,	&mattack::flamethrower, "\
@@ -953,7 +950,7 @@ well as a flamethrower mounted on its head."
 );
 
 mon("chicken walker",species_robot, 'R',c_red,		MS_LARGE,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_BASHES)|mfb(MF_ELECTRONIC)),
+	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_BASHES)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  3, 32,  5,115, 0,  0,  0,  0,  0,   8, 14, 85, 90, 5,
 	&mdeath::explode,	&mattack::smg, "\
@@ -965,7 +962,7 @@ nasty-looking machine gun."
 
 mon("tankbot",	species_robot, 'R',	c_blue,		MS_HUGE,	STEEL,
 	(mfb(MF_SEES)|mfb(MF_HEARS)|mfb(MF_GOODHEARING)|mfb(MF_NOHEAD)|
-	 mfb(MF_BASHES)|mfb(MF_DESTROYS)|mfb(MF_ATTACKMON)|mfb(MF_ELECTRONIC)),
+	 mfb(MF_BASHES)|mfb(MF_DESTROYS)|mfb(MF_ATTACKMON)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  1, 52,  5,100, 0,  0,  0,  0,  0,  12, 20, 92,240, 4,
 	&mdeath::normal,	&mattack::multi_robot, "\
@@ -976,8 +973,7 @@ deadly weapons."
 );
 
 mon("turret",	species_robot, 't',	c_ltgray,	MS_SMALL,	STEEL,
-	(mfb(MF_SEES)|mfb(MF_NOHEAD)|mfb(MF_ELECTRONIC)|mfb(MF_IMMOBILE)|
-	 mfb(MF_FRIENDLY_SPECIAL)),
+	(mfb(MF_SEES)|mfb(MF_NOHEAD)|mfb(MF_IMMOBILE)|mfb(MF_FRIENDLY_SPECIAL)),
 //	frq dif agr spd msk mdi m## cut dge bsh cut itm  HP special freq
 	  0, 14,  5,100,  0,  0,  0,  0,  0,  4, 16, 88, 30, 1,
 	&mdeath::explode,	&mattack::smg, "\

@@ -802,6 +802,8 @@ int set_description(WINDOW* w, player *u, int &points)
 
  mvwprintz(w, 6, 2, c_ltgray, "\
 Name: ______________________________     (Press TAB to move off this line)");
+ mvwprintz(w, 7, 2, c_ltgray, "\
+                                         (Press $ to randomize name)");
  mvwprintz(w, 8, 2, c_ltgray, "\
 Gender: Male Female                      (Press spacebar to toggle)");
  mvwprintz(w,10, 2, c_ltgray, "\
@@ -862,6 +864,10 @@ Points left: %d    You must use the rest of your points!", points);
    } else
     save_template(u);
    mvwprintz(w,12, 2, c_ltgray,"To go back and review your character, press <");
+   wrefresh(w);
+  } else if (ch == '$') {
+   mvwprintz(w, 6, 8, c_ltgray, "______________________________");
+   u->pick_name();
    wrefresh(w);
   } else {
    switch (line) {

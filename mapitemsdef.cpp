@@ -181,7 +181,7 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_sports],
-	itm_bandages, itm_aspirin, itm_bat, itm_sneakers, itm_tshirt,
+	itm_bandages, itm_aspirin, itm_bat, itm_metalbat, itm_sneakers, itm_tshirt,
 	itm_tank_top, itm_gloves_fingerless, itm_glasses_safety,
 	itm_goggles_swim, itm_goggles_ski, itm_hat_ball, itm_helmet_bike,
 	itm_helmet_ball, itm_manual_brawl, NULL);
@@ -198,7 +198,7 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_allsporting],
-	itm_aspirin, itm_bat, itm_sneakers, itm_tshirt, itm_tank_top,
+	itm_aspirin, itm_bat, itm_metalbat, itm_sneakers, itm_tshirt, itm_tank_top,
 	itm_gloves_fingerless, itm_glasses_safety, itm_goggles_swim,
 	itm_goggles_ski, itm_hat_ball, itm_helmet_bike, itm_helmet_ball,
 	itm_manual_brawl, itm_rope_30, itm_hatchet, itm_pot, itm_pan,
@@ -522,8 +522,8 @@ void game::init_mapitems()
  setvector(
    mapitems[mi_weapons],
 	itm_chain, itm_hammer, itm_wrench, itm_hammer_sledge, itm_hatchet,
-	itm_ax, itm_knife_combat, itm_pipe, itm_bat, itm_machete, itm_katana,
-	itm_baton, itm_tazer, itm_rapier, NULL);
+	itm_ax, itm_knife_combat, itm_pipe, itm_bat, itm_metalbat, itm_machete,
+	itm_katana, itm_baton, itm_tazer, itm_rapier, NULL);
 
  setvector(
    mapitems[mi_survival_armor],
@@ -716,12 +716,12 @@ void game::init_mapitems()
 	itm_energy_drink, itm_whiskey, itm_jerky, itm_bandages, itm_caffeine,
 	itm_oxycodone, itm_adderall, itm_cig, itm_weed, itm_coke, itm_meth,
 	itm_heroin, itm_syringe, itm_electrohack, itm_hatchet, itm_nailboard,
-	itm_knife_combat, itm_bat, itm_machete, itm_katana, itm_pants_cargo,
-	itm_hoodie, itm_gloves_fingerless, itm_backpack, itm_holster,
-	itm_shot_00, itm_9mm, itm_45_acp, itm_glock_19, itm_shotgun_sawn,
-	itm_uzi, itm_tec9, itm_mac_10, itm_silencer, itm_clip2, itm_autofire,
-	itm_mag_porn, itm_lighter, itm_crowbar, itm_pipebomb, itm_grenade,
-	itm_mininuke, NULL);
+	itm_knife_combat, itm_bat, itm_nailbat, itm_metalbat, itm_machete,
+	itm_katana, itm_pants_cargo, itm_hoodie, itm_gloves_fingerless,
+	itm_backpack, itm_holster, itm_shot_00, itm_9mm, itm_45_acp,
+	itm_glock_19, itm_shotgun_sawn, itm_uzi, itm_tec9, itm_mac_10,
+	itm_silencer, itm_clip2, itm_autofire, itm_mag_porn, itm_lighter,
+	itm_crowbar, itm_pipebomb, itm_grenade, itm_mininuke, NULL);
 
  setvector(
    mapitems[mi_wreckage],

@@ -17,8 +17,9 @@
  *
  * STATE QUERIES
  * bool is_armed() - True if we are armed with any weapon.
- * bool unarmed_attack() - True if we are NOT armed with any weapon, but still
- *  true if we're wielding a bionic weapon (at this point, just itm_bio_claws).
+ * bool unarmed_attack() - True if we are NOT armed with any weapon,
+ *  but still true if we're wielding a bionic weapon
+ *  (at this point, itm_toolset & itm_bio_claws).
  *
  * HIT DETERMINATION
  * int base_to_hit() - The base number of sides we get in hit_roll().
@@ -35,7 +36,8 @@ bool player::is_armed()
 
 bool player::unarmed_attack()
 {
- return (weapon.type->id == 0 || weapon.type->id == itm_bio_claws);
+ return (weapon.type->id == 0 ||
+         weapon.type->id == ( itm_toolset || itm_bio_claws ) );
 }
 
 
@@ -282,7 +284,15 @@ int player::hit_mon(game *g, monster *z)
    dam += rng(1, 4) * sklevel[sk_unarmed];
    z->moves -= dam;	// Stunning blow
 
-   if (weapon.type->id == itm_bio_claws) {
+   if (weapon.type->id == itm_toolset) {
+    headshot &= z->hp < dam && one_in(2);
+    if (headshot && can_see)
+     g->add_msg("Swarm of %ss tools turn the %s's head in totally mess!",
+				Your.c_str(), z->name().c_str());
+    else if (can_see)
+     g->add_msg("%s bur%s %s swarm of tools into the %s!", You.c_str(),
+				(is_u?"y":"ies"), your.c_str(), z->name().c_str());
+   } else if (weapon.type->id == itm_bio_claws) {
     if (sklevel[sk_cutting] >= 3)
      dam += 5;
     headshot &= z->hp < dam && one_in(2);

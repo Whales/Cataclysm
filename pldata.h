@@ -800,9 +800,9 @@ You have grown a thick shell over your torso, providing excellent armor.  You\n\
 find you can use the empty space as 16 storage space, but cannot wear\n\
 anything on your torso."},
 {"Leg Tentacles", -3, 8, 4, "\
-Your legs have transformed into six tentacles.  This decreases your speed on\n\
-land by 20%, but makes your movement silent.  However, they also increase\n\
-your swimming speed."}
+Your legs have transformed into six tentacles.  This makes your movement\n\
+silent, but feet encumbrance cannot be lower than 4 now.  However, they also\n\
+increase your swimming speed."}
 };
 
 enum hp_part {

@@ -583,9 +583,9 @@ bool game::do_turn()
  if (turn % 50 == 0) {	// Hunger, thirst, & fatigue up every 5 minutes
   if ((!u.has_trait(PF_LIGHTEATER) || !one_in(3)) &&
       (!u.has_bionic(bio_recycler) || turn % 300 == 0))
-   u.hunger++;
+   u.has_trait(PF_HUNGER) && one_in(2) ? u.hunger += 2 : u.hunger++;
   if (!u.has_bionic(bio_recycler) || turn % 100 == 0)
-   u.thirst++;
+   u.has_trait(PF_THIRST) && one_in(2) ? u.thirst += 2 : u.thirst++;
   u.fatigue++;
   if (u.fatigue == 192 && !u.has_disease(DI_LYING_DOWN) &&
       !u.has_disease(DI_SLEEP)) {
@@ -1633,10 +1633,10 @@ void game::debug()
 
   case 7:
    popup_top("\
-Location %d:%d in %d:%d, %s\n\
+Location %d:%d in %d:%d:%d, %s\n\
 Current turn: %d; Next spawn %d.\n\
 %d monsters exist.\n\
-%d events planned.", u.posx, u.posy, levx, levy,
+%d events planned.", u.posx, u.posy, levx, levy, levz,
 oterlist[cur_om.ter(levx / 2, levy / 2)].name.c_str(),
 int(turn), int(nextspawn), z.size(), events.size());
    if (!active_npc.empty())
@@ -1992,7 +1992,8 @@ void game::draw()
  // Draw map
  werase(w_terrain);
  draw_ter();
- draw_footsteps();
+ if (!u.has_disease(DI_DEAF))
+   draw_footsteps();
  mon_info();
  // Draw Status
  draw_HP();
@@ -3198,7 +3199,7 @@ void game::emp_blast(int x, int y)
  }
  int mondex = mon_at(x, y);
  if (mondex != -1) {
-  if (z[mondex].has_flag(MF_ELECTRONIC)) {
+  if (z[mondex].type->species == species_robot ) {
    add_msg("The EMP blast fries the %s!", z[mondex].name().c_str());
    int dam = dice(10, 10);
    if (z[mondex].hurt(dam))
@@ -3863,6 +3864,9 @@ void game::pickup(int posx, int posy, int min)
  write_msg();
  if (u.weapon.type->id == itm_bio_claws) {
   add_msg("You cannot pick up items with your claws out!");
+  return;
+ } else if (u.weapon.type->id == itm_toolset) {
+  add_msg("Your integrated tools prevent you from picking up items!");
   return;
  }
  bool weight_is_okay = (u.weight_carried() <= u.weight_capacity() * .25);
@@ -5053,8 +5057,8 @@ void game::plmove(int x, int y)
    int side = rng(0, 1);
    add_msg("You hit %s's %s.", active_npc[npcdex].name.c_str(),
            body_part_name(bphit, side).c_str());
-   if (u.has_bionic(bio_shock) && u.power_level >= 2 && one_in(3) &&
-       (!u.is_armed() || u.weapon.type->id > num_items)) {
+   if (u.has_bionic(bio_shock) && u.power_level >= 2 &&
+       u.unarmed_attack() && one_in(3)) {
     add_msg("You shock %s!", active_npc[npcdex].name.c_str());
     int shock = rng(2, 5);
     hitdam += shock;

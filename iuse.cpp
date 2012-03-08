@@ -425,6 +425,7 @@ void iuse::meth(game *g, player *p, item *it, bool t)
  if (p->has_charges(itm_lighter, 1)) {
   if (!p->is_npc())
    g->add_msg("You smoke some crystals.");
+  p->use_charges(itm_lighter, 1);
   duration *= 1.5;
  } else if (!p->is_npc())
   g->add_msg("You snort some crystals.");

@@ -19,6 +19,9 @@ class game;
 class trap;
 class mission;
 
+std::string random_first_name(bool male);
+std::string random_last_name();
+
 struct special_attack
 {
  std::string text;
@@ -41,6 +44,7 @@ public:
  int  random_good_trait();
  int  random_bad_trait ();
  void normalize(game *g);	// Starting set up of HP and inventory
+ void pick_name(); // Picks a name from NAMES_*
 // </newcharacter.cpp>
 
  virtual bool is_npc() { return false; }	// Overloaded for NPCs in npc.h

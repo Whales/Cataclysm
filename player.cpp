@@ -8,6 +8,7 @@
 #include "moraledata.h"
 #include "inventory.h"
 #include "artifact.h"
+#include <fstream>
 #include <sstream>
 #include <stdlib.h>
 
@@ -128,7 +129,54 @@ void player::normalize(game *g)
   hp_cur[i] = hp_max[i];
  }
 }
- 
+
+void player::pick_name()
+{
+ std::stringstream ss;
+ ss << random_first_name(male) << " " << random_last_name();
+ name = ss.str();
+}
+
+std::string random_first_name(bool male)
+{
+ std::ifstream fin;
+ std::string name;
+ char buff[256];
+ if (male)
+  fin.open("data/NAMES_MALE");
+ else
+  fin.open("data/NAMES_FEMALE");
+ if (!fin.is_open()) {
+  debugmsg("Could not open npc first names list (%s)",
+           (male ? "NAMES_MALE" : "NAMES_FEMALE"));
+  return "";
+ }
+ int line = rng(1, 100);	// TODO: Don't assume 100 first names.
+ for (int i = 0; i < line; i++)
+  fin.getline(buff, 256);
+ name = buff;
+ fin.close();
+ return name;
+}
+
+std::string random_last_name()
+{
+ std::string lastname;
+ std::ifstream fin;
+ fin.open("data/NAMES_LAST");
+ if (!fin.is_open()) {
+  debugmsg("Could not open npc last names list (NAMES_LAST)");
+  return "";
+ }
+ int line = rng(1, 100);	// TODO: Shouldn't 100 last names.
+ char buff[256];
+ for (int i = 0; i < line; i++)
+  fin.getline(buff, 256);
+ lastname = buff;
+ fin.close();
+ return lastname;
+}
+
 void player::reset(game *g)
 {
 // Reset our stats to normal levels
@@ -347,8 +395,6 @@ int player::run_cost(int base_cost)
   movecost = int(movecost * .8);
  if (has_trait(PF_WINGS_INSECT))
   movecost -= 15;
- if (has_trait(PF_LEG_TENTACLES))
-  movecost += 20;
  if (has_trait(PF_PONDEROUS1))
   movecost = int(movecost * 1.1);
  if (has_trait(PF_PONDEROUS2))
@@ -1495,12 +1541,23 @@ void player::power_bionics(game *g)
  werase(wBio);
  std::vector <bionic> passive;
  std::vector <bionic> active;
- mvwprintz(wBio, 0, 0, c_blue, "BIONICS -");
+ mvwprintz(wBio, 0, 0, c_blue, "BIONICS");
+ mvwputch(wBio,  0, 8, c_ltgray, LINE_XOXO);
  mvwprintz(wBio, 0,10, c_white,
            "Activating.  Press '!' to examine your implants.");
-
- for (int i = 0; i < 80; i++) {
+ mvwputch(wBio,  0,59, c_ltgray, LINE_XOXO);
+ mvwprintz(wBio, 0,61, c_yellow, "Power level: %d", power_level);
+ for (int i = 0; i < 59; i++) {
   mvwputch(wBio,  1, i, c_ltgray, LINE_OXOX);
+ }
+ mvwputch(wBio,  1, 8, c_ltgray, LINE_XXOX);
+ mvwputch(wBio,  1,59, c_ltgray, LINE_XOXX);
+ mvwprintz(wBio, 1,63, c_yellow, "Max power: %d", max_power_level);
+ mvwputch(wBio,  2,59, c_ltgray, LINE_XXOO);
+ for (int i = 60; i < 80; i++) {
+  mvwputch(wBio, 2, i, c_ltgray, LINE_OXOX);
+ }
+ for (int i = 0; i < 80; i++) {
   mvwputch(wBio, 21, i, c_ltgray, LINE_OXOX);
  }
  for (int i = 0; i < my_bionics.size(); i++) {
@@ -1530,8 +1587,15 @@ void player::power_bionics(game *g)
    else
     type = c_ltred;
    mvwputch(wBio, 3 + i, 32, type, active[i].invlet);
-   mvwprintz(wBio, 3 + i, 34, type,
-             (active[i].powered ? "%s - ON" : "%s - %d PU / %d trns"),
+   if (active[i].powered)
+    mvwprintz(wBio, 3 + i, 34, type, "%s - ON",
+				bionics[active[i].id].name.c_str());
+   else if (bionics[active[i].id].charge_time == 0)
+    mvwprintz(wBio, 3 + i, 34, type, "%s - %d PU",
+             bionics[active[i].id].name.c_str(),
+             bionics[active[i].id].power_cost);
+   else
+	mvwprintz(wBio, 3 + i, 34, type, "%s - %d PU / %d trns",
              bionics[active[i].id].name.c_str(),
              bionics[active[i].id].power_cost,
              bionics[active[i].id].charge_time);
@@ -1569,8 +1633,9 @@ void player::power_bionics(game *g)
       if (tmp->powered) {
        tmp->powered = false;
        g->add_msg("%s powered off.", bionics[tmp->id].name.c_str());
-      } else if (power_level >= bionics[tmp->id].power_cost ||
-                 (weapon.type->id == itm_bio_claws && tmp->id == bio_claws))
+      } else if ( power_level >= bionics[tmp->id].power_cost ||
+                 ( weapon.type->id == itm_toolset && tmp->id == bio_tools ) ||
+                 ( weapon.type->id == itm_bio_claws && tmp->id == bio_claws) )
        activate_bionic(b, g);
      } else
       mvwprintz(wBio, 22, 0, c_ltred, "\
@@ -1580,10 +1645,11 @@ You can not activate %s!  To read a description of \
     } else {	// Describing bionics, not activating them!
 // Clear the lines first
      ch = 0;
-     mvwprintz(wBio, 22, 0, c_ltgray, "\
-                                                                               \
-                                                                               \
-                                                                             ");
+	 for (int i = 0; i < 80; i++) {
+	  mvwputch(wBio, 22, i, c_ltgray, ' ');
+	  mvwputch(wBio, 23, i, c_ltgray, ' ');
+	  mvwputch(wBio, 24, i, c_ltgray, ' ');
+	 }
      mvwprintz(wBio, 22, 0, c_ltblue,
                bionics[tmp->id].description.c_str());
     }
@@ -1610,18 +1676,22 @@ int player::sight_range(int light_level)
   ret += 4;
  if (has_trait(PF_NIGHTVISION3) && ret < 12)
   ret = 12;
+ if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_eye) &&
+     !is_wearing(itm_glasses_monocle))
+  ret = 4;
+ if (ret > 1 &&
+     (is_wearing(itm_goggles_ski) || is_wearing(itm_goggles_welding)))
+  ret -= 1;	// not a big deal at sunny day, but real penalty in the darkness
  if (underwater && !has_bionic(bio_membrane) && !has_trait(PF_MEMBRANE) &&
      !is_wearing(itm_goggles_swim))
   ret = 1;
  if (has_disease(DI_BOOMERED))
-  ret = 1;
- if (has_disease(DI_IN_PIT))
-  ret = 1;
+  ret = (ret > 1) ? 1 : 0 ;
+ if (ret > 1 && has_disease(DI_IN_PIT))
+  ret = (ret > 1) ? 1 : 0 ;
  if (has_disease(DI_BLIND))
   ret = 0;
- if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_eye) &&
-     !is_wearing(itm_glasses_monocle))
-  ret = 4;
+
  return ret;
 }
 
@@ -2383,7 +2453,8 @@ void player::suffer(game *g)
    g->sound(posx, posy, 20 + 4 * str_cur, "You let out a piercing howl!");
  }	// Done with while-awake-only effects
 
- if (has_trait(PF_ASTHMA) && one_in(3600 - stim * 50)) {
+ if (has_trait(PF_ASTHMA) && one_in(3600 - stim * 50) && 
+     (!has_bionic(bio_purifier) || !one_in(5)) ) {
   bool auto_use = has_charges(itm_inhaler, 1);
   if (underwater) {
    oxygen = int(oxygen / 2);
@@ -2978,10 +3049,15 @@ void player::use_amount(itype_id it, int quantity, bool use_container)
 void player::use_charges(itype_id it, int quantity)
 {
  if (it == itm_toolset) {
-  power_level -= quantity;
-  if (power_level < 0)
-   power_level = 0;
+  charge_power(0 - quantity);
   return;
+
+// Improvised lighters, TODO: announces? chance to accidentally burn yourself?
+ } else if ( it == itm_lighter && charges_of(itm_lighter) < quantity ) {
+  if (has_bionic(bio_lighter) && power_level > 0 ) {
+   charge_power(0 - rng(0, 3)); // there is only 1 charge lighter action yet, still overkill?
+   return;
+  }
  }
 // Start by checking weapon contents
  for (int i = 0; i < weapon.contents.size(); i++) {
@@ -3023,7 +3099,9 @@ void player::use_charges(itype_id it, int quantity)
 
 int player::butcher_factor()
 {
- int lowest_factor = 999;
+ // butcher factor for inactive integrated toolset (based on weapon stats)
+ int lowest_factor = has_bionic(bio_tools) ? -19 : 999;
+
  for (int i = 0; i < inv.size(); i++) {
   for (int j = 0; j < inv.stack_at(i).size(); j++) {
    item *cur_item = &(inv.stack_at(i)[j]);
@@ -3119,7 +3197,9 @@ bool player::has_amount(itype_id it, int quantity)
 {
  if (it == itm_toolset)
   return has_bionic(bio_tools);
- return (amount_of(it) >= quantity);
+ if (it == itm_lighter) // Improvised lighters
+  return has_bionic(bio_lighter) && power_level > 0;
+ return (amount_of(it) >= quantity); 
 }
 
 int player::amount_of(itype_id it)
@@ -3139,7 +3219,13 @@ int player::amount_of(itype_id it)
 
 bool player::has_charges(itype_id it, int quantity)
 {
- return (charges_of(it) >= quantity);
+ if (charges_of(it) >= quantity)
+  return true;
+ else {
+  if (it == itm_lighter) // Improvised lighters
+   return has_bionic(bio_lighter) && power_level > 0;
+  return false;
+ }
 }
 
 int player::charges_of(itype_id it)
@@ -3454,8 +3540,9 @@ bool player::eat(game *g, int index)
 
 bool player::wield(game *g, int index)
 {
- if (weapon.type->id == itm_bio_claws) {
-  g->add_msg("You cannot unwield your claws!  Withdraw them with 'p'.");
+ if (weapon.type->id == ( itm_toolset || itm_bio_claws) ) {
+  g->add_msg("You cannot unwield your %ss!  Withdraw them with 'p'.",
+				weapon.type->id == itm_toolset ? "tool" : "claw");
   return false;
  }
  if (index == -3) {
@@ -3989,6 +4076,8 @@ int player::encumb(body_part bp)
      (has_trait(PF_ARM_TENTACLES) || has_trait(PF_ARM_TENTACLES_4) ||
       has_trait(PF_ARM_TENTACLES_8)))
   ret += 3;
+ if (bp == bp_feet && ret < 4 && has_trait(PF_LEG_TENTACLES))
+  ret = 4;
  return ret;
 }
 
@@ -4192,6 +4281,7 @@ int player::resist(body_part bp)
  }
  if (bp == bp_mouth && has_bionic(bio_purifier) && ret < 5) {
   ret += 2;
+  power_level--;
   if (ret == 6)
    ret = 5;
  }

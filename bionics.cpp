@@ -20,7 +20,8 @@ void player::activate_bionic(int b, game *g)
 {
  bionic bio = my_bionics[b];
  int power_cost = bionics[bio.id].power_cost;
- if (weapon.type->id == itm_bio_claws && bio.id == bio_claws)
+ if ( ( weapon.type->id == itm_toolset && bio.id == bio_tools ) ||
+	  ( weapon.type->id == itm_bio_claws && bio.id == bio_claws ) )
   power_cost = 0;
  if (power_level < power_cost) {
   if (my_bionics[b].powered) {
@@ -212,18 +213,37 @@ void player::activate_bionic(int b, game *g)
    g->add_msg("You can't light a fire there.");
   break;
 
+ case bio_tools:
+  if (weapon.type->id == itm_toolset) {
+   g->add_msg("You withdraw your integrated tools.");
+   weapon = ret_null;
+  } else {
+   if (weapon.type->id == itm_bio_claws)
+	g->add_msg("Your integrated tools extend, forcing you to withdraw claws.");
+   else if (weapon.type->id != 0) {
+	g->add_msg("Your integrated tools extend, forcing you to drop your %s.",
+				weapon.tname().c_str());
+	g->m.add_item(posx, posy, weapon);
+   } else
+	g->add_msg("Your integrated tools extend!");
+   weapon = item(g->itypes[itm_toolset], 0);
+   weapon.invlet = '#';
+  }
+  break;
+
  case bio_claws:
   if (weapon.type->id == itm_bio_claws) {
    g->add_msg("You withdraw your claws.");
    weapon = ret_null;
-  } else if (weapon.type->id != 0) {
-   g->add_msg("Your claws extend, forcing you to drop your %s.",
-              weapon.tname().c_str());
-   g->m.add_item(posx, posy, weapon);
-   weapon = item(g->itypes[itm_bio_claws], 0);
-   weapon.invlet = '#';
   } else {
-   g->add_msg("Your claws extend!");
+   if (weapon.type->id == itm_toolset)
+	g->add_msg("Your claws extend, forcing you to withdraw integrated tools.");
+   else if (weapon.type->id != 0) {
+	g->add_msg("Your claws extend, forcing you to drop your %s.",
+				weapon.tname().c_str());
+	g->m.add_item(posx, posy, weapon);
+   } else
+	g->add_msg("Your claws extend!");
    weapon = item(g->itypes[itm_bio_claws], 0);
    weapon.invlet = '#';
   }

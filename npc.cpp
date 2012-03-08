@@ -1,4 +1,3 @@
-#include <fstream>
 #include <sstream>
 
 #include "npc.h"
@@ -1014,13 +1013,6 @@ std::vector<item> starting_inv(npc *me, npc_class type, game *g)
  return ret;
 }
 
-void npc::pick_name()
-{
- std::stringstream ss;
- ss << random_first_name(male) << " " << random_last_name();
- name = ss.str();
-}
-
 void npc::spawn_at(overmap *o, int x, int y)
 {
 // First, specify that we are in this overmap!
@@ -1878,44 +1870,4 @@ void npc::die(game *g, bool your_fault)
   g->m.add_item(posx, posy, worn[i]);
  if (weapon.type->id != itm_null)
   g->m.add_item(posx, posy, weapon);
-}
-
-std::string random_first_name(bool male)
-{
- std::ifstream fin;
- std::string name;
- char buff[256];
- if (male)
-  fin.open("data/NAMES_MALE");
- else
-  fin.open("data/NAMES_FEMALE");
- if (!fin.is_open()) {
-  debugmsg("Could not open npc first names list (%s)",
-           (male ? "NAMES_MALE" : "NAMES_FEMALE"));
-  return "";
- }
- int line = rng(1, 100);	// TODO: Don't assume 100 first names.
- for (int i = 0; i < line; i++)
-  fin.getline(buff, 256);
- name = buff;
- fin.close();
- return name;
-}
-
-std::string random_last_name()
-{
- std::string lastname;
- std::ifstream fin;
- fin.open("data/NAMES_LAST");
- if (!fin.is_open()) {
-  debugmsg("Could not open npc last names list (NAMES_LAST)");
-  return "";
- }
- int line = rng(1, 100);	// TODO: Shouldn't 100 last names.
- char buff[256];
- for (int i = 0; i < line; i++)
-  fin.getline(buff, 256);
- lastname = buff;
- fin.close();
- return lastname;
 }

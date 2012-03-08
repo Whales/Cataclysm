@@ -55,8 +55,13 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
                                  
  RECIPE(itm_nailboard, CC_WEAPON, sk_null, sk_null, 0, 1000);
   TOOL(itm_hatchet, -1, itm_hammer, -1, itm_rock, -1, itm_toolset, -1, NULL);
-  COMP(itm_2x4, 1, itm_bat, 1, NULL);
+  COMP(itm_2x4, 1, NULL);
   COMP(itm_nail, 6, NULL);
+
+ RECIPE(itm_nailbat, CC_WEAPON, sk_null, sk_null, 0, 1200);
+  TOOL(itm_hatchet, -1, itm_hammer, -1, itm_rock, -1, itm_toolset, -1, NULL);
+  COMP(itm_bat, 1, NULL);
+  COMP(itm_nail, 10, NULL);
 
  RECIPE(itm_molotov, CC_WEAPON, sk_null, sk_null, 0, 500);
   COMP(itm_rag, 1, NULL);
@@ -82,7 +87,7 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
        NULL);
 
  RECIPE(itm_crossbow, CC_WEAPON, sk_mechanics, sk_archery, 3, 15000);
-  TOOL(itm_wrench, -1, NULL);
+  TOOL(itm_wrench, -1, itm_toolset, -1, NULL);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
   COMP(itm_2x4, 1, itm_stick, 4, NULL);
   COMP(itm_hose, 1, NULL);
@@ -102,7 +107,7 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
  RECIPE(itm_smg_9mm, CC_WEAPON, sk_mechanics, sk_gun, 5, 18000);
   TOOL(itm_hacksaw, -1, itm_toolset, -1, NULL);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, NULL);
+  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
   COMP(itm_pipe, 1, NULL);
   COMP(itm_2x4, 2, NULL);
   COMP(itm_nail, 4, NULL);
@@ -110,7 +115,7 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
  RECIPE(itm_smg_45, CC_WEAPON, sk_mechanics, sk_gun, 5, 20000);
   TOOL(itm_hacksaw, -1, itm_toolset, -1, NULL);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, NULL);
+  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
   COMP(itm_pipe, 1, NULL);
   COMP(itm_2x4, 2, NULL);
   COMP(itm_nail, 4, NULL);
@@ -144,7 +149,7 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
 
  RECIPE(itm_chainsaw_off, CC_WEAPON, sk_mechanics, sk_null, 4, 20000);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_hatchet, -1, NULL);
+  TOOL(itm_hammer, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
   TOOL(itm_wrench, -1, itm_toolset, -1, NULL);
   COMP(itm_motor, 1, NULL);
   COMP(itm_chain, 1, NULL);
@@ -237,13 +242,11 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
 
  RECIPE(itm_oj, CC_FOOD, sk_cooking, sk_null, 1, 5000);
   TOOL(itm_rock, -1, itm_toolset, -1, NULL);
-  COMP(itm_bottle_plastic, 1, NULL);
   COMP(itm_orange, 2, NULL);
   COMP(itm_water, 1, NULL);
 
  RECIPE(itm_apple_cider, CC_FOOD, sk_cooking, sk_null, 2, 7000);
   TOOL(itm_rock, -1, itm_toolset, -1, NULL);
-  COMP(itm_bottle_plastic, 1, NULL);
   COMP(itm_apple, 3, NULL);
  
  RECIPE(itm_jerky, CC_FOOD, sk_cooking, sk_null, 2, 30000);
@@ -252,7 +255,7 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   COMP(itm_meat, 1, NULL);
 
  RECIPE(itm_V8, CC_FOOD, sk_cooking, sk_null, 2, 5000);
-  COMP(itm_can_drink, 1, NULL);
+  TOOL(itm_rock, -1, itm_toolset, -1, NULL);
   COMP(itm_tomato, 1, NULL);
   COMP(itm_broccoli, 1, NULL);
   COMP(itm_zucchini, 1, NULL);
@@ -262,7 +265,6 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   TOOL(itm_pot, -1, NULL);
   COMP(itm_water, 1, NULL);
   COMP(itm_broccoli, 1, itm_zucchini, 1, itm_veggy, 1, NULL);
-  COMP(itm_can_food, 1, NULL);
 
  RECIPE(itm_soup, CC_FOOD, sk_cooking, sk_null, 3, 10000);
   TOOL(itm_hotplate, 5, itm_toolset, 3, itm_fire, -1, NULL);
@@ -270,7 +272,6 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   COMP(itm_broth, 2, NULL);
   COMP(itm_macaroni_raw, 1, itm_potato_raw, 1, NULL);
   COMP(itm_tomato, 2, itm_broccoli, 2, itm_zucchini, 2, itm_veggy, 2, NULL);
-  COMP(itm_can_food, 1, NULL);
 
  RECIPE(itm_bread, CC_FOOD, sk_cooking, sk_null, 3, 20000);
   TOOL(itm_hotplate, 8, itm_toolset, 4, itm_fire, -1, NULL);
@@ -683,8 +684,8 @@ void game::craft()
 
 // Clear the screen of recipe data, and draw it anew
   werase(w_data);
-   mvwprintz(w_data, 20, 0, c_white, "\
-Press ? to describe object.  Press <ENTER> to attempt to craft object.");
+   mvwprintz(w_data, 19, 30, c_white, "Press ? to describe object.");
+   mvwprintz(w_data, 20, 30, c_white, "Press <ENTER> to attempt to craft object.");
   wrefresh(w_data);
   for (int i = 0; i < current.size() && i < 23; i++) {
    if (i == line)
