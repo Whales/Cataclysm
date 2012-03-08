@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <ctype.h>
 
 #define MAX_MONSTERS_MOVING 40 // Efficiency!
 
@@ -2470,13 +2471,13 @@ void game::remove_item(item *it)
  }
 }
 
-bool vector_has(std::vector<int> vec, int test)
+int vector_pos(std::vector<int> vec, int test)
 {
  for (int i = 0; i < vec.size(); i++) {
   if (vec[i] == test)
-   return true;
+   return i;
  }
- return false;
+ return -1;
 }
 
 void game::mon_info()
@@ -2488,6 +2489,9 @@ void game::mon_info()
 // 3 4 5
 // 6 7 8
  std::vector<int> unique_types[10];
+// false = boring (peacefuls)
+// true = not boring (NPCs, hostiles)
+ std::vector<bool> notability[10];
  int direction;
  for (int i = 0; i < z.size(); i++) {
   if (u_see(&(z[i]), buff)) {
@@ -2516,8 +2520,14 @@ void game::mon_info()
      direction = 4;
    }
 
-   if (!vector_has(unique_types[direction], z[i].type->id))
+   int m_pos = vector_pos(unique_types[direction], z[i].type->id);
+   if (m_pos == -1) {
     unique_types[direction].push_back(z[i].type->id);
+    notability[direction].push_back(!z[i].is_fleeing(u) && z[i].friendly == 0);
+   } else {
+    if (!z[i].is_fleeing(u) && z[i].friendly == 0)
+     notability[direction][m_pos] = true;
+   }
   }
  }
  for (int i = 0; i < active_npc.size(); i++) {
@@ -2547,6 +2557,7 @@ void game::mon_info()
      direction = 4;
    }
    unique_types[direction].push_back(-1 - i);
+   notability[direction].push_back(true);
   }
  }
 
@@ -2592,8 +2603,12 @@ void game::mon_info()
     mvwputch (w_moninfo, line, 0, tmpcol, '@');
     mvwprintw(w_moninfo, line, 2, active_npc[(buff + 1) * -1].name.c_str());
    } else {
+    switch (notability[i][j]) {
+     case false: tmpcol = c_dkgray; break;
+     case true:  tmpcol = c_ltgray; break;
+    }
     mvwputch (w_moninfo, line, 0, mtypes[buff]->color, mtypes[buff]->sym);
-    mvwprintw(w_moninfo, line, 2, mtypes[buff]->name.c_str());
+    mvwprintz(w_moninfo, line, 2, tmpcol, mtypes[buff]->name.c_str());
    }
    line++;
   }
@@ -3425,7 +3440,7 @@ void game::smash()
  wrefresh(w_terrain);
  char ch = input();
  last_action += ch;
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -3466,7 +3481,7 @@ void game::smash()
 void game::use_item()
 {
  char ch = inv("Use item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -3491,7 +3506,7 @@ void game::examine()
  int examx, examy;
  char ch = input();
  last_action += ch;
- if (ch == KEY_ESCAPE || ch == 'e' || ch == 'q')
+ if (ch == KEY_ESCAPE || ch == 'e' || ch == 'q' || ch == ' ' || ch == '\n')
   return;
  get_direction(examx, examy, ch);
  if (examx == -2 || examy == -2) {
@@ -3774,10 +3789,11 @@ point game::look_around()
   if (!u_see(lx, ly, junk))
    mvwputch(w_terrain, ly - u.posy + SEEY, lx - u.posx + SEEX, c_black, ' ');
   draw_ter();
-  get_direction(mx, my, ch);
+  bool shift;
+  get_direction(mx, my, ch, &shift);
   if (mx != -2 && my != -2) {	// Directional key pressed
-   lx += mx;
-   ly += my;
+   lx += mx * (shift ? 5 : 1);
+   ly += my * (shift ? 5 : 1);
    if (lx < u.posx - SEEX)
     lx = u.posx - SEEX;
    if (lx > u.posx + SEEX)
@@ -4003,6 +4019,7 @@ void game::pickup(int posx, int posy, int min)
  int start = 0, cur_it, iter;
  int new_weight = u.weight_carried(), new_volume = u.volume_carried();
  bool update = true;
+ int last_sel_hilite = -1;
  mvwprintw(w_pickup, 0,  0, "PICK UP");
 // Now print the two lists; those on the ground and about to be added to inv
 // Continue until we hit return or space
@@ -4019,24 +4036,27 @@ void game::pickup(int posx, int posy, int min)
    start += maxitems;
    mvwprintw(w_pickup, maxitems + 2, 12, "            ");
   }
-  if (ch >= 'a' && ch <= 'a' + here.size() - 1) {
+// Uppercase? Show item info, but don't toggle pickup.
+  if (tolower(ch) >= 'a' && tolower(ch) <= 'a' + here.size() - 1) {
+   bool toggle = islower(ch);
+   if (!toggle)
+    ch = tolower(ch);
    ch -= 'a';
-   getitem[ch] = !getitem[ch];
+   last_sel_hilite = ch;
+   if (toggle)
+    getitem[ch] = !getitem[ch];
+   start = (ch / maxitems) * maxitems;
    wclear(w_item_info);
-   if (getitem[ch]) {
+   if (!toggle || getitem[ch])
     mvwprintw(w_item_info, 1, 0, here[ch].info().c_str());
-    wborder(w_item_info, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-                         LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-    wrefresh(w_item_info);
-    new_weight += here[ch].weight();
-    new_volume += here[ch].volume();
-    update = true;
-   } else {
-    wborder(w_item_info, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-                         LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-    wrefresh(w_item_info);
-    new_weight -= here[ch].weight();
-    new_volume -= here[ch].volume();
+   else
+    last_sel_hilite = -1;
+   wborder(w_item_info, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
+                        LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
+   wrefresh(w_item_info);
+   if (toggle) {
+    new_weight = new_weight + here[ch].weight() * (getitem[ch] ? 1 : -1);
+    new_volume = new_volume + here[ch].volume() * (getitem[ch] ? 1 : -1);
     update = true;
    }
   }
@@ -4058,20 +4078,24 @@ void game::pickup(int posx, int posy, int min)
     new_volume = u.volume_carried();
    }
    update = true;
+   last_sel_hilite = -1;
   }
   for (cur_it = start; cur_it < start + maxitems; cur_it++) {
    mvwprintw(w_pickup, 1 + (cur_it % maxitems), 0,
              "                                        ");
    if (cur_it < here.size()) {
-    mvwputch(w_pickup, 1 + (cur_it % maxitems), 0, here[cur_it].color(&u),
+    nc_color item_color = here[cur_it].color(&u);
+    mvwputch(w_pickup, 1 + (cur_it % maxitems), 0, item_color,
              char(cur_it + 'a'));
     if (getitem[cur_it])
      wprintw(w_pickup, " + ");
     else
      wprintw(w_pickup, " - ");
-    wprintz(w_pickup, here[cur_it].color(&u), here[cur_it].tname(this).c_str());
+    if (cur_it == last_sel_hilite)
+     item_color = hilite(item_color);
+    wprintz(w_pickup, item_color, here[cur_it].tname(this).c_str());
     if (here[cur_it].charges > 0)
-     wprintz(w_pickup, here[cur_it].color(&u), " (%d)", here[cur_it].charges);
+     wprintz(w_pickup, item_color, " (%d)", here[cur_it].charges);
    }
   }
   if (start > 0)
@@ -4104,6 +4128,8 @@ void game::pickup(int posx, int posy, int min)
 // At this point we've selected our items, now we add them to our inventory
  int curmit = 0;
  bool got_water = false;	// Did we try to pick up water?
+ int pickup_num = 0;	// To display a suitable message afterwards.
+ int pickup_index = -1;	// Print item if a single item is picked up.
  for (int i = 0; i < here.size(); i++) {
   iter = 0;
 // This while loop guarantees the inventory letter won't be a repeat. If it
@@ -4133,6 +4159,8 @@ void game::pickup(int posx, int posy, int min)
      if (u.weapon.type->id < num_items && // Not a bionic
          query_yn("Drop your %s and pick up %s?",
                   u.weapon.tname(this).c_str(), here[i].tname(this).c_str())) {
+      pickup_num++;
+      pickup_index = i;
       m.add_item(posx, posy, u.remove_weapon());
       u.i_add(here[i]);
       u.wield(this, u.inv.size() - 1);
@@ -4157,6 +4185,8 @@ void game::pickup(int posx, int posy, int min)
      } else
       nextinv--;
     } else {
+     pickup_num++;
+     pickup_index = i;
      u.i_add(here[i]);
      u.wield(this, u.inv.size() - 1);
      m.i_rem(posx, posy, curmit);
@@ -4181,6 +4211,8 @@ void game::pickup(int posx, int posy, int min)
    } else if (!u.is_armed() &&
             (u.volume_carried() + here[i].volume() > u.volume_capacity() - 2 ||
               here[i].is_weap())) {
+    pickup_num++;
+    pickup_index = i;
     u.weapon = here[i];
     m.i_rem(posx, posy, curmit);
     u.moves -= 100;
@@ -4204,6 +4236,8 @@ void game::pickup(int posx, int posy, int min)
       tutorial_message(LESSON_GOT_FOOD);
     }
    } else {
+    pickup_num++;
+    pickup_index = i;
     u.i_add(here[i]);
     m.i_rem(posx, posy, curmit);
     u.moves -= 100;
@@ -4226,6 +4260,12 @@ void game::pickup(int posx, int posy, int min)
    }
   }
   curmit++;
+ }
+ if (pickup_num == 1) {
+  item *single = &here[pickup_index];
+  add_msg("%c - %s", single->invlet, single->tname(this).c_str());
+ } else if (pickup_num > 1) {
+  add_msg("You pick up several items.");
  }
  if (got_water)
   add_msg("You can't pick up a liquid!");
@@ -4421,7 +4461,7 @@ void game::drop_in_direction()
 void game::reassign_item()
 {
  char ch = inv("Reassign item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -4739,7 +4779,7 @@ void game::eat()
   return;
  }
  char ch = inv("Consume item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }
@@ -4762,7 +4802,7 @@ void game::eat()
 void game::wear()
 {
  char ch = inv("Wear item:");
- if (ch == KEY_ESCAPE) {
+ if (ch == KEY_ESCAPE || ch == ' ' || ch == '\n') {
   add_msg("Never mind.");
   return;
  }

@@ -9,27 +9,15 @@ std::string CATEGORIES[8] =
   "TOOLS:", "BOOKS:", "WEAPONS:", "OTHER:"};
 
 void print_inv_statics(game *g, WINDOW* w_inv, std::string title,
-                       std::vector<char> dropped_items)
+                       std::vector<char> dropped_items,
+                       int inv_drop_weight = 0, int inv_drop_volume = 0)
 {
+ int weight_carried = g->u.weight_carried() - inv_drop_weight;
+ int volume_carried = g->u.volume_carried() - inv_drop_volume;
+ int volume_capacity = g->u.volume_capacity() - 2;
+
 // Print our header
  mvwprintw(w_inv, 0, 0, title.c_str());
-
-// Print weight
- mvwprintw(w_inv, 0, 40, "Weight: ");
- if (g->u.weight_carried() >= g->u.weight_capacity() * .25)
-  wprintz(w_inv, c_red, "%d", g->u.weight_carried());
- else
-  wprintz(w_inv, c_ltgray, "%d", g->u.weight_carried());
- wprintz(w_inv, c_ltgray, "/%d/%d", int(g->u.weight_capacity() * .25),
-                                    g->u.weight_capacity());
-
-// Print volume
- mvwprintw(w_inv, 0, 60, "Volume: ");
- if (g->u.volume_carried() > g->u.volume_capacity() - 2)
-  wprintz(w_inv, c_red, "%d", g->u.volume_carried());
- else
-  wprintz(w_inv, c_ltgray, "%d", g->u.volume_carried());
- wprintw(w_inv, "/%d", g->u.volume_capacity() - 2);
 
 // Print our weapon
  mvwprintz(w_inv, 2, 40, c_magenta, "WEAPON:");
@@ -39,14 +27,16 @@ void print_inv_statics(game *g, WINDOW* w_inv, std::string title,
    dropping_weapon = true;
  }
  if (g->u.is_armed()) {
-  if (dropping_weapon)
+  if (dropping_weapon) {
+   weight_carried -= g->u.weapon.weight();
    mvwprintz(w_inv, 3, 40, c_white, "%c + %s", g->u.weapon.invlet,
              g->u.weapname().c_str());
-  else
+  } else
    mvwprintz(w_inv, 3, 40, c_ltgray, "%c - %s", g->u.weapon.invlet,
              g->u.weapname().c_str());
  } else
   mvwprintz(w_inv, 3, 42, c_ltgray, g->u.weapname().c_str());
+
 // Print worn items
  if (g->u.worn.size() > 0)
   mvwprintz(w_inv, 5, 40, c_magenta, "ITEMS WORN:");
@@ -56,15 +46,38 @@ void print_inv_statics(game *g, WINDOW* w_inv, std::string title,
    if (dropped_items[j] == g->u.worn[i].invlet)
     dropping_armor = true;
   }
-  if (dropping_armor)
+  if (dropping_armor) {
+   weight_carried -= g->u.worn[i].weight();
+   it_armor *armor = dynamic_cast<it_armor*>(g->u.worn[i].type);
+   volume_capacity -= armor->storage;
    mvwprintz(w_inv, 6 + i, 40, c_white, "%c + %s", g->u.worn[i].invlet,
              g->u.worn[i].tname(g).c_str());
-  else
+  } else
    mvwprintz(w_inv, 6 + i, 40, c_ltgray, "%c - %s", g->u.worn[i].invlet,
              g->u.worn[i].tname(g).c_str());
  }
+
+// Clear artifacts when weight/volume digits change
+ mvwprintz(w_inv, 0, 40, c_black, "                                        ");
+
+// Print weight
+ mvwprintw(w_inv, 0, 40, "Weight: ");
+ if (weight_carried >= g->u.weight_capacity() * .25)
+  wprintz(w_inv, c_red, "%d", weight_carried);
+ else
+  wprintz(w_inv, c_ltgray, "%d", weight_carried);
+ wprintz(w_inv, c_ltgray, "/%d/%d", int(g->u.weight_capacity() * .25),
+                                    g->u.weight_capacity());
+
+// Print volume
+ mvwprintw(w_inv, 0, 60, "Volume: ");
+ if (volume_carried > volume_capacity)
+  wprintz(w_inv, c_red, "%d", volume_carried);
+ else
+  wprintz(w_inv, c_ltgray, "%d", volume_carried);
+ wprintw(w_inv, "/%d", volume_capacity);
 }
- 
+
 std::vector<int> find_firsts(inventory &inv)
 {
  std::vector<int> firsts;
@@ -169,6 +182,8 @@ std::vector<item> game::multidrop()
  int dropping[u.inv.size()]; // Count of how many we'll drop from each stack
  for (int i = 0; i < u.inv.size(); i++)
   dropping[i] = 0;
+ int inv_weight_drop = 0; // Dropped weight tracker (inventory only)
+ int inv_volume_drop = 0; // Dropped volume tracker (inventory only)
  int count = 0; // The current count
  std::vector<char> weapon_and_armor; // Always single, not counted
  bool warned_about_bionic = false; // Printed add_msg re: dropping bionics
@@ -244,7 +259,8 @@ std::vector<item> game::multidrop()
      if (weapon_and_armor[i] == ch) {
       weapon_and_armor.erase(weapon_and_armor.begin() + i);
       found = true;
-      print_inv_statics(this, w_inv, "Multidrop:", weapon_and_armor);
+      print_inv_statics(this, w_inv, "Multidrop:", weapon_and_armor,
+                        inv_weight_drop, inv_volume_drop);
      }
     }
     if (!found) {
@@ -255,10 +271,31 @@ std::vector<item> game::multidrop()
       warned_about_bionic = true;
      } else {
       weapon_and_armor.push_back(ch);
-      print_inv_statics(this, w_inv, "Multidrop:", weapon_and_armor);
+      print_inv_statics(this, w_inv, "Multidrop:", weapon_and_armor,
+                        inv_weight_drop, inv_volume_drop);
      }
     }
    } else {
+    int new_start = 0;
+    int tmp_line = 0; // Loops every 21 lines.
+    for (int tmp_item = 0; tmp_item <= index; tmp_item++, tmp_line++) {
+     if (tmp_line >= 21) {
+      tmp_line = 0;
+      new_start = tmp_item;
+     }
+     for (int i = 0; i < 8; i++) {
+      if (tmp_item == firsts[i])
+       tmp_line++;
+     }
+    }
+    if (start != new_start) {
+     start = new_start;
+     for (int i = 1; i < 25; i++)
+      mvwprintz(w_inv, i, 0, c_black, "                                        ");
+     mvwprintw(w_inv, maxitems + 2, 0, "         ");
+     mvwprintw(w_inv, maxitems + 2, 12, "            ");
+    }
+    int old_drop_count = dropping[index];
     if (count == 0) {
      if (dropping[index] == 0)
       dropping[index] = u.inv.stack_at(index).size();
@@ -268,10 +305,22 @@ std::vector<item> game::multidrop()
      dropping[index] = u.inv.stack_at(index).size();
     else
      dropping[index] = count;
+    if (old_drop_count < dropping[index]) {
+     for (int i = old_drop_count; i < dropping[index]; i++) {
+      inv_weight_drop += u.inv.stack_at(index)[i].weight();
+      inv_volume_drop += u.inv.stack_at(index)[i].volume();
+     }
+    } else if (old_drop_count > dropping[index]) {
+     for (int i = old_drop_count - 1; i >= dropping[index]; i--) {
+      inv_weight_drop -= u.inv.stack_at(index)[i].weight();
+      inv_volume_drop -= u.inv.stack_at(index)[i].volume();
+     }
+    }
+    print_inv_statics(this, w_inv, "Multidrop:", weapon_and_armor,
+                      inv_weight_drop, inv_volume_drop);
    }
    count = 0;
   }
-   
  } while (ch != '\n' && ch != KEY_ESCAPE && ch != ' ');
  werase(w_inv);
  delwin(w_inv);
