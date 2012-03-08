@@ -168,7 +168,7 @@ std::string random_last_name()
   debugmsg("Could not open npc last names list (NAMES_LAST)");
   return "";
  }
- int line = rng(1, 100);	// TODO: Shouldn't 100 last names.
+ int line = rng(1, 100);	// TODO: Shouldn't assume 100 last names.
  char buff[256];
  for (int i = 0; i < line; i++)
   fin.getline(buff, 256);
@@ -383,6 +383,15 @@ int player::run_cost(int base_cost)
   if (movecost < 100)
    movecost = 100;
  }
+ if (hp_cur[hp_leg_l] == 0)
+  movecost += 50;
+ else if (hp_cur[hp_leg_l] < 40)
+  movecost += 25;
+ if (hp_cur[hp_leg_r] == 0)
+  movecost += 50;
+ else if (hp_cur[hp_leg_r] < 40)
+  movecost += 25;
+
  if (has_trait(PF_FLEET) && base_cost == 100)
   movecost = int(movecost * .85);
  if (has_trait(PF_FLEET2) && base_cost == 100)
@@ -955,10 +964,10 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
  }
  int runcost = run_cost(100);
  nc_color col = (runcost <= 100 ? c_green : c_red);
- mvwprintz(w_speed, 1, (runcost  >= 100 ? 22 : (runcost  < 10 ? 24 : 23)), col,
+ mvwprintz(w_speed, 1, (runcost  >= 100 ? 21 : (runcost  < 10 ? 23 : 22)), col,
            "%d", runcost);
  col = (newmoves >= 100 ? c_green : c_red);
- mvwprintz(w_speed, 2, (newmoves >= 100 ? 22 : (newmoves < 10 ? 24 : 23)), col,
+ mvwprintz(w_speed, 2, (newmoves >= 100 ? 21 : (newmoves < 10 ? 23 : 22)), col,
            "%d", newmoves);
  wrefresh(w_speed);
 
@@ -4314,7 +4323,7 @@ void player::practice(skill s, int amount)
    }
   }
  }
- while (amount > sklevel[s] && xp_pool >= (1 + sklevel[s])) {
+ while (amount > 0 && xp_pool >= (1 + sklevel[s])) {
   amount -= sklevel[s] + 1;
   if ((savant == sk_null || savant == s || !one_in(2)) &&
       rng(0, 100) < comprehension_percent(s)) {
