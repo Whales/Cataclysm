@@ -1007,7 +1007,7 @@ std::vector<item> starting_inv(npc *me, npc_class type, game *g)
 
  for (int i = 0; i < ret.size(); i++) {
   for (int j = 0; j < g->mapitems[mi_trader_avoid].size(); j++) {
-   if (ret[i].type->id == g->mapitems[mi_trader_avoid][j]) {
+   if ( (ret[i].type->id == g->mapitems[mi_trader_avoid][j]) || (ret[i].type->id == itm_null)) {
     ret.erase(ret.begin() + i);
     i--;
    }
