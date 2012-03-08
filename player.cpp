@@ -1688,16 +1688,16 @@ int player::sight_range(int light_level)
  if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_eye) &&
      !is_wearing(itm_glasses_monocle))
   ret = 4;
- if (ret > 1 &&
+ if (ret >= 1 &&
      (is_wearing(itm_goggles_ski) || is_wearing(itm_goggles_welding)))
   ret -= 1;	// not a big deal at sunny day, but real penalty in the darkness
  if (underwater && !has_bionic(bio_membrane) && !has_trait(PF_MEMBRANE) &&
      !is_wearing(itm_goggles_swim))
   ret = 1;
  if (has_disease(DI_BOOMERED))
-  ret = (ret > 1) ? 1 : 0 ;
- if (ret > 1 && has_disease(DI_IN_PIT))
-  ret = (ret > 1) ? 1 : 0 ;
+  ret = (ret <= 1) ? 0 : 1;
+ if (has_disease(DI_IN_PIT))
+  ret = (ret <= 1) ? 0 : 1;
  if (has_disease(DI_BLIND))
   ret = 0;
 

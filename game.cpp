@@ -1980,7 +1980,9 @@ void game::draw()
  werase(w_terrain);
  draw_ter();
  if (!u.has_disease(DI_DEAF))
-   draw_footsteps();
+  draw_footsteps();
+ else
+  footsteps.clear();
  mon_info();
  // Draw Status
  draw_HP();
