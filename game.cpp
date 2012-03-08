@@ -91,9 +91,21 @@ game::game()
 game::~game()
 {
  for (int i = 0; i < itypes.size(); i++)
-  delete itypes[i];
+ {
+  if(itypes[i]->is_bionic())
+   delete (it_bionic*) itypes[i]; // it_bionic contains a pesky vector that needs to have its destructor called!
+  else
+   delete itypes[i];
+ }
  for (int i = 0; i < mtypes.size(); i++)
   delete mtypes[i];
+ for (int i = 0; i < traps.size(); i++)
+  delete traps[i];
+ for (int i = 0; i < recipes.size(); i++)
+  delete recipes[i];
+ for (int i = 0; i < constructions.size(); i++)
+  delete constructions[i];
+  
  delwin(w_terrain);
  delwin(w_minimap);
  delwin(w_HP);
@@ -137,6 +149,7 @@ fivedozenwhales@gmail.com.");
   if (tmp.find(".sav") != std::string::npos)
    savegames.push_back(tmp.substr(0, tmp.find(".sav")));
  }
+ 
  closedir(dir);
  dir = opendir("data");
  while (dp = readdir(dir)) {
@@ -144,6 +157,7 @@ fivedozenwhales@gmail.com.");
   if (tmp.find(".template") != std::string::npos)
    templates.push_back(tmp.substr(0, tmp.find(".template")));
  }
+ closedir(dir);
  int sel1 = 0, sel2 = 1, layer = 1;
  char ch;
  bool start = false;
