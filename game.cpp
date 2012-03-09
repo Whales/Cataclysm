@@ -35,6 +35,10 @@ game::game()
  init_missions();     // Set up mission templates         (SEE missiondef.cpp)
  init_construction(); // Set up constructables            (SEE construction.cpp)
  init_mutations();
+ 
+ om_diag = new overmap(this, 0, 0, 0);
+ om_vert = new overmap(this, 0, 0, 0);
+ om_hori = new overmap(this, 0, 0, 0);
 
  m = map(&itypes, &mapitems, &traps); // Init the root map with our vectors
 
@@ -105,6 +109,10 @@ game::~game()
   delete recipes[i];
  for (int i = 0; i < constructions.size(); i++)
   delete constructions[i];
+  
+ delete om_diag;
+ delete om_vert;
+ delete om_hori;
   
  delwin(w_terrain);
  delwin(w_minimap);
