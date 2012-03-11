@@ -33,8 +33,10 @@ void wprintz(WINDOW *w, nc_color FG, const char *mes, ...);
 void draw_tabs(WINDOW *w, int active_tab, ...);
 
 void debugmsg(const char *mes, ...);
+void debugmsg(std::string mes);
 bool query_yn(const char *mes, ...);
 int  query_int(const char *mes, ...);
+int  query_int(int max, const std::string &mes, int min = 0); // Returns -1 if canceled, don't use this for querying negative values.
 std::string string_input_popup(const char *mes, ...);
 std::string string_input_popup(int max_length, const char *mes, ...);
 char popup_getkey(const char *mes, ...);
@@ -43,6 +45,7 @@ int  menu(const char *mes, ...);
 void popup_top(const char *mes, ...); // Displayed at the top of the screen
 void popup(const char *mes, ...);
 void full_screen_popup(const char *mes, ...);
+int select_item(const std::string &heading, const std::vector<std::string> &items); // Generic function that prompts the player to select one of several strings in a vector. Returns -1 if canceled/error, otherwise returns selected vector index.
 
 nc_color hilite(nc_color c);
 nc_color invert_color(nc_color c);

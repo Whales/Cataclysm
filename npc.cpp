@@ -1007,7 +1007,7 @@ std::vector<item> starting_inv(npc *me, npc_class type, game *g)
 
  for (int i = 0; i < ret.size(); i++) {
   for (int j = 0; j < g->mapitems[mi_trader_avoid].size(); j++) {
-   if (ret[i].type->id == g->mapitems[mi_trader_avoid][j]) {
+   if ( (ret[i].type->id == g->mapitems[mi_trader_avoid][j]) || (ret[i].type->id == itm_null)) {
     ret.erase(ret.begin() + i);
     i--;
    }
@@ -1965,39 +1965,55 @@ void npc::die(game *g, bool your_fault)
 std::string random_first_name(bool male)
 {
  std::ifstream fin;
- std::string name;
- char buff[256];
- if (male)
-  fin.open("data/NAMES_MALE");
- else
-  fin.open("data/NAMES_FEMALE");
+ std::vector<std::string> names;
+ const std::string filename = (male ? "NAMES_MALE" : "NAMES_FEMALE");
+
+ // Open file for reading
+ fin.open( ("data/" + filename).c_str() );
  if (!fin.is_open()) {
-  debugmsg("Could not open npc first names list (%s)",
-           (male ? "NAMES_MALE" : "NAMES_FEMALE"));
+  debugmsg("Could not open npc first names list (" + filename + ")");
   return "";
  }
- int line = rng(1, 100);	// TODO: Don't assume 100 first names.
- for (int i = 0; i < line; i++)
-  fin.getline(buff, 256);
- name = buff;
+
+ // Read names
+ std::string tmp;
+ while(getline(fin, tmp))
+  names.push_back(tmp);
  fin.close();
- return name;
+
+ // Pick a name at random
+ if(names.size() > 0)
+  return names[rng(0, names.size() - 1)];
+ else { // File is probably empty
+  debugmsg("No names returned from npc first names list (" + filename + ")");
+  return "";
+ }
 }
 
 std::string random_last_name()
 {
- std::string lastname;
  std::ifstream fin;
+ std::vector<std::string> names;
+
+ // Open file for reading
  fin.open("data/NAMES_LAST");
  if (!fin.is_open()) {
   debugmsg("Could not open npc last names list (NAMES_LAST)");
   return "";
  }
- int line = rng(1, 100);	// TODO: Shouldn't assume 100 last names.
- char buff[256];
- for (int i = 0; i < line; i++)
-  fin.getline(buff, 256);
- lastname = buff;
+
+ // Read names
+ std::string tmp;
+ while(getline(fin, tmp))
+  names.push_back(tmp);
+
  fin.close();
- return lastname;
+
+ // Pick a name at random
+ if(names.size() > 0)
+  return names[rng(0, names.size() - 1)];
+ else { // File is probably empty
+  debugmsg("No names returned from npc last names list (NAMES_LAST)");
+  return "";
+ }
 }

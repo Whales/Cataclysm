@@ -796,4 +796,11 @@ void timeout(int delay)
     inputdelay=delay;
 };
 
+int set_escdelay(int delay)
+{
+    return 1;
+}
+
+
 #endif
+

@@ -66,7 +66,7 @@ bool player::create(game *g, character_type type, std::string tempname)
      points -= (int_max - HIGH_STAT);
     if (per_max > HIGH_STAT)
      points -= (per_max - HIGH_STAT);
- 
+
     int num_gtraits = 0, num_btraits = 0, rn, tries;
     while (points < 0 || rng(-3, 20) > points) {
      if (num_btraits < MAX_TRAIT_POINTS && one_in(3)) {
@@ -159,7 +159,7 @@ bool player::create(game *g, character_type type, std::string tempname)
 
  if (tab < 0)
   return false;
- 
+
  // Character is finalized.  Now just set up HP, &c
  for (int i = 0; i < num_hp_parts; i++) {
   hp_max[i] = calc_HP(str_max, has_trait(PF_TOUGH));
@@ -255,8 +255,8 @@ void draw_tabs(WINDOW* w)
  mvwputch(w, 1,57, c_ltgray, LINE_XOXO);
  mvwputch(w, 1,73, c_ltgray, LINE_XOXO);
 }
-  
- 
+
+
 
 int set_stats(WINDOW* w, player *u, int &points)
 {
@@ -382,7 +382,7 @@ int set_stats(WINDOW* w, player *u, int &points)
    mvwprintz(w,11, 33, COL_STAT_ACT, "                                            ");
    break;
   }
- 
+
   wrefresh(w);
   ch = input();
   if (ch == 'j' && sel < 4)
@@ -478,9 +478,13 @@ int set_traits(WINDOW* w, player *u, int &points)
  mvwprintz(w, 1,22, h_ltgray, "  TRAITS  ");
 
  for (int i = 0; i < 16; i++) {
-  mvwprintz(w, 5 + i, 40, c_dkgray, "\
+  mvwprintz(w, 5 + i, 40 + 2, c_dkgray, "\
                                    ");
-  mvwprintz(w, 5 + i, 40, c_dkgray, traits[PF_SPLIT + 1 + i].name.c_str());
+
+  if(u->has_trait(PF_SPLIT + 1 + i))
+   mvwputch(w, 5 + i, 40, c_dkgray, '*');
+
+  mvwprintz(w, 5 + i, 40 + 2, c_dkgray, traits[PF_SPLIT + 1 + i].name.c_str());
  }
  mvwprintz(w,11,32, c_ltgray, "h   l");
  mvwprintz(w,12,32, c_ltgray, "<   >");
@@ -538,15 +542,19 @@ int set_traits(WINDOW* w, player *u, int &points)
     mvwprintz(w, 5 + i - traitmin, xoff, c_ltgray, "\
                                        ");	// Clear the line
     if (i == cur_trait) {
-     if (u->has_trait(i))
-      mvwprintz(w, 5 + i - traitmin, xoff, hi_on, traits[i].name.c_str());
+     if (u->has_trait(i)) {
+      mvwputch(w, 5 + i - traitmin, xoff, col_on, '*');
+      mvwprintz(w, 5 + i - traitmin, xoff + 2, hi_on, traits[i].name.c_str());
+     }
      else
-      mvwprintz(w, 5 + i - traitmin, xoff, hi_off, traits[i].name.c_str());
+      mvwprintz(w, 5 + i - traitmin, xoff + 2, hi_off, traits[i].name.c_str());
     } else {
-     if (u->has_trait(i))
-      mvwprintz(w, 5 + i - traitmin, xoff, col_on, traits[i].name.c_str());
+     if (u->has_trait(i)) {
+      mvwputch(w, 5 + i - traitmin, xoff, col_on, '*');
+      mvwprintz(w, 5 + i - traitmin, xoff + 2, col_on, traits[i].name.c_str());
+     }
      else
-      mvwprintz(w, 5 + i - traitmin, xoff, col_off, traits[i].name.c_str());
+      mvwprintz(w, 5 + i - traitmin, xoff + 2, col_off, traits[i].name.c_str());
     }
    }
   } else if (cur_trait >= traitmax - 9) {
@@ -554,15 +562,19 @@ int set_traits(WINDOW* w, player *u, int &points)
     mvwprintz(w, 21 + i - traitmax, xoff, c_ltgray, "\
                                        ");	// Clear the line
     if (i == cur_trait) {
-     if (u->has_trait(i))
-      mvwprintz(w, 21 + i - traitmax, xoff, hi_on, traits[i].name.c_str());
+     if (u->has_trait(i)) {
+      mvwputch(w, 21 + i - traitmax, xoff, col_on, '*');
+      mvwprintz(w, 21 + i - traitmax, xoff + 2, hi_on, traits[i].name.c_str());
+     }
      else
-      mvwprintz(w, 21 + i - traitmax, xoff, hi_off, traits[i].name.c_str());
+      mvwprintz(w, 21 + i - traitmax, xoff + 2, hi_off, traits[i].name.c_str());
     } else {
-     if (u->has_trait(i))
-      mvwprintz(w, 21 + i - traitmax, xoff, col_on, traits[i].name.c_str());
+     if (u->has_trait(i)) {
+      mvwputch(w, 21 + i - traitmax, xoff, col_on, '*');
+      mvwprintz(w, 21 + i - traitmax, xoff + 2, col_on, traits[i].name.c_str());
+     }
      else
-      mvwprintz(w, 21 + i - traitmax, xoff, col_off, traits[i].name.c_str());
+      mvwprintz(w, 21 + i - traitmax, xoff + 2, col_off, traits[i].name.c_str());
     }
    }
   } else {
@@ -570,15 +582,19 @@ int set_traits(WINDOW* w, player *u, int &points)
     mvwprintz(w, 12 + i - cur_trait, xoff, c_ltgray, "\
                                       ");	// Clear the line
     if (i == cur_trait) {
-     if (u->has_trait(i))
-      mvwprintz(w, 12 + i - cur_trait, xoff, hi_on, traits[i].name.c_str());
+     if (u->has_trait(i)) {
+      mvwputch(w, 12 + i - cur_trait, xoff, col_on, '*');
+      mvwprintz(w, 12 + i - cur_trait, xoff + 2, hi_on, traits[i].name.c_str());
+     }
      else
-      mvwprintz(w, 12 + i - cur_trait, xoff, hi_off, traits[i].name.c_str());
+      mvwprintz(w, 12 + i - cur_trait, xoff + 2, hi_off, traits[i].name.c_str());
     } else {
-     if (u->has_trait(i))
-      mvwprintz(w, 12 + i - cur_trait, xoff, col_on, traits[i].name.c_str());
+     if (u->has_trait(i)) {
+      mvwputch(w, 12 + i - cur_trait, xoff, col_on, '*');
+      mvwprintz(w, 12 + i - cur_trait, xoff + 2, col_on, traits[i].name.c_str());
+     }
      else
-      mvwprintz(w, 12 + i - cur_trait, xoff, col_off, traits[i].name.c_str());
+      mvwprintz(w, 12 + i - cur_trait, xoff + 2, col_off, traits[i].name.c_str());
     }
    }
   }
@@ -590,15 +606,27 @@ int set_traits(WINDOW* w, player *u, int &points)
    case '\t':
     if (!using_adv) {
      for (int i = 0; i < 16; i++) {
-      mvwprintz(w, 5 + i, 40, c_dkgray, "\
+      mvwprintz(w, 5 + i, 40 + 2, c_dkgray, "\
                                        ");
-      mvwprintz(w, 5 + i, 40, c_dkgray, traits[PF_SPLIT + 1 + i].name.c_str());
+
+      if(u->has_trait(PF_SPLIT + 1 + i))
+       mvwputch(w, 5 + i, 40, c_dkgray, '*');
+      else
+       mvwputch(w, 5 + i, 40, c_dkgray, ' ');
+
+      mvwprintz(w, 5 + i, 40 + 2, c_dkgray, traits[PF_SPLIT + 1 + i].name.c_str());
      }
     } else {
      for (int i = 0; i < 16; i++) {
-      mvwprintz(w, 5 + i, 0, c_dkgray, "\
+      mvwprintz(w, 5 + i, 0 + 2, c_dkgray, "\
                                        ");
-      mvwprintz(w, 5 + i, 0, c_dkgray, traits[i + 1].name.c_str());
+
+      if(u->has_trait(i + 1))
+       mvwputch(w, 5 + i, 0, c_dkgray, '*');
+      else
+       mvwputch(w, 5 + i, 0, c_dkgray, ' ');
+
+      mvwprintz(w, 5 + i, 0 + 2, c_dkgray, traits[i + 1].name.c_str());
      }
     }
     using_adv = !using_adv;
@@ -680,7 +708,7 @@ int set_skills(WINDOW* w, player *u, int &points)
  mvwputch(w, 2,57, c_ltgray, LINE_XXOX);
  mvwputch(w, 2,73, c_ltgray, LINE_XXOX);
  mvwprintz(w,1,40, h_ltgray, "  SKILLS  ");
- 
+
  int cur_sk = 1;
 
  do {
@@ -746,7 +774,7 @@ int set_skills(WINDOW* w, player *u, int &points)
     }
    }
   }
-   
+
   wrefresh(w);
   switch (input()) {
    case 'j':
@@ -810,7 +838,7 @@ When your character is finished and you're ready to start playing, press >");
 To go back and review your character, press <");
  mvwprintz(w, 14, 2, c_green, "\
 To save this character as a template, press !.");
- 
+
  int line = 1;
  bool noname = false;
  long ch;

@@ -131,6 +131,7 @@ int noecho(void);//PORTABILITY, DUMMY FUNCTION
 int cbreak(void);//PORTABILITY, DUMMY FUNCTION
 int keypad(WINDOW *faux, bool bf);//PORTABILITY, DUMMY FUNCTION
 int curs_set(int visibility);//PORTABILITY, DUMMY FUNCTION
+int set_escdelay(int);//PORTABILITY, DUMMY FUNCTION
 int mvaddch(int y, int x, const chtype ch);
 int wattron(WINDOW *win, int attrs);
 int wattroff(WINDOW *win, int attrs);

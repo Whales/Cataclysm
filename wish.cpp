@@ -1,6 +1,9 @@
 #include "game.h"
 #include "output.h"
 #include "keypress.h"
+#include "skill.h"
+#include "line.h"
+#include "bodypart.h"
 #include <sstream>
 
 #define LESS(a, b) ((a)<(b)?(a):(b))
@@ -28,7 +31,7 @@ void game::wish()
     search = false;
     found = true;
     ch = '.';
-   } else if (ch == KEY_BACKSPACE || ch == 127) {
+   } else if (ch == KEY_BACKSPACE || ch == 127 || ch == 7) { // backspace seems to be processed as 7 (\a) on some debian systems.
     if (pattern.length() > 0)
      pattern.erase(pattern.end() - 1);
    } else if (ch == '>') {
@@ -85,7 +88,7 @@ void game::wish()
   } else {	// Not searching; scroll by keys
    if (ch == 'j') a++;
    if (ch == 'k') a--;
-   if (ch == '/') { 
+   if (ch == '/') {
     search = true;
     pattern =  "";
     found = false;
@@ -236,7 +239,7 @@ void game::monster_wish()
    if (ch == 'j') a++;
    if (ch == 'k') a--;
    if (ch == 'f') friendly = !friendly;
-   if (ch == '/') { 
+   if (ch == '/') {
     search = true;
     pattern =  "";
     found = false;
@@ -386,7 +389,7 @@ void game::mutation_wish()
   } else {	// Not searching; scroll by keys
    if (ch == 'j') a++;
    if (ch == 'k') a--;
-   if (ch == '/') { 
+   if (ch == '/') {
     search = true;
     pattern =  "";
     found = false;
@@ -470,4 +473,150 @@ void game::mutation_wish()
   u.mutate_towards(this, pl_flag(a + shift));
  delwin(w_info);
  delwin(w_list);
+}
+
+// Allows player to spawn a field type at a selected point near the player.
+void game::field_wish()
+{
+ std::vector<std::string> vec;
+ int selection, input;
+ 
+ for(int i = 0; i < num_fields; i++) 
+ {
+  if(i == fd_fire_vent)
+   vec.push_back("fire vent"); // Fire vent doesn't have any display name, this hack adds one to the selection list.
+  else if(i == fd_null)
+   vec.push_back("null field"); // Ditto for null field
+  else
+   vec.push_back(fieldlist[i].name[2]);
+ }
+
+ selection = select_item("Select a field type: ", vec);
+
+ if(selection != -1)
+ {
+  point spawn = look_around();
+  if(spawn.x != -1)
+  {
+   input = query_int(1000, "Set cloud radius", 1);
+   for(int x = spawn.x - input; x <= spawn.x + input; x++)
+   {
+    for(int y = spawn.y - input; y <= spawn.y + input; y++)
+    {
+     if(trig_dist(spawn.x, spawn.y, x, y) < input)
+      m.add_field(this, x, y, (field_id) selection, 3);
+    }
+   }
+  }
+ }
+}
+
+void game::modify_character()
+{
+ std::vector<std::string> vec;
+ int selection, input;
+ 
+ vec.clear();
+ vec.push_back("Modify stats...");
+ vec.push_back("Modify skills...");
+ vec.push_back("Set HP...");
+ vec.push_back(std::string("Toggle God Mode! [Currently ") + (godmode ? "ON" : "OFF") + "]");
+ 
+ selection = select_item("Modify character", vec); 
+ if(selection == -1)
+  return;
+ 
+ if(selection == 0) // Modify stats
+ {
+  vec.clear();
+  vec.push_back("Set all stats...");
+  vec.push_back("Set str...");
+  vec.push_back("Set dex...");
+  vec.push_back("Set int...");
+  vec.push_back("Set per...");
+  
+  selection = select_item("Modify stats", vec);
+  if(selection == -1)
+   return;
+  
+  input = query_int(100, "Input a number from 0-100");
+  if(input == -1)
+   return;
+
+  if(selection == 0) // Set all stats
+  {
+   u.str_max = u.str_cur = input;
+   u.dex_max = u.dex_cur = input;
+   u.int_max = u.int_cur = input;
+   u.per_max = u.per_cur = input;
+  }
+  else if(selection == 1)
+   u.str_max = u.str_cur = input;
+  else if(selection == 2)
+   u.dex_max = u.dex_cur = input;
+  else if(selection == 3)
+   u.int_max = u.int_cur = input;
+  else if(selection == 4)
+   u.per_max = u.per_cur = input;
+ }
+ else if(selection == 1) // Modify skills
+ {
+  vec.clear();
+  vec.push_back("Set all skills...");
+  
+  for(int i = 1; i < num_skill_types; i++)
+   vec.push_back("Set " + skill_name(i) + "...");
+  
+  selection = select_item("Modify skills", vec);
+  if(selection == -1)
+   return;
+   
+  input = query_int(100, "Input a number from 0-100");
+  if(input == -1)
+   return;
+  
+  if(selection == 0) // Set all skills
+  {
+   for(int i = 1; i < num_skill_types; i++)
+    u.sklevel[i] = input;
+  }
+  else if(selection >= 1 && selection < num_skill_types) // Set individual skills
+  {
+   u.sklevel[selection] = input;
+  }  
+ }
+ else if(selection == 2) // Set HP
+ {
+  vec.clear();
+  vec.push_back("Set HP on all bodyparts...");
+  
+  for(int i = 0; i < num_hp_parts; i++)
+   vec.push_back("Set HP on " + hp_part_name[i] + "...");
+  
+  selection = select_item("Set HP", vec);
+  if(selection == -1)
+   return;
+   
+  input = query_int(50000, "Input a number from 0-50000");
+  if(input == -1)
+   return;
+  
+  if(selection == 0) // Set HP on all bodyparts
+  {
+   for(int i = 0; i < num_hp_parts; i++)
+    u.hp_max[i] = u.hp_cur[i] = input;
+  }
+  else if(selection >= 1 && selection <= num_hp_parts) // Set HP on specific bodypart
+  {
+   u.hp_max[selection-1] = u.hp_cur[selection-1] = input;
+  }
+ }
+ else if(selection == 3) // God mode!
+ {
+  refresh_all();
+  wrefresh(w_terrain);
+  
+  godmode = !godmode;
+  popup("Godmode %s!", (godmode ? "enabled" : "disabled"));
+ }
 }

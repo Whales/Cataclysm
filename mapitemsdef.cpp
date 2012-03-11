@@ -736,7 +736,7 @@ void game::init_mapitems()
 // This one kind of an inverted list; what an NPC will NOT carry
  setvector(
    mapitems[mi_trader_avoid],
-	itm_null, itm_corpse, itm_fire, itm_toolset, itm_meat, itm_veggy,
+	itm_corpse, itm_fire, itm_toolset, itm_meat, itm_veggy,
 	itm_meat_tainted, itm_veggy_tainted, itm_meat_cooked, itm_veggy_cooked,
 	itm_mushroom_poison, itm_spaghetti_cooked, itm_macaroni_cooked,
 	itm_fetus, itm_arm, itm_leg, itm_wrapper, itm_manhole_cover, itm_rock,

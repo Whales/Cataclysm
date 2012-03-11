@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 
 // Every OWED_VAL that the NPC owes you counts as +1 towards convincing
 #define OWED_VAL 250
@@ -242,6 +243,7 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
 
  case TALK_SIZE_UP: {
   int ability = g->u.per_cur * 3 + g->u.int_cur;
+  ability = std::min(ability, 100); //cap ability at 100. Otherwise, we risk dividing by 0 when calculating str_range.
   if (ability <= 10)
    return "&You can't make anything out.";
 

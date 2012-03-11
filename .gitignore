@@ -1,0 +1,4 @@
+cataclysm
+obj/
+save/
+data/*.template

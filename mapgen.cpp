@@ -6865,8 +6865,8 @@ void silo_rooms(map *m)
   else {
    rooms.push_back(point(x, y));
    room_sizes.push_back(point(width, height));
-   for (int i = x; i <= x + width; i++) {
-    for (int j = y; j <= y + height; j++) {
+   for (int i = x; i < x + width; i++) {
+    for (int j = y; j < y + height; j++) {
      if (m->ter(i, j) == t_rock)
       m->ter(i, j) = t_floor;
     }
@@ -6900,7 +6900,7 @@ void silo_rooms(map *m)
  m->ter(rooms[0].x, rooms[0].y) = t_stairs_up;
  int down_room = rng(0, rooms.size() - 1);
  point dp = rooms[down_room], ds = room_sizes[down_room];
- m->ter(dp.x + ds.x, dp.y + ds.y) = t_stairs_down;
+ m->ter(dp.x + ds.x - 1, dp.y + ds.y - 1) = t_stairs_down;
  rooms.push_back(point(SEEX, SEEY)); // So the center circle gets connected
  room_sizes.push_back(point(5, 5));
 
@@ -6915,7 +6915,7 @@ void silo_rooms(map *m)
   }
 // We chose the closest room; now draw a corridor there
   point origin = rooms[0], origsize = room_sizes[0], dest = rooms[closest];
-  int x = origin.x + origsize.x, y = origin.y + origsize.y;
+  int x = origin.x + origsize.x - 1, y = origin.y + origsize.y - 1;
   bool x_first = (abs(origin.x - dest.x) > abs(origin.y - dest.y));
   while (x != dest.x || y != dest.y) {
    if (m->ter(x, y) == t_rock)

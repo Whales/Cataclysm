@@ -125,6 +125,7 @@ class game
   void process_missions(); // Process missions, see if time's run out
 
   void teleport(player *p = NULL);
+  void teleport(player *p, int x, int y);
   void plswim(int x, int y); // Called by plmove.  Handles swimming
   void nuke(int x, int y);
   std::vector<faction *> factions_at(int x, int y);
@@ -184,6 +185,7 @@ class game
   std::vector<item> items_dragged;
   int weight_dragged; // Computed once, when you start dragging
   bool debugmon;
+  bool godmode;
 // Display data... TODO: Make this more portable?
   WINDOW *w_terrain;
   WINDOW *w_minimap;
@@ -219,6 +221,8 @@ class game
   void wish();	// Cheat by wishing for an item 'Z'
   void monster_wish(); // Create a monster
   void mutation_wish(); // Mutate
+  void field_wish(); // Allows player to spawn a field type at a selected point near the player.
+  void modify_character(); // Various character modification
 
   void plmove(int x, int y); // Standard movement; handles attacks, traps, &c
   void wait();	// Long wait (player action)	'^'

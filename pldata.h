@@ -820,4 +820,14 @@ enum hp_part {
  hp_leg_r,
  num_hp_parts
 };
+
+const std::string hp_part_name[num_hp_parts] = 
+{
+ "head",
+ "torso",
+ "left arm",
+ "right arm",
+ "left leg",
+ "right leg"
+};
 #endif
