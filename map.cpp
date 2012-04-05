@@ -377,7 +377,7 @@ bool map::bash(int x, int y, int str, std::string &sound)
    sound += "wham!";
    return true;
   }
-   
+
  }
  if (move_cost(x, y) == 0) {
   sound += "thump!";
@@ -828,7 +828,7 @@ void map::process_active_items(game *g)
   }
  }
 }
-     
+
 void map::process_active_items_in_submap(game *g, int nonant)
 {
  it_tool* tmp;
@@ -1288,7 +1288,7 @@ bool map::clear_path(int Fx, int Fy, int Tx, int Ty, int range, int cost_min,
  int y = Fy;
  int t = 0;
  int st;
- 
+
  if (range >= 0 && (abs(dx) > range || abs(dy) > range))
   return false;	// Out of range!
  if (ax > ay) { // Mostly-horizontal line
@@ -1488,10 +1488,6 @@ void map::load(game *g, int wx, int wy)
   }
  }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 2f78a6cea1272979f27c1367751e76c958faefe8
 
 void map::shift(game *g, int wx, int wy, int sx, int sy)
 {
@@ -1752,7 +1748,7 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
    }
   }
  } else {// No data on this area.  Generate some!
-  map tmp_map(itypes, mapitems, traps);
+  map* tmp_map = new map(itypes, mapitems, traps);
 // overx, overy is where in the overmap we need to pull data from
 // Each overmap square is two nonants; to prevent overlap, generate only at
 //  squares divisible by 2.
@@ -1764,8 +1760,9 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
    newmapy = worldy + gridy;
   if (worldx + gridx < 0)
    newmapx = worldx + gridx;
-  tmp_map.generate(g, &(g->cur_om), newmapx, newmapy, int(g->turn));
+  tmp_map->generate(g, &(g->cur_om), newmapx, newmapy, int(g->turn));
   mapin.close();
+  delete tmp_map;
   return false;
  }
  return true;

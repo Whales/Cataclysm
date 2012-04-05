@@ -3,8 +3,8 @@
 # DEBUG is best turned on if you plan to debug in gdb -- please do!
 # PROFILE is for use with gprof or a similar program -- don't bother generally
 #WARNINGS = -Wall
-DEBUG = -g
-#PROFILE = -pg
+DEBUG = -g -ggdb
+PROFILE = -pg
 
 ODIR = obj
 DDIR = .deps

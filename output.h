@@ -11,6 +11,26 @@
 //      LINE_NESW  - X for on, O for off
 #ifndef LINE_XOXO
     #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+        // have to inline the pdcurses stuff here, since catacurses.h doesn't support it
+        #ifdef CHTYPE_LONG
+        # define ACS_PICK(w, n) ((chtype)w | A_ALTCHARSET)
+        #else
+        # define ACS_PICK(w, n) ((chtype)n)
+        #endif
+
+        #define ACS_ULCORNER  ACS_PICK('l', '+')
+        #define ACS_LLCORNER  ACS_PICK('m', '+')
+        #define ACS_URCORNER  ACS_PICK('k', '+')
+        #define ACS_LRCORNER  ACS_PICK('j', '+')
+        #define ACS_RTEE      ACS_PICK('u', '+')
+        #define ACS_LTEE      ACS_PICK('t', '+')
+        #define ACS_BTEE      ACS_PICK('v', '+')
+        #define ACS_TTEE      ACS_PICK('w', '+')
+        #define ACS_HLINE     ACS_PICK('q', '-')
+        #define ACS_VLINE     ACS_PICK('x', '|')
+        #define ACS_PLUS      ACS_PICK('n', '+')
+
+    
         #define LINE_XOXO ACS_VLINE
         #define LINE_OXOX ACS_HLINE
         #define LINE_XXOO ACS_LLCORNER
@@ -72,7 +92,7 @@ char rand_char();
 // Graphical tileset code
 // ==================================================================
 
-#include "curses.h"
+#include "catacurse.h"
 
 // if we use SDL, load the header
 #ifdef __TILESET
