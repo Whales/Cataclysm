@@ -8,6 +8,8 @@
 #include "player.h"
 #include <sstream>
 
+#define RADIO_PER_TURN 25 // how many characters per turn of radio
+
 /* To mark an item as "removed from inventory", set its invlet to 0
    This is useful for traps (placed on ground), inactive bots, etc
  */
@@ -41,6 +43,11 @@ void iuse::royal_jelly(game *g, player *p, item *it, bool t)
  if (p->has_disease(DI_ASTHMA)) {
   message = "Your breathing clears up!";
   p->rem_disease(DI_ASTHMA);
+ }
+ if (p->has_disease(DI_COMMON_COLD) || p->has_disease(DI_FLU)) {
+  message = "You feel healther!";
+  p->rem_disease(DI_COMMON_COLD);
+  p->rem_disease(DI_FLU);
  }
  if (!p->is_npc())
   g->add_msg(message.c_str());
@@ -504,6 +511,7 @@ void iuse::blech(game *g, player *p, item *it, bool t)
 // TODO: Add more effects?
  if (!p->is_npc())
   g->add_msg("Blech, that burns your throat!");
+ p->vomit(g);
 }
 
 void iuse::mutagen(game *g, player *p, item *it, bool t)
@@ -511,11 +519,18 @@ void iuse::mutagen(game *g, player *p, item *it, bool t)
  p->mutate(g);
 }
 
+void iuse::mutagen_3(game *g, player *p, item *it, bool t)
+{
+ p->mutate(g);
+ p->mutate(g);
+ p->mutate(g);
+}
+
 void iuse::purifier(game *g, player *p, item *it, bool t)
 {
  std::vector<int> valid;	// Which flags the player has
- for (int i = 0; i < PF_MAX2; i++) {
-  if (p->has_mutation(pl_flag(i)))
+ for (int i = 1; i < PF_MAX2; i++) {
+  if (p->has_trait(pl_flag(i)) && p->has_mutation(pl_flag(i)))
    valid.push_back(i);
  }
  if (valid.size() == 0) {
@@ -527,9 +542,7 @@ void iuse::purifier(game *g, player *p, item *it, bool t)
   num_cured = 4;
  for (int i = 0; i < num_cured && valid.size() > 0; i++) {
   int index = rng(0, valid.size() - 1);
-  if (!p->is_npc())
-   g->add_msg("You lose your %s.", traits[valid[index]].name.c_str());
-  p->toggle_trait(pl_flag(valid[index]));
+  p->remove_mutation(g, pl_flag(valid[index]) );
   valid.erase(valid.begin() + index);
  }
 }
@@ -542,7 +555,7 @@ void iuse::marloss(game *g, player *p, item *it, bool t)
 // alien lifeforms.
  if (p->has_trait(PF_MARLOSS)) {
   g->add_msg("As you eat the berry, you have a near-religious experience, feeling at one with your surroundings...");
-  p->add_morale(MORALE_MARLOSS, 250, 1000);
+  p->add_morale(MORALE_MARLOSS, 100, 1000);
   p->hunger = -100;
   monster goo(g->mtypes[mon_blob]);
   goo.friendly = -1;
@@ -609,16 +622,14 @@ void iuse::dogfood(game *g, player *p, item *it, bool t)
  dirx += p->posx;
  diry += p->posy;
  int mon_dex = g->mon_at(dirx,diry);
- if(mon_dex != -1){
-	 if(g->z[mon_dex].type->id == mon_dog){
-		 g->add_msg("The dog seems to like you!");
-		 g->z[mon_dex].friendly = -1;
-	 } else {
-		 g->add_msg("The %s seems quit unimpressed!",g->z[mon_dex].type->name.c_str());
-	 }
- } else {
-	 g->add_msg("You spill the dogfood all over the ground.");
- }
+ if (mon_dex != -1) {
+  if (g->z[mon_dex].type->id == mon_dog) {
+   g->add_msg("The dog seems to like you!");
+   g->z[mon_dex].friendly = -1;
+  } else
+   g->add_msg("The %s seems quit unimpressed!",g->z[mon_dex].type->name.c_str());
+ } else
+  g->add_msg("You spill the dogfood all over the ground.");
 
 }
   
@@ -782,6 +793,7 @@ void iuse::scissors(game *g, player *p, item *it, bool t)
   count -= rng(0, 2);
  if (dice(3, 3) > p->dex_cur)
   count -= rng(1, 3);
+
  if (count <= 0) {
   g->add_msg("You clumsily cut the %s into useless ribbons.",
              cut->tname().c_str());
@@ -827,7 +839,7 @@ void iuse::extinguisher(game *g, player *p, item *it, bool t)
   g->m.field_at(x, y).density -= rng(2, 3);
   if (g->m.field_at(x, y).density <= 0) {
    g->m.field_at(x, y).density = 1;
-   g->m.field_at(x, y).type = fd_null;
+   g->m.remove_field(x, y);
   }
  }
  int mondex = g->mon_at(x, y);
@@ -852,7 +864,7 @@ void iuse::extinguisher(game *g, player *p, item *it, bool t)
    g->m.field_at(x, y).density -= rng(0, 1) + rng(0, 1);
    if (g->m.field_at(x, y).density <= 0) {
     g->m.field_at(x, y).density = 1;
-    g->m.field_at(x, y).type = fd_null;
+    g->m.remove_field(x, y);
    }
   }
  }
@@ -1043,14 +1055,27 @@ void iuse::radio_on(game *g, player *p, item *it, bool t)
   }
   if (best_signal > 0) {
    for (int j = 0; j < message.length(); j++) {
-    if (dice(10, 100) > dice(10, best_signal * 5)) {
+    if (dice(10, 100) > dice(10, best_signal * 3)) {
      if (!one_in(10))
       message[j] = '#';
      else
       message[j] = char(rng('a', 'z'));
     }
    }
-   message = "radio: " + message;
+
+   std::vector<std::string> segments;
+   while (message.length() > RADIO_PER_TURN) {
+    int spot = message.find_last_of(' ', RADIO_PER_TURN);
+    if (spot == std::string::npos)
+     spot = RADIO_PER_TURN;
+    segments.push_back( message.substr(0, spot) );
+    message = message.substr(spot);
+   }
+   segments.push_back(message);
+   int index = g->turn % (segments.size());
+   std::stringstream messtream;
+   messtream << "radio: " << segments[index];
+   message = messtream.str();
   }
   point p = g->find_item(it);
   g->sound(p.x, p.y, 6, message.c_str());
@@ -1093,6 +1118,15 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
    g->add_msg("You pry, but cannot lift the manhole cover.");
    p->moves -= 100;
   }
+ } else if (g->m.ter(dirx, diry) == t_crate_c) {
+  if (p->str_cur >= rng(3, 30)) {
+   g->add_msg("You pop the crate open.");
+   p->moves -= (150 - (p->str_cur * 5));
+   g->m.ter(dirx, diry) = t_crate_o;
+  } else {
+   g->add_msg("You pry, but cannot open the crate.");
+   p->moves -= 100;
+  } 
  } else {
   int nails = 0, boards = 0;
   ter_id newter;
@@ -1603,6 +1637,29 @@ void iuse::smokebomb_act(game *g, player *p, item *it, bool t)
   it->make(g->itypes[itm_canister_empty]);
 }
 
+void iuse::acidbomb(game *g, player *p, item *it, bool t)
+{
+ g->add_msg("You remove the divider, and the chemicals mix.");
+ p->moves -= 150;
+ it->make(g->itypes[itm_acidbomb_act]);
+ it->charges = 1;
+ it->bday = int(g->turn);
+ it->active = true;
+}
+ 
+void iuse::acidbomb_act(game *g, player *p, item *it, bool t)
+{
+ if (!p->has_item(it)) {
+  point pos = g->find_item(it);
+  if (pos.x == -999)
+   pos = point(p->posx, p->posy);
+  it->charges = 0;
+  for (int x = pos.x - 1; x <= pos.x + 1; x++) {
+   for (int y = pos.y - 1; y <= pos.y + 1; y++)
+    g->m.add_field(g, x, y, fd_acid, 3);
+  }
+ }
+}
 
 void iuse::molotov(game *g, player *p, item *it, bool t)
 {
@@ -1624,7 +1681,7 @@ void iuse::molotov_lit(game *g, player *p, item *it, bool t)
  int age = int(g->turn) - it->bday;
  if (!p->has_item(it)) {
   point pos = g->find_item(it);
-  it->charges = 0;
+  it->charges = -1;
   g->explosion(pos.x, pos.y, 8, 0, true);
  } else if (age >= 5) { // More than 5 turns old = chance of going out
   if (rng(1, 50) < age) {
@@ -1858,7 +1915,7 @@ void iuse::tazer(game *g, player *p, item *it, bool t)
     numdice++;	// Minor bonus against huge people
   else if (foe->str_max <= 5)
    numdice--;	// Minor penalty against tiny people
-  if (dice(numdice, 10) <= dice(foe->dodge(), 6)) {
+  if (dice(numdice, 10) <= dice(foe->dodge(g), 6)) {
    g->add_msg("You attempt to shock %s, but miss.", foe->name.c_str());
    return;
   }
@@ -1878,6 +1935,8 @@ void iuse::mp3(game *g, player *p, item *it, bool t)
 {
  if (it->charges == 0)
   g->add_msg("The mp3 player's batteries are dead.");
+ else if (p->has_active_item(itm_mp3_on))
+  g->add_msg("You are already listening to an mp3 player!");
  else {
   g->add_msg("You put in the earbuds and start listening to music.");
   it->make(g->itypes[itm_mp3_on]);
@@ -1888,6 +1947,8 @@ void iuse::mp3(game *g, player *p, item *it, bool t)
 void iuse::mp3_on(game *g, player *p, item *it, bool t)
 {
  if (t) {	// Normal use
+  if (!p->has_item(it))
+   return;	// We're not carrying it!
   p->add_morale(MORALE_MUSIC, 1, 50);
 
   if (int(g->turn) % 10 == 0) {	// Every 10 turns, describe the music
@@ -1939,6 +2000,58 @@ void iuse::vortex(game *g, player *p, item *it, bool t)
  vortex.friendly = -1;
  g->z.push_back(vortex);
 }
+
+void iuse::dog_whistle(game *g, player *p, item *it, bool t)
+{
+ if (!p->is_npc())
+  g->add_msg("You blow your dog whistle.");
+ for (int i = 0; i < g->z.size(); i++) {
+  if (g->z[i].friendly != 0 && g->z[i].type->id == mon_dog) {
+   int linet;
+   bool u_see = g->u_see(&(g->z[i]), linet);
+   if (g->z[i].has_effect(ME_DOCILE)) {
+    if (u_see)
+     g->add_msg("Your %s looks ready to attack.", g->z[i].name().c_str());
+    g->z[i].rem_effect(ME_DOCILE);
+   } else {
+    if (u_see)
+     g->add_msg("Your %s goes docile.", g->z[i].name().c_str());
+    g->z[i].add_effect(ME_DOCILE, -1);
+   }
+  }
+ }
+}
+
+void iuse::vacutainer(game *g, player *p, item *it, bool t)
+{
+ if (p->is_npc())
+  return; // No NPCs for now!
+
+ if (!it->contents.empty()) {
+  g->add_msg("That %s is full!", it->tname().c_str());
+  return;
+ }
+
+ item blood(g->itypes[itm_blood], g->turn);
+ bool drew_blood = false;
+ for (int i = 0; i < g->m.i_at(p->posx, p->posy).size() && !drew_blood; i++) {
+  item *it = &(g->m.i_at(p->posx, p->posy)[i]);
+  if (it->type->id == itm_corpse &&
+      query_yn("Draw blood from %s?", it->tname().c_str())) {
+   blood.corpse = it->corpse;
+   drew_blood = true;
+  }
+ }
+
+ if (!drew_blood && query_yn("Draw your own blood?"))
+  drew_blood = true;
+
+ if (!drew_blood)
+  return;
+
+ it->put_in(blood);
+}
+ 
 
 /* MACGUFFIN FUNCTIONS
  * These functions should refer to it->associated_mission for the particulars
@@ -2147,6 +2260,46 @@ void iuse::artifact(game *g, player *p, item *it, bool t)
     }
    }
    break;
+
+  case AEA_BUGS: {
+   int roll = rng(1, 10);
+   mon_id bug = mon_null;
+   int num = 0;
+   std::vector<point> empty;
+   for (int x = p->posx - 1; x <= p->posx + 1; x++) {
+    for (int y = p->posy - 1; y <= p->posy + 1; y++) {
+     if (g->is_empty(x, y))
+      empty.push_back( point(x, y) );
+    }
+   }
+   if (empty.empty() || roll <= 4)
+    g->add_msg("Flies buzz around you.");
+   else if (roll <= 7) {
+    g->add_msg("Giant flies appear!");
+    bug = mon_fly;
+    num = rng(2, 4);
+   } else if (roll <= 9) {
+    g->add_msg("Giant bees appear!");
+    bug = mon_bee;
+    num = rng(1, 3);
+   } else {
+    g->add_msg("Giant wasps appear!");
+    bug = mon_wasp;
+    num = rng(1, 2);
+   }
+   if (bug != mon_null) {
+    monster spawned(g->mtypes[bug]);
+    spawned.friendly = -1;
+    for (int i = 0; i < num && !empty.empty(); i++) {
+     int index = rng(0, empty.size() - 1);
+     point spawnp = empty[index];
+     empty.erase(empty.begin() + index);
+     spawned.spawn(spawnp.x, spawnp.y);
+     g->z.push_back(spawned);
+    }
+   }
+  } break;
+    
 
   case AEA_RADIATION:
    g->add_msg("Horrible gasses are emitted!");

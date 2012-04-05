@@ -54,7 +54,7 @@ void mdeath::boomer(game *g, monster *z)
    }
   }
  }
- if (abs(z->posx - g->u.posx) <= 1 && abs(z->posy - g->u.posy) <= 1)
+ if (rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) == 1)
   g->u.infect(DI_BOOMERED, bp_eyes, 2, 24, g);
 }
 
@@ -258,6 +258,8 @@ void mdeath::amigara(game *g, monster *z)
   if (count <= 1) { // We're the last!
    g->u.rem_disease(DI_AMIGARA);
    g->add_msg("Your obsession with the fault fades away...");
+   item art(g->new_artifact(), g->turn);
+   g->m.add_item(z->posx, z->posy, art);
   }
  }
  normal(g, z);
@@ -281,4 +283,9 @@ void mdeath::explode(game *g, monster *z)
   case MS_HUGE:   size = 26; break;
  }
  g->explosion(z->posx, z->posy, size, 0, false);
+}
+
+void mdeath::ratking(game *g, monster *z)
+{
+ g->u.rem_disease(DI_RAT);
 }

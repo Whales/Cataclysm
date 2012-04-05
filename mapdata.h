@@ -26,7 +26,7 @@ class monster;
 
 // mfb(t_flag) converts a flag to a bit for insertion into a bitfield
 #ifndef mfb
-#define mfb(n) long(pow(2,(long)n))
+#define mfb(n) long(1 << (n))
 #endif
 
 enum t_flag {
@@ -46,6 +46,7 @@ enum t_flag {
  goes_up,      // Can '<' to go up a level
  console,      // Used as a computer
  alarmed,      // Sets off an alarm if smashed
+ supports_roof,// Used as a boundary for roof construction
  num_t_flags   // MUST be last
 };
 
@@ -81,6 +82,7 @@ t_bars,
 t_door_c, t_door_b, t_door_o, t_door_locked, t_door_locked_alarm, t_door_frame,
  t_door_boarded,
 t_door_metal_c, t_door_metal_o, t_door_metal_locked,
+t_door_glass_c, t_door_glass_o,
 t_bulletin,
 t_portcullis,
 t_window, t_window_alarm, t_window_empty, t_window_frame, t_window_boarded,
@@ -107,11 +109,12 @@ t_counter,
 t_radio_tower, t_radio_controls,
 t_console_broken, t_console,
 t_sewage_pipe, t_sewage_pump,
+t_centrifuge,
 // Containers
 t_fridge, t_dresser,
 t_rack, t_bookcase,
 t_dumpster,
-t_vat,
+t_vat, t_crate_c, t_crate_o,
 // Staircases etc.
 t_stairs_down, t_stairs_up, t_manhole, t_ladder_up, t_ladder_down, t_slope_down,
  t_slope_up, t_rope_up,
@@ -128,7 +131,7 @@ num_terrain_types
 
 const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"nothing",	     ' ', c_white,   2,
-	mfb(transparent)},
+	mfb(transparent)|mfb(diggable)},
 {"empty space",      '#', c_black,   2,
 	mfb(transparent)},
 {"dirt",	     '.', c_brown,   2,
@@ -168,80 +171,91 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 {"half-built wall",  '#', c_brown,   4,
 	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)},
 {"wooden wall",      '#', c_brown,   0,
-	mfb(bashable)|mfb(flammable)|mfb(noitem)},
+	mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"wall",             '|', c_ltgray,  0,
-	mfb(flammable)|mfb(noitem)},
+	mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"wall",             '-', c_ltgray,  0,
-	mfb(flammable)|mfb(noitem)},
+	mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"metal wall",       '|', c_cyan,    0,
-	mfb(noitem)|mfb(noitem)},
+	mfb(noitem)|mfb(noitem)|mfb(supports_roof)},
 {"metal wall",       '-', c_cyan,    0,
-	mfb(noitem)|mfb(noitem)},
+	mfb(noitem)|mfb(noitem)|mfb(supports_roof)},
 {"glass wall",       '|', c_ltcyan,  0,
-	mfb(transparent)|mfb(bashable)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(noitem)|mfb(supports_roof)},
 {"glass wall",       '-', c_ltcyan,  0,
-	mfb(transparent)|mfb(bashable)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(noitem)|mfb(supports_roof)},
 {"glass wall",       '|', c_ltcyan,  0, // Alarmed
-	mfb(transparent)|mfb(bashable)|mfb(alarmed)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(alarmed)|mfb(noitem)|
+        mfb(supports_roof)},
 {"glass wall",       '-', c_ltcyan,  0, // Alarmed
-	mfb(transparent)|mfb(bashable)|mfb(alarmed)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(alarmed)|mfb(noitem)|
+        mfb(supports_roof)},
 {"reinforced glass", '|', c_ltcyan,  0,
-	mfb(transparent)|mfb(bashable)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(noitem)|mfb(supports_roof)},
 {"reinforced glass", '-', c_ltcyan,  0,
-	mfb(transparent)|mfb(bashable)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(noitem)|mfb(supports_roof)},
 {"metal bars",       '"', c_ltgray,  0,
 	mfb(transparent)|mfb(noitem)},
 {"closed wood door", '+', c_brown,   0,
-	mfb(bashable)|mfb(flammable)|mfb(door)|mfb(noitem)},
+	mfb(bashable)|mfb(flammable)|mfb(door)|mfb(noitem)|mfb(supports_roof)},
 {"damaged wood door",'&', c_brown,   0,
-	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)|
+        mfb(supports_roof)},
 {"open wood door",  '\'', c_brown,   2,
-	mfb(transparent)},
+	mfb(transparent)|mfb(supports_roof)},
 {"closed wood door", '+', c_brown,   0,	// Actually locked
-	mfb(bashable)|mfb(flammable)|mfb(noitem)},
+	mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"closed wood door", '+', c_brown,   0, // Locked and alarmed
-	mfb(bashable)|mfb(flammable)|mfb(alarmed)|mfb(noitem)},
+	mfb(bashable)|mfb(flammable)|mfb(alarmed)|mfb(noitem)|
+        mfb(supports_roof)},
 {"empty door frame", '.', c_brown,   2,
-	mfb(transparent)},
+	mfb(transparent)|mfb(supports_roof)},
 {"boarded up door",  '#', c_brown,   0,
-	mfb(bashable)|mfb(flammable)|mfb(noitem)},
+	mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"closed metal door",'+', c_cyan,    0,
-	mfb(noitem)},
+	mfb(noitem)|mfb(supports_roof)},
 {"open metal door", '\'', c_cyan,    2,
-	mfb(transparent)},
+	mfb(transparent)|mfb(supports_roof)},
 {"closed metal door",'+', c_cyan,    0, // Actually locked
-	mfb(noitem)},
+	mfb(noitem)|mfb(supports_roof)},
+{"closed glass door",'+', c_ltcyan,  0,
+	mfb(transparent)|mfb(bashable)|mfb(door)|mfb(noitem)|mfb(supports_roof)},
+{"open glass door", '\'', c_ltcyan,  2,
+	mfb(transparent)|mfb(supports_roof)},
 {"bulletin board",   '6', c_blue,    0,
 	mfb(noitem)},
 {"makeshift portcullis", '&', c_cyan, 0,
 	mfb(noitem)},
 {"window",	     '"', c_ltcyan,  0,
-	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)|
+        mfb(supports_roof)},
 {"window",	     '"', c_ltcyan,  0, // Actually alarmed
-	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(alarmed)|mfb(noitem)},
+	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(alarmed)|mfb(noitem)|
+        mfb(supports_roof)},
 {"empty window",     '0', c_yellow,  8,
-	mfb(transparent)|mfb(flammable)|mfb(noitem)},
+	mfb(transparent)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"window frame",     '0', c_ltcyan,  8,
-	mfb(transparent)|mfb(sharp)|mfb(flammable)|mfb(noitem)},
+	mfb(transparent)|mfb(sharp)|mfb(flammable)|mfb(noitem)|
+        mfb(supports_roof)},
 {"boarded up window",'#', c_brown,   0,
-	mfb(bashable)|mfb(flammable)|mfb(noitem)},
+	mfb(bashable)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"solid rock",       '#', c_white,   0,
-	mfb(noitem)},
+	mfb(noitem)|mfb(supports_roof)},
 {"odd fault",        '#', c_magenta, 0,
-	mfb(noitem)},
+	mfb(noitem)|mfb(supports_roof)},
 {"paper wall",       '#', c_white,   0,
 	mfb(bashable)|mfb(flammable)|mfb(noitem)},
 {"tree",	     '7', c_green,   0,
-	mfb(flammable)|mfb(noitem)},
+	mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"young tree",       '1', c_green,   0,
 	mfb(transparent)|mfb(bashable)|mfb(flammable)|mfb(noitem)},
 {"underbrush",       '#', c_green,   6,
 	mfb(transparent)|mfb(bashable)|mfb(diggable)|mfb(container)|mfb(rough)|
 	mfb(flammable)},
 {"root wall",        '#', c_brown,   0,
-	mfb(noitem)},
+	mfb(noitem)|mfb(supports_roof)},
 {"wax wall",         '#', c_yellow,  0,
-	mfb(container)|mfb(flammable)|mfb(noitem)},
+	mfb(container)|mfb(flammable)|mfb(noitem)|mfb(supports_roof)},
 {"wax floor",        '.', c_yellow,  2,
 	mfb(transparent)},
 {"picket fence",     '|', c_brown,   3,
@@ -306,6 +320,8 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(transparent)},
 {"sewage pump",      '&', c_ltgray,  0,
 	mfb(noitem)},
+{"centrifuge",       '{', c_magenta, 0,
+	mfb(transparent)},
 {"refrigerator",     '{', c_ltcyan,  0,
 	mfb(container)},
 {"dresser",          '{', c_brown,   0,
@@ -318,6 +334,11 @@ const ter_t terlist[num_terrain_types] = {  // MUST match enum ter_id above!
 	mfb(container)},
 {"cloning vat",      '0', c_ltcyan,  0,
 	mfb(transparent)|mfb(bashable)|mfb(container)|mfb(sealed)},
+{"crate",            '{', c_brown,   0,
+        mfb(transparent)|mfb(bashable)|mfb(container)|mfb(sealed)|
+        mfb(flammable)},
+{"open crate",       '{', c_brown,   0,
+        mfb(transparent)|mfb(bashable)|mfb(container)|mfb(flammable)},
 {"stairs down",      '>', c_yellow,  2,
 	mfb(transparent)|mfb(goes_down)|mfb(container)},
 {"stairs up",        '<', c_yellow,  2,
@@ -384,6 +405,7 @@ enum map_extra {
  mx_science,
  mx_stash,
  mx_drugdeal,
+ mx_supplydrop,
  mx_portal,
  mx_minefield,
  mx_wolfpack,
@@ -403,6 +425,7 @@ const int map_extra_chance[num_map_extras + 1] = {
 120,	// Science
 200,	// Stash
  20,	// Drug deal
+ 10,    // Supply drop
   5,	// Portal
  70,	// Minefield
  30,	// Wolf pack
@@ -411,6 +434,33 @@ const int map_extra_chance[num_map_extras + 1] = {
   8,	// Fumarole
   7,	// One-way portal into this world
   0	// Just a cap value; leave this as the last one
+};
+
+struct map_extras {
+ unsigned int chance;
+ int chances[num_map_extras + 1];
+ map_extras(unsigned int embellished, int helicopter = 0, int mili = 0,
+            int sci = 0, int stash = 0, int drug = 0, int supply = 0,
+            int portal = 0, int minefield = 0, int wolves = 0, int puddle = 0, 
+            int crater = 0, int lava = 0, int marloss = 0)
+            : chance(embellished)
+ {
+  chances[ 0] = 0;
+  chances[ 1] = helicopter;
+  chances[ 2] = mili;
+  chances[ 3] = sci;
+  chances[ 4] = stash;
+  chances[ 5] = drug;
+  chances[ 6] = supply;
+  chances[ 7] = portal;
+  chances[ 8] = minefield;
+  chances[ 9] = wolves;
+  chances[10] = puddle;
+  chances[11] = crater;
+  chances[12] = lava;
+  chances[13] = marloss;
+  chances[14] = 0;
+ }
 };
 
 struct field_t {
@@ -529,10 +579,15 @@ struct spawn_point {
  int posx, posy;
  int count;
  mon_id type;
+ int faction_id;
+ int mission_id;
  bool friendly;
+ std::string name;
  spawn_point(mon_id T = mon_null, int C = 0, int X = -1, int Y = -1,
-             bool F = false) :
-             posx (X), posy (Y), count (C), type (T), friendly (F) {}
+             int FAC = -1, int MIS = -1, bool F = false,
+             std::string N = "NONE") :
+             posx (X), posy (Y), count (C), type (T), faction_id (FAC),
+             mission_id (MIS), friendly (F), name (N) {}
 };
 
 struct submap {
@@ -541,6 +596,8 @@ struct submap {
  trap_id		trp[SEEX][SEEY]; // Trap on each square
  field			fld[SEEX][SEEY]; // Field on each square
  int			rad[SEEX][SEEY]; // Irradiation of each square
+ int active_item_count;
+ int field_count;
  std::vector<spawn_point> spawns;
  computer comp;
 };

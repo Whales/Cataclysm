@@ -4,7 +4,12 @@
 #include "skill.h"
 #include "game.h"
 #include <sstream>
-#include <curses.h>
+
+#if (defined _WIN32 || defined WINDOWS)
+	#include "catacurse.h"
+#else
+	#include <curses.h>
+#endif
 
 bool is_flammable(material m);
 
@@ -22,7 +27,7 @@ item::item()
  curammo = NULL;
  corpse = NULL;
  active = false;
- owned = false;
+ owned = -1;
  mission_id = -1;
  player_id = -1;
 }
@@ -39,7 +44,7 @@ item::item(itype* it, unsigned int turn)
  active = false;
  curammo = NULL;
  corpse = NULL;
- owned = false;
+ owned = -1;
  mission_id = -1;
  player_id = -1;
  if (it == NULL)
@@ -96,7 +101,7 @@ item::item(itype *it, unsigned int turn, char let)
  }
  curammo = NULL;
  corpse = NULL;
- owned = false;
+ owned = -1;
  invlet = let;
  mission_id = -1;
  player_id = -1;
@@ -139,6 +144,12 @@ bool item::is_null()
 
 item item::in_its_container(std::vector<itype*> *itypes)
 {
+ if (is_software()) {
+  item ret( (*itypes)[itm_usb_drive], 0);
+  ret.contents.push_back(*this);
+  ret.invlet = invlet;
+  return ret;
+ }
  if (!is_food() || (dynamic_cast<it_comest*>(type))->container == itm_null)
   return *this;
  it_comest *food = dynamic_cast<it_comest*>(type);
@@ -160,6 +171,14 @@ bool item::stacks_with(item rhs)
                 contents.size() == rhs.contents.size() &&
                 (!goes_bad() || bday == rhs.bday));
 
+ if ((corpse == NULL && rhs.corpse != NULL) ||
+     (corpse != NULL && rhs.corpse == NULL)   )
+  return false;
+
+ if (corpse != NULL && rhs.corpse != NULL &&
+     corpse->id != rhs.corpse->id)
+  return false;
+  
  if (contents.size() != rhs.contents.size())
   return false;
 
@@ -190,13 +209,8 @@ std::string item::save_info()
  std::stringstream dump;// (std::stringstream::in | std::stringstream::out);
  dump << " " << int(invlet) << " " << int(type->id) << " " <<  int(charges) <<
          " " << int(damage) << " " << int(burnt) << " " << poison << " " <<
-         ammotmp << " " <<
-         int(bday);
+         ammotmp << " " << owned << " " << int(bday);
  if (active)
-  dump << " 1";
- else
-  dump << " 0";
- if (owned)
   dump << " 1";
  else
   dump << " 0";
@@ -218,9 +232,9 @@ void item::load_info(std::string data, game *g)
 {
  std::stringstream dump;
  dump << data;
- int idtmp, ammotmp, lettmp, damtmp, burntmp, acttmp, owntmp, corp;
+ int idtmp, ammotmp, lettmp, damtmp, burntmp, acttmp, corp;
  dump >> lettmp >> idtmp >> charges >> damtmp >> burntmp >> poison >> ammotmp >>
-         bday >> acttmp >> owntmp >> corp >> mission_id >> player_id;
+         owned >> bday >> acttmp >> corp >> mission_id >> player_id;
  if (corp != -1)
   corpse = g->mtypes[corp];
  else
@@ -243,9 +257,6 @@ void item::load_info(std::string data, game *g)
  active = false;
  if (acttmp == 1)
   active = true;
- owned = false;
- if (owntmp == 1)
-  owned = true;
  if (is_gun() && ammotmp > 0)
   curammo = dynamic_cast<it_ammo*>(g->itypes[ammotmp]);
  else
@@ -315,9 +326,12 @@ std::string item::info(bool showtext)
   if (has_flag(IF_RELOAD_ONE))
    dump << " per round";
 
-  if (burst_size() == 0)
-   dump << "\n Semi-automatic.";
-  else
+  if (burst_size() == 0) {
+   if (gun->skill_used == sk_pistol && has_flag(IF_RELOAD_ONE))
+    dump << "\n Revolver.";
+   else
+    dump << "\n Semi-automatic.";
+  } else
    dump << "\n Burst size: " << burst_size();
   if (contents.size() > 0)
    dump << "\n";
@@ -527,6 +541,12 @@ std::string item::tname(game *g)
   if (name != "")
    ret << " of " << name;
   return ret.str();
+ } else if (type->id == itm_blood) {
+  if (corpse == NULL || corpse->id == mon_null)
+   ret << "human blood";
+  else
+   ret << corpse->name << " blood";
+  return ret.str();
  }
 
  if (is_gun() && contents.size() > 0) {
@@ -550,7 +570,7 @@ std::string item::tname(game *g)
   ret << " (rotten)";
 
 
- if (owned)
+ if (owned > 0)
   ret << " (owned)";
  return ret.str();
 }
@@ -626,7 +646,7 @@ int item::volume_contained()
 
 int item::attack_time()
 {
- return 50 + 4 * volume() + 2 * weight();
+ return 65 + 4 * volume() + 2 * weight();
 }
 
 int item::damage_bash()
@@ -755,8 +775,12 @@ bool item::made_of(material mat)
 
 bool item::conductive()
 {
- if ((type->m1 == IRON || type->m1 == STEEL || type->m1 == SILVER) &&
-     (type->m2 == IRON || type->m2 == STEEL || type->m2 == SILVER)   )
+ if ((type->m1 == IRON || type->m1 == STEEL || type->m1 == SILVER ||
+      type->m1 == MNULL) &&
+     (type->m2 == IRON || type->m2 == STEEL || type->m2 == SILVER ||
+      type->m2 == MNULL))
+  return true;
+ if (type->m1 == MNULL && type->m2 == MNULL)
   return true;
  return false;
 }
@@ -867,6 +891,11 @@ bool item::is_container()
 bool item::is_tool()
 {
  return type->is_tool();
+}
+
+bool item::is_software()
+{
+ return type->is_software();
 }
 
 bool item::is_macguffin()
@@ -1001,6 +1030,31 @@ int item::recoil(bool with_ammo)
  return ret;
 }
 
+int item::range(player *p)
+{
+ if (!is_gun())
+  return 0;
+ it_gun* gun = dynamic_cast<it_gun*>(type);
+ int ret = 0;
+ if (curammo != NULL)
+  ret += curammo->range;
+
+ if (has_flag(IF_STR8_DRAW) && p != NULL) {
+  if (p->str_cur < 4)
+   return 0;
+  else if (p->str_cur < 8)
+   ret -= 2 * (8 - p->str_cur);
+ } else if (has_flag(IF_STR10_DRAW) && p != NULL) {
+  if (p->str_cur < 5)
+   return 0;
+  else if (p->str_cur < 10)
+   ret -= 2 * (10 - p->str_cur);
+ }
+
+ return ret;
+}
+ 
+
 ammotype item::ammo_type()
 {
  if (is_gun()) {
@@ -1109,7 +1163,7 @@ Choose ammo type:         Damage     Armor Pierce     Range     Accuracy");
 bool item::reload(player &u, int index)
 {
  bool single_load = false;
- int max_load;
+ int max_load = 1;
  if (is_gun()) {
   single_load = has_flag(IF_RELOAD_ONE);
   if (u.inv[index].ammo_type() == AT_40MM && ammo_type() != AT_40MM)
@@ -1133,7 +1187,7 @@ bool item::reload(player &u, int index)
    }
    curammo = dynamic_cast<it_ammo*>((u.inv[index].type));
   }
-  if (single_load) {	// Only insert one cartridge!
+  if (single_load || max_load == 1) {	// Only insert one cartridge!
    charges++;
    u.inv[index].charges--;
   } else {
@@ -1145,9 +1199,8 @@ bool item::reload(player &u, int index)
     charges = max_load;
    }
   }
-  if (u.inv[index].charges == 0) {
+  if (u.inv[index].charges == 0)
    u.i_remn(index);
-  }
   return true;
  } else
   return false;

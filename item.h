@@ -37,6 +37,7 @@ public:
  int noise();
  int burst_size();
  int recoil(bool with_ammo = true);
+ int range(player *p = NULL);
  ammotype ammo_type();
  int pick_reload_ammo(player &u, bool interactive);
  bool reload(player &u, int index);
@@ -90,6 +91,7 @@ public:
  bool is_book();
  bool is_container();
  bool is_tool();
+ bool is_software();
  bool is_macguffin();
  bool is_other(); // Doesn't belong in other categories
  bool is_artifact();
@@ -107,7 +109,7 @@ public:
  signed char damage;    // How much damage it's sustained; generally, max is 5
  char burnt;		// How badly we're burnt
  unsigned int bday;     // The turn on which it was created
- bool owned;            // If true, NPCs will shout at you for picking it up
+ int owned;		// UID of NPC owner; 0 = player, -1 = unowned
  int poison;		// How badly poisoned is it?
 
  int mission_id;// Refers to a mission in game's master list

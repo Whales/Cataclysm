@@ -2,20 +2,38 @@
 #include "map.h"
 #include "game.h"
 
+#define INBOUNDS(x, y) \
+ (x >= 0 && x < SEEX * my_MAPSIZE && y >= 0 && y < SEEY * my_MAPSIZE)
+
 bool vector_has(std::vector <item> vec, itype_id type);
 
 bool map::process_fields(game *g)
 {
  bool found_field = false;
+ for (int x = 0; x < my_MAPSIZE; x++) {
+  for (int y = 0; y < my_MAPSIZE; y++) {
+   if (grid[x + y * my_MAPSIZE].field_count > 0)
+    found_field |= process_fields_in_submap(g, x + y * my_MAPSIZE);
+  }
+ }
+ return found_field;
+}
+
+bool map::process_fields_in_submap(game *g, int gridn)
+{
+ bool found_field = false;
  field *cur;
  field_id curtype;
- for (int x = 0; x < SEEX * 3; x++) {
-  for (int y = 0; y < SEEY * 3; y++) {
-   cur = &field_at(x, y);
+ for (int locx = 0; locx < SEEX; locx++) {
+  for (int locy = 0; locy < SEEY; locy++) {
+   cur = &(grid[gridn].fld[locx][locy]);
+   int x = locx + SEEX * (gridn % my_MAPSIZE),
+       y = locy + SEEY * int(gridn / my_MAPSIZE);
+   
    curtype = cur->type;
    if (!found_field && curtype != fd_null)
     found_field = true;
-   if (cur->density > 3)
+   if (cur->density > 3 || cur->density < 1)
     debugmsg("Whoooooa density of %d", cur->density);
 
   if (cur->age == 0)	// Don't process "newborn" fields
@@ -61,8 +79,8 @@ bool map::process_fields(game *g)
 
    case fd_fire: {
 // Consume items as fuel to help us grow/last longer.
-    bool destroyed;
-    int vol, smoke, consumed = 0;
+    bool destroyed = false;
+    int vol = 0, smoke = 0, consumed = 0;
     for (int i = 0; i < i_at(x, y).size() && consumed < cur->density * 2; i++) {
      destroyed = false;
      vol = i_at(x, y)[i].volume();
@@ -202,7 +220,7 @@ bool map::process_fields(game *g)
     for (int i = 0; i < 3; i++) {
      for (int j = 0; j < 3; j++) {
       int fx = x + ((i + starti) % 3) - 1, fy = y + ((j + startj) % 3) - 1;
-      if (fx >= 0 && fy >= 0 && fx < SEEX * 3 && fy < SEEY * 3) {
+      if (INBOUNDS(fx, fy)) {
        int spread_chance = 20 * (cur->density - 1) + 10 * smoke;
        if (has_flag(explodes, fx, fy) && one_in(8 - cur->density)) {
         ter(fx, fy) = ter_id(int(ter(fx, fy)) + 1);
@@ -431,7 +449,7 @@ bool map::process_fields(game *g)
 
    case fd_flame_burst:
     if (cur->density > 1)
-      cur->density--;
+     cur->density--;
     else {
      cur->type = fd_fire_vent;
      cur->density = 3;
@@ -498,8 +516,10 @@ bool map::process_fields(game *g)
      cur->age = 0;
      cur->density--;
     }
-    if (cur->density <= 0) // Totally dissapated.
-     field_at(x, y) = field();
+    if (cur->density <= 0) { // Totally dissapated.
+     grid[gridn].field_count--;
+     grid[gridn].fld[locx][locy] = field();
+    }
    }
   }
  }
@@ -516,10 +536,12 @@ void map::step_in_field(int x, int y, game *g)
    return;
 
   case fd_web: {
-   int web = cur->density * 5 - g->u.disease_level(DI_WEBBED);
-   if (web > 0)
-    g->u.add_disease(DI_WEBBED, web, g);
-   field_at(x, y) = field();
+   if (!g->u.has_trait(PF_WEB_WALKER)) {
+    int web = cur->density * 5 - g->u.disease_level(DI_WEBBED);
+    if (web > 0)
+     g->u.add_disease(DI_WEBBED, web, g);
+    remove_field(x, y);
+   }
   } break;
 
   case fd_acid:
@@ -540,7 +562,7 @@ void map::step_in_field(int x, int y, game *g)
   g->add_msg("The sap sticks to you!");
   g->u.add_disease(DI_SAP, cur->density * 2, g);
   if (cur->density == 1)
-   field_at(x, y) = field();
+   remove_field(x, y);
   else
    cur->density--;
   break;
@@ -640,7 +662,7 @@ void map::mon_in_field(int x, int y, game *g, monster *z)
   case fd_web:
    if (!z->has_flag(MF_WEBWALK)) {
     z->speed *= .8;
-    field_at(x, y) = field();
+    remove_field(x, y);
    }
 
   case fd_acid:
@@ -656,7 +678,7 @@ void map::mon_in_field(int x, int y, game *g, monster *z)
   case fd_sap:
    z->speed -= cur->density * 5;
    if (cur->density == 1)
-    field_at(x, y) = field();
+    remove_field(x, y);
    else
     cur->density--;
    break;
@@ -758,7 +780,7 @@ void map::mon_in_field(int x, int y, game *g, monster *z)
 
   case fd_electricity:
    dam = rng(1, cur->density);
-   if (one_in(8 - cur->density) && one_in(z->armor()))
+   if (one_in(8 - cur->density))
     z->moves -= cur->density * 150;
    break;
 

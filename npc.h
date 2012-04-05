@@ -51,6 +51,7 @@ enum npc_attitude {
 enum npc_mission {
  NPC_MISSION_NULL = 0,	// Nothing in particular
  NPC_MISSION_RESCUE_U,	// Find the player and aid them
+ NPC_MISSION_SHELTER,	// Stay in shelter, introduce player to game
  NPC_MISSION_SHOPKEEP,	// Stay still unless combat or something and sell stuff
 
  NPC_MISSION_MISSING,	// Special; following player to finish mission
@@ -61,6 +62,7 @@ enum npc_mission {
 enum npc_class {
  NC_NONE,
  NC_SHOPKEEP,	// Found in towns.  Stays in his shop mostly.
+ NC_HACKER,	// Weak in combat but has hacking skills and equipment
  NC_DOCTOR,	// Found in towns, or roaming.  Stays in the clinic.
  NC_TRADER,	// Roaming trader, journeying between towns.
  NC_NINJA,	// Specializes in unarmed combat, carries few items
@@ -119,22 +121,140 @@ struct npc_opinion {
  signed char trust;
  signed char fear;
  signed char value;
+ signed char anger;
+ int owed;
  npc_opinion() {
   trust = 0;
   fear  = 0;
   value = 0;
+  anger = 0;
+  owed  = 0;
+ };
+ npc_opinion(signed char T, signed char F, signed char V, signed char A, int O):
+             trust (T), fear (F), value (V), anger(A), owed (O) { };
+
+ npc_opinion(npc_opinion &copy)
+ {
+  trust = copy.trust;
+  fear = copy.fear;
+  value = copy.value;
+  anger = copy.anger;
+  owed = copy.owed;
+ };
+
+ npc_opinion& operator+= (npc_opinion &rhs)
+ {
+  trust += rhs.trust;
+  fear  += rhs.fear;
+  value += rhs.value;
+  anger += rhs.anger;
+  owed  += rhs.owed;
+  return *this;
+ };
+
+ npc_opinion& operator+ (npc_opinion &rhs)
+ {
+  return (npc_opinion(*this) += rhs);
  };
 };
+
+enum combat_engagement {
+ ENGAGE_NONE = 0,
+ ENGAGE_CLOSE,
+ ENGAGE_WEAK,
+ ENGAGE_HIT,
+ ENGAGE_ALL
+};
+
+struct npc_combat_rules
+{
+ combat_engagement engagement;
+ bool use_guns;
+ bool use_grenades;
+
+ npc_combat_rules()
+ {
+  engagement = ENGAGE_ALL;
+  use_guns = true;
+  use_grenades = true;
+ };
+};
+
+enum talk_topic {
+ TALK_NONE = 0,	// Used to go back to last subject
+ TALK_DONE,	// Used to end the conversation
+ TALK_MISSION_LIST, // List available missions. Intentionally placed above START
+ TALK_MISSION_LIST_ASSIGNED, // Same, but for assigned missions.
+
+ TALK_MISSION_START, // NOT USED; start of mission topics
+ TALK_MISSION_DESCRIBE, // Describe a mission
+ TALK_MISSION_OFFER, // Offer a mission
+ TALK_MISSION_ACCEPTED,
+ TALK_MISSION_REJECTED,
+ TALK_MISSION_ADVICE,
+ TALK_MISSION_INQUIRE,
+ TALK_MISSION_SUCCESS,
+ TALK_MISSION_SUCCESS_LIE, // Lie caught!
+ TALK_MISSION_FAILURE,
+ TALK_MISSION_END, // NOT USED: end of mission topics
+
+ TALK_MISSION_REWARD, // Intentionally placed below END
+
+ TALK_SHELTER,
+ TALK_SHELTER_PLANS,
+ TALK_SHARE_EQUIPMENT,
+ TALK_GIVE_EQUIPMENT,
+ TALK_DENY_EQUIPMENT,
+
+ TALK_SUGGEST_FOLLOW,
+
+ TALK_AGREE_FOLLOW,
+ TALK_DENY_FOLLOW,
+
+ TALK_SHOPKEEP,
+
+ TALK_FRIEND,
+
+ TALK_COMBAT_COMMANDS,
+ TALK_COMBAT_ENGAGEMENT,
+
+ TALK_SIZE_UP,
+ TALK_LOOK_AT,
+ TALK_OPINION,
+
+ NUM_TALK_TOPICS
+};
+
+struct npc_chatbin
+{
+ std::vector<int> missions;
+ std::vector<int> missions_assigned;
+ int mission_selected;
+ talk_topic first_topic;
+
+ npc_chatbin()
+ {
+  mission_selected = -1;
+  first_topic = TALK_NONE;
+ }
+};
+
+std::string random_first_name(bool male);
+
+std::string random_last_name();
 
 class npc : public player {
 
 public:
 
  npc();
+ //npc(npc& rhs);
+ npc(const npc &rhs);
  ~npc();
  virtual bool is_npc() { return true; }
 
- npc& operator= (npc rhs);
+ npc& operator= (npc &rhs);
+ npc& operator= (const npc &rhs);
 
 // Generating our stats, etc.
  void randomize(game *g, npc_class type = NC_NONE);
@@ -154,7 +274,8 @@ public:
 // Display
  void draw(WINDOW* w, int plx, int ply, bool inv);
  void print_info(WINDOW* w);
-
+ std::string short_description();
+ std::string opinion_text();
 
 // Goal / mission functions
  void pick_long_term_goal(game *g);
@@ -167,8 +288,11 @@ public:
 // Interaction with the player
  void form_opinion(player *u);
  int  player_danger(player *u); // Comparable to monsters
+ bool turned_hostile(); // True if our anger is at least equal to...
+ int hostile_anger_level(); // ... this value!
  void make_angry(); // Called if the player attacks us
  bool wants_to_travel_with(player *p);
+ int assigned_missions_value(game *g);
 // State checks
  bool is_enemy(); // We want to kill/mug/etc the player
  bool is_following(); // Traveling w/ player (whether as a friend or a slave)
@@ -201,12 +325,13 @@ public:
  virtual bool wield(game *g, int index);
  bool has_healing_item();
  bool has_painkiller();
+ bool took_painkiller();
  void use_painkiller(game *g);
  void activate_item(game *g, int index);
 
-
 // Interaction and assessment of the world around us
  int  danger_assessment(game *g);
+ int  average_damage_dealt(); // Our guess at how much damage we can deal
  bool bravery_check(int diff);
  bool emergency(int danger);
  void say(game *g, std::string line, ...);
@@ -231,7 +356,7 @@ public:
  npc_action address_needs	(game *g, int danger);
  npc_action address_player	(game *g);
  npc_action long_term_goal_action(game *g);
- bool alt_attack_available();	// Do we have grenades, molotov, etc?
+ bool alt_attack_available(game *g);	// Do we have grenades, molotov, etc?
  int  choose_escape_item(); // Returns index of our best escape aid
 
 // Helper functions for ranged combat
@@ -254,6 +379,7 @@ public:
  void find_item		(game *g); // Look around and pick an item
  void pick_up_item	(game *g); // Move to, or grab, our targeted item
  void drop_items	(game *g, int weight, int volume); // Drop wgt and vol
+ npc_action scan_new_items(game *g, int target);
 
 // Combat functions and player interaction functions
  void melee_monster	(game *g, int target);
@@ -282,6 +408,7 @@ public:
 
  int id;	// A unique ID number, assigned by the game class
  npc_attitude attitude;	// What we want to do to the player
+ npc_class myclass; // What's our archetype?
  int wandx, wandy, wandf;	// Location of heard sound, etc.
 
 // Location:
@@ -292,6 +419,7 @@ public:
  int goalx, goaly;// Which mapx:mapy square we want to get to
 
  bool fetching_item;
+ bool has_new_items; // If true, we have something new and should re-equip
  int  worst_item_value; // The value of our least-wanted item
 
  std::vector<point> path;	// Our movement plans
@@ -303,6 +431,9 @@ public:
  npc_mission mission;
  npc_personality personality;
  npc_opinion op_of_u;
+ npc_chatbin chatbin;
+ npc_combat_rules combat_rules;
+ bool marked_for_death; // If true, we die as soon as we respawn!
  std::vector<npc_need> needs;
  unsigned flags : NF_MAX;
 };

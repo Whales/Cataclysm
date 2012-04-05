@@ -12,6 +12,7 @@
 #define C_EYES   c_cyan
 #define C_HAT    c_dkgray
 #define C_STORE  c_green
+#define C_DECOR  c_ltgreen
 
 // GENERAL GUIDELINES
 // When adding a new item, you MUST REMEMBER to insert it in the itype_id enum
@@ -137,7 +138,7 @@ DRINK("ammonia",	24, 30,	c_yellow, itm_bottle_plastic,
 Don't drink it.  Mixing it with bleach produces toxic gas.");
 
 DRINK("mutagen",	 8,8000,c_magenta,itm_bottle_glass,
-	  0, 0,  0,  0, -2,  0,  1,  0,&iuse::mutagen,	ADD_NULL, "\
+	  0, 0,  0,  0, -2,  0,  1,  0,&iuse::mutagen_3,ADD_NULL, "\
 A rare substance of uncertain origins.  Causes you to mutate.");
 
 DRINK("purifier",	12,16000,c_pink,  itm_bottle_glass,
@@ -151,9 +152,14 @@ DRINK("tea",		1, 50,	c_green, itm_bottle_plastic,
 Tea, the beverage of gentlemen everywhere.");
 
 DRINK("coffee",		1, 50,	c_brown, itm_bottle_plastic,
-//	QUE NUT SPO STM HTH ADD CHG FUN use_func	addiction type
 	40,  3,  0,  12,  0,  0,  1, 6,&iuse::caff,	ADD_CAFFEINE, "\
 Coffee. The morning ritual of the pre-apocalypse world.");
+
+//     NAME		RAR PRC	COLOR     CONTAINER
+DRINK("blood",		 20,  0, c_red, itm_vacutainer,
+//	QUE NUT SPO STM HTH ADD CHG FUN use_func	addiction type
+	  5,  5,  0,  0, -8,  0,  1,-50,&iuse::none,	ADD_NULL, "\
+Blood, possibly that of a human.  Disgusting!");
 
 #define FOOD(name,rarity,price,color,mat1,container,volume,weight,quench,\
 nutr,spoils,stim,healthy,addict,charges,fun,use_func,addict_func,des) \
@@ -417,8 +423,13 @@ FOOD("pizza",		 8, 80, c_ltred,	VEGGY,	itm_box_small,
 A vegetarian pizza, with delicious tomato sauce and a fluffy crust.  Its\n\
 smell brings back great memories.");
 
-FOOD("MRE",		50,100, c_green,	FLESH,	itm_null,
+FOOD("MRE - beef",		50,100, c_green,	FLESH,	itm_null,
     2,  1,  0, 50,  0,  0,  1,  0,  1, -4,	&iuse::none,	ADD_NULL, "\
+Meal Ready to Eat.  A military ration.  Though not very tasty, it is very\n\
+filling and will not spoil.");
+
+FOOD("MRE - vegetable",		50,100, c_green,	VEGGY,	itm_null,
+    2,  1,  0, 40,  0,  0,  1,  0,  1, -4,	&iuse::none,	ADD_NULL, "\
 Meal Ready to Eat.  A military ration.  Though not very tasty, it is very\n\
 filling and will not spoil.");
 
@@ -554,6 +565,10 @@ MED("cigars",		 5,120,	c_dkgray,	itm_lighter,
 	VEGGY,    1, -1, 40, 10, 15,&iuse::cig,		ADD_CIG, "\
 A gentleman's vice. Cigars are what separates a gentleman from a savage.");
 
+MED("antibiotics",	25,900, c_pink,		itm_null,
+	PLASTIC,   0, -2,  0, 15,  0,&iuse::none,	ADD_NULL, "\
+Medication designed to stop the spread of, and kill, bacteria infections.");
+
 // MELEE WEAPONS
 // Only use secondary material if it will have a major impact.
 // dam is a somewhat rigid bonus--anything above 30, tops, is ridiculous
@@ -576,7 +591,7 @@ MELEE("syringe",	 8, 25, ',', c_ltcyan,	PLASTIC,MNULL,
 A medical syringe.  Used for administering heroin and other drugs.");
 
 MELEE("rag",		72, 10, ';', c_dkgray,	COTTON,	MNULL,
-	 2,  1,-10,  0,  0, 0, "\
+	 1,  1,-10,  0,  0, 0, "\
 A small piece of cloth.  Useful for making molotov cocktails and not much else."
 );
 
@@ -753,9 +768,13 @@ A long piece of wood with several nails through one end; essentiall a simple\n\
 mace.  Makes a great melee weapon.");
 
 MELEE("X-Acto knife",	10,  40,';', c_dkgray,	IRON,	PLASTIC,
-	 1,  2,  0, 14, -4, mfb(IF_SPEAR), "\
+	 1,  0,  0, 14, -4, mfb(IF_SPEAR), "\
 A small, very sharp knife.  Causes decent damage but is difficult to hit with."
 );
+
+MELEE("scalpel",	48,  40,',', c_cyan,	STEEL,	MNULL,
+	 1,  0,  0, 18, -4, mfb(IF_SPEAR), "\
+A small, very sharp knife, used in surgery.");
 
 MELEE("pot",		25,  45,')', c_ltgray,	IRON,	MNULL,
 	 8,  6,  9,  0,  1, 0, "\
@@ -889,6 +908,16 @@ MELEE("walking cane",   10, 160,'/', c_ltred,	WOOD,	MNULL,
 Handicapped or not, you always walk in style.  Consisting of a metal\n\
 headpiece and a wooden body, this makes a great bashing weapon in a pinch.");
 
+MELEE("binoculars",	20, 300,';', c_ltgray,	PLASTIC,GLASS,
+	  2,  3,  6,  0, -1, 0, "\
+A tool useful for seeing long distances.  Simply carrying this item in your\n\
+inventory will double the distance that is mapped around you during your\n\
+travels.");
+
+MELEE("USB drive",	 5, 100,',', c_white,	PLASTIC,MNULL,
+	  0,  0,  0,  0,  0, 0, "\
+A USB thumb drive.  Useful for holding software.");
+
 // ARMOR
 #define ARMOR(name,rarity,price,color,mat1,mat2,volume,wgt,dam,to_hit,\
 encumber,dmg_resist,cut_resist,env,warmth,storage,covers,des)\
@@ -972,13 +1001,18 @@ ARMOR("dress",		70, 180,C_BODY,		COTTON,		MNULL,
 A long cotton dress.  Difficult to move in and lacks any storage space.");
 
 ARMOR("chitinous armor", 1,1200,C_BODY,		FLESH,		MNULL,
-   90, 10,  2, -5,  2,  8, 14,  0,  1,  0,	mfb(bp_legs)|mfb(bp_torso), "\
+   70, 10,  2, -5,  2,  8, 14,  0,  1,  0,	mfb(bp_legs)|mfb(bp_torso), "\
 Leg and body armor made from the exoskeletons of insects.  Light and durable.");
 
 ARMOR("suit",		60, 180,C_BODY,		COTTON,		MNULL,
    10,  7, -5, -5,  1,  0,  1,  0,  2,  10,	mfb(bp_legs)|mfb(bp_torso), "\
 A full-body cotton suit. Makes the apocalypse a truly gentlemanly\n\
 experience.");
+
+ARMOR("hazmat suit",	10,1000,C_BODY,		PLASTIC,	MNULL,
+   20, 8, -5,  -8,  4,  0,  0,10,  2, 12,	mfb(bp_legs)|mfb(bp_torso), "\
+A hazardous materials suit.  Though quite bulky and cumbersome, wearing it\n\
+will provide excellent protection against ambient radiation.");
 
 //     NAME		RAR PRC	COLOR		MAT1		MAT2
 ARMOR("t shirt",	80,  80,C_TORSO,	COTTON,		MNULL,
@@ -1281,9 +1315,21 @@ ARMOR("holster",	 8,  90,C_STORE,	LEATHER,	MNULL,
     2,  2,  2, -1,  0,  0,  0,  0,  0,  3,	0, "\
 Provides a bit of extra storage without encumbering you at all.");
 
+//     NAME		RAR PRC	COLOR		MAT1		MAT2
 ARMOR("bootstrap",	 3,  80,C_STORE, 	LEATHER,	MNULL,
+// VOL WGT DAM HIT ENC RES CUT ENV WRM STO	COVERS
     1,  1, -1, -1,  0,  0,  0,  0,  1,  2,	mfb(bp_legs), "\
 A small holster worn on the ankle.");
+
+ARMOR("gold ring",	12, 600,C_DECOR,	SILVER,		MNULL,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,	0,	"\
+A flashy gold ring.  You can wear it if you like, but it won't provide\n\
+any effects.");
+
+ARMOR("silver necklace",14, 500,C_DECOR,	SILVER,		MNULL,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,	0,	"\
+A nice silver necklace.  You can wear it if you like, but it won't provide\n\
+any effects.");
 
 // AMMUNITION
 // Material should be the wrapper--even though shot is made of iron, because
@@ -1645,7 +1691,7 @@ mfb(IF_AMMO_INCENDIARY));
 color,LIQUID,1,1,0,0,0,flags,ammo_type,dmg,AP,accuracy,recoil,range,count))
 FUEL("gasoline",	0, 400,   AT_GAS,	c_ltred,
 //	DMG  AP RNG ACC REC COUNT
-	 0,  0,  4,  0,  0,  1, "\
+	 0,  0,  4,  0,  0,  200, "\
 Gasoline is a highly flammable liquid.  When under pressure, it has the\n\
 potential for violent explosion.",
 mfb(IF_AMMO_FLAME));
@@ -1688,18 +1734,18 @@ mfb(IF_STR_RELOAD));
 //  NAME		RAR PRC COLOR		MAT1	MAT2
 GUN("compound bow",      2, 700,c_yellow,       STEEL,  PLASTIC,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
-        sk_archery,     AT_ARROW,12, 8,  8,  1,  0, 16,  0,  6,  0,  1, 400, "\
+        sk_archery,     AT_ARROW,12, 8,  8,  1,  0, 16,  0,  6,  0,  1, 100, "\
 A bow with wheels that fires high velocity arrows.  Weaker people can use\n\
 compound bows more easily.  Arrows fired from this weapon have a good chance\n\
 of remaining intact for re-use.",
-mfb(IF_STR8_DRAW));
+mfb(IF_STR8_DRAW)|mfb(IF_RELOAD_AND_SHOOT));
         
 GUN("longbow",           5, 400,c_yellow,       WOOD,   MNULL,
-        sk_archery,     AT_ARROW,8, 4, 10,  0,  0, 12,  0,  6,  0,  1, 400, "\
+        sk_archery,     AT_ARROW,8, 4, 10,  0,  0, 12,  0,  6,  0,  1,  80, "\
 A six-foot wooden bow that fires feathered arrows.  This takes a fair amount\n\
 of strength to draw.  Arrows fired from this weapon have a good chance of\n\
 remaining intact for re-use.",
-mfb(IF_STR10_DRAW));
+mfb(IF_STR10_DRAW)|mfb(IF_RELOAD_AND_SHOOT));
 
 GUN("pipe rifle: .22",	0,  400,c_ltblue,	IRON,	WOOD,
 sk_rifle,	AT_22,	 9, 13, 10,  2, -2, 15,  2,  6,  0,  1, 250, "\
@@ -1830,16 +1876,16 @@ The barrels of shotguns are often sawed in half to make it more maneuverable\n\
 and concealable.  This has the added effect of reducing accuracy greatly.",
 mfb(IF_RELOAD_ONE));
 
+//  NAME		RAR PRC COLOR	MAT1	MAT2
 GUN("single barrel shotgun",1,300,c_red,IRON,	WOOD,
-	sk_shotgun,	AT_SHOT,10, 20, 14,  3,  0,  6,  5,  6,  0,  1, 100, "\
+//	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
+	sk_shotgun,	AT_SHOT,12, 20, 14,  3,  0,  6,  5,  6,  0,  1, 100, "\
 An old shotgun, possibly antique.  It is little more than a barrel, a wood\n\
 stock, and a hammer to strike the cartridge.  Its simple design keeps it both\n\
 light and accurate.",
 0);
 
-//  NAME		RAR PRC COLOR	MAT1	MAT2
 GUN("double barrel shotgun",2,580,c_red,IRON,	WOOD,
-//	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	sk_shotgun,	AT_SHOT,12, 26, 15,  3,  0,  7,  4,  7,  2,  2, 100, "\
 An old shotgun, possibly antique.  It is little more than a pair of barrels,\n\
 a wood stock, and a hammer to strike the cartridge.",
@@ -1858,16 +1904,16 @@ The Mossberg 500 is a popular series of pump-action shotguns, often acquired\n\
 for military use.  It is noted for its high durability and low recoil.",
 mfb(IF_RELOAD_ONE));
 
+//  NAME		RAR PRC COLOR	MAT1	MAT2
 GUN("Saiga-12",		 3,1100,c_red,	STEEL,	PLASTIC,
+//	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	sk_shotgun,	AT_SHOT,15, 36, 17,  3,  0, 17,  2,  7,  4, 10, 500, "\
 The Saiga-12 shotgun is designed on the same Kalishnikov pattern as the AK47\n\
 rifle.  It reloads with a magazine, rather than one shell at a time like most\n\
 shotguns.",
 0);
 
-//  NAME		RAR PRC COLOR	MAT1	MAT2
 GUN("American-180",	 2, 800,c_cyan, STEEL,	MNULL,
-//	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	sk_smg,		AT_22,  12, 23, 11,  0,  2, 20,  0,  6, 20,165, 500, "\
 The American-180 is a submachine gun developed in the 1960s which fires .22\n\
 LR, unusual for an SMG.  Though the round is low-powered, the high rate of\n\
@@ -1881,7 +1927,9 @@ submachine gun.  It is widely used as a personal defense weapon, or as a\n\
 primary weapon by elite frontline forces.",
 0);
 
+//  NAME		RAR PRC COLOR	MAT1	MAT2
 GUN("TEC-9",		10, 880,c_cyan,	STEEL,	MNULL,
+//	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	sk_smg,		AT_9MM,	 5, 12,  9,  1,  3, 24,  0,  6,  6, 32, 400, "\
 The TEC-9 is a machine pistol made of cheap polymers and machine stamped\n\
 parts.  Its rise in popularity among criminals is largely due to its\n\
@@ -2090,18 +2138,18 @@ its bolts to be extremely deadly.",
 0);
 
 //  NAME		RAR PRC COLOR	 MAT1	MAT2
-GUN("simple flamethrower",1,800,c_pink,	STEEL,	PLASTIC,
+GUN("simple flamethr.",1,800,c_pink,	STEEL,	PLASTIC,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
-	sk_shotgun,	AT_GAS, 16,  8,   8, -1, -5,  6,  0,  6,  0, 12, 800, "\
+	sk_shotgun,	AT_GAS, 16,  8,   8, -1, -5,  6,  0,  6,  0,800, 800, "\
 A simple, home-made flamethrower.  While its capacity is not superb, it is\n\
 more than capable of igniting terrain and monsters alike.",
-0);
+mfb(IF_FIRE_100));
 
 GUN("flamethrower",	 1,1800,c_pink,	STEEL,	MNULL,
-	sk_shotgun,	AT_GAS, 20, 14, 10, -2, 10,  4,  0,  8,  4, 100, 900, "\
+	sk_shotgun,	AT_GAS, 20, 14, 10, -2, 10,  4,  0,  8,  4,1600, 900, "\
 A large flamethrower with substantial gas reserves.  Very manacing and\n\
 deadly.",
-0);
+mfb(IF_FIRE_100));
 
 GUN("tube 40mm launcher",0, 800,c_ltred,STEEL,	WOOD,
 	sk_launcher,	AT_40MM,12, 20, 13, -1,  0, 16,  0,  6, 0,  1, 350, "\
@@ -2635,7 +2683,7 @@ broadcast and play them audibly.");
 //	NAME		RAR PRC	SYM  COLOR	MAT1	MAT
 TOOL("radio (on)",	 0, 420,';', c_yellow,	PLASTIC, IRON,
 // VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
-    4,  2,  4,  0, -1, 500,500, 0,  8, AT_BATT, itm_radio,&iuse::radio_on, 0,"\
+    4,  2,  4,  0, -1, 100,100, 0,  8, AT_BATT, itm_radio,&iuse::radio_on, 0,"\
 This radio is turned on, and continually draining its batteries.  It is\n\
 playing the broadcast being sent from any nearby radio towers.");
 
@@ -2655,14 +2703,14 @@ TOOL("shovel",		40, 100,'/', c_brown,	IRON,	WOOD,
 A digging tool.  Use it to dig pits adjacent to your location.");
 
 TOOL("chainsaw (off)",	 7, 350,'/', c_red,	IRON,	PLASTIC,
-   12, 40, 10,  0, -4,1000, 0,  0,  0, AT_GAS,	itm_null, &iuse::chainsaw_off,0,
+   12, 40, 10,  0, -4, 400, 0,  0,  0, AT_GAS,	itm_null, &iuse::chainsaw_off,0,
 "Using this item will, if loaded with gas, cause it to turn on, making a very\n\
 powerful, but slow, unwieldy, and noisy, melee weapon.");
 
 //	NAME		RAR VAL	SYM  COLOR	MAT1	MAT
 TOOL("chainsaw (on)",	 0, 350,'/', c_red,	IRON,	PLASTIC,
 // VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
-   12, 40,  4, 70, -5,1000, 0,  0,  1, AT_GAS,	itm_chainsaw_off,
+   12, 40,  4, 70, -5, 400, 0,  0,  1, AT_GAS,	itm_chainsaw_off,
 	&iuse::chainsaw_on, mfb(IF_MESSY), "\
 This chainsaw is on, and is continuously draining gasoline.  Use it to turn\n\
 it off.");
@@ -2830,7 +2878,21 @@ TOOL("molotov cocktail (lit)",0,0,'*', c_ltred,	GLASS,	COTTON,
 cause the bottle to break, spreading fire.  The flame may go out shortly if\n\
 you do not throw it.  Dropping it while lit is not safe.");
 
+TOOL("acid bomb", 	  0,500,'*', c_yellow,	GLASS,	MNULL,
+     1,  1,  4,  0, -1,  0,  0,  0,  0,AT_NULL,	itm_null, &iuse::acidbomb,0,"\
+A glass vial, split into two chambers.  The divider is removable, which will\n\
+cause the chemicals to mix.  If this mixture is exposed to air (as happens\n\
+if you throw the vial) they will spill out as a pool of potent acid.");
+
+TOOL("acid bomb (active)",0,  0,'*', c_yellow, GLASS, MNULL,
+    1,  1,  4,  0,  -1,  0,  0,  0,  0,AT_NULL,itm_null,&iuse::acidbomb_act,0,"\
+A glass vial, with two chemicals mixing inside.  If this mixture is exposed\n\
+to air (as happens if you throw the vial), they will spill out as a pool of\n\
+potent acid.");
+
+//	NAME		RAR PRC SYM  COLOR	MAT1	MAT
 TOOL("dynamite",	5,  700,'*', c_red,	PLASTIC,MNULL,
+// VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
     6, 10,  4,  0, -3,  0,  0,  0,  0, AT_NULL,	itm_null, &iuse::dynamite,0,"\
 Several sticks of explosives with a fuse attached.  Use this item to light\n\
 the fuse; you will, of course, need a lighter in your inventory to do this.\n\
@@ -2846,14 +2908,14 @@ An extremely powerful weapon--essentially a hand-held nuclear bomb.  Use it\n\
 to activate the timer.  Ten turns later it will explode, leaving behind a\n\
 radioactive crater.  The explosion is large enough to take out a house.");
 
-//	NAME		RAR PRC SYM  COLOR	MAT1	MAT
 TOOL("mininuke (active)",0,   0,'*', c_ltgreen,	STEEL,	PLASTIC,
-// VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
     3,  4,  8,  0, -2,  0,  0,  0,  1, AT_NULL, itm_null, &iuse::mininuke_act,0,
 "This miniature nuclear bomb has a light blinking on the side, showing that\n\
 it will soon explode.  You should probably get far away from it.");
 
+//	NAME		RAR PRC SYM  COLOR	MAT1	MAT
 TOOL("zombie pheromone",1,  400,'*', c_yellow,	FLESH,	PLASTIC,
+// VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
     1,  1, -5,  0, -1,  3,  3,  1,  0, AT_NULL,	itm_null, &iuse::pheromone,0,"\
 This is some kind of disgusting ball of rotting meat.  Squeezing it causes a\n\
 small cloud of pheromones to spray into the air, causing nearby zombies to\n\
@@ -2915,23 +2977,39 @@ A stone with spirals all over it, and holes around its perimeter.  Though it\n\
 is fairly large, it weighs next to nothing.  Air seems to gather around it.");
 
 TOOL("dog food",         5,  60,';',c_red,     FLESH,     MNULL,
-	1,  2,  0,  0,  -5,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::dogfood, 0, "\
+    1,  2,  0,  0,  -5,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::dogfood, 0, "\
 Food for dogs. It smells strange, but dogs love it.");
 
-TOOL("booby trap",         0,  500,';',c_ltcyan,     STEEL,	PLASTIC,
-	3,  2,  0,  0,  -4,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::set_trap, 0, "\
+//	NAME		RAR PRC SYM  COLOR	MAT1	MAT
+TOOL("booby trap",        0,500,';',c_ltcyan,   STEEL,	PLASTIC,
+// VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
+     3,  2,  0,  0, -4,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::set_trap, 0, "\
 A crude explosive device triggered by a piece of string.");
 
-TOOL("C4-Explosive",         5,  6000,';',c_ltcyan,     PLASTIC,     STEEL,
-	6,  2,  0,  0,  -4,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::c4, 0, "\
+TOOL("C4-Explosive",      5, 6000,';',c_ltcyan, PLASTIC,     STEEL,
+     6,  2,  0,  0, -4,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::c4, 0, "\
 Highly explosive, use with caution! Armed with a small timer.");
 
-TOOL("C4-Explosive(armed)",         0,  6000,';',c_ltcyan,     PLASTIC,     STEEL,
-	6,  2,  0,  0,  -4,  9,  9,  0,  1, AT_NULL, itm_null, &iuse::c4armed, 0, "\
+TOOL("C4-Explosive(armed)",0,6000,';',c_ltcyan, PLASTIC,     STEEL,
+     6,  2,  0,  0, -4,  9,  9,  0,  1, AT_NULL, itm_null, &iuse::c4armed, 0, "\
 Highly explosive, use with caution. Comes with a small timer.\n\
 It's armed and ticking!");
 
+TOOL("dog whistle",	  0,  300,';',c_white,	STEEL,	MNULL,
+     0,  0,  0,  0,  0,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::dog_whistle,
+0, "\
+A small whistle.  When used, it produces a high tone which causes nearby\n\
+friendly dogs to either follow you closely and stop attacking, or to start\n\
+attacking enemies if they are currently docile.");
 
+//	NAME		RAR PRC SYM  COLOR	MAT1	MAT
+TOOL("vacutainer",	 10,300,';', c_ltcyan,	PLASTIC,MNULL,
+// VOL WGT DAM CUT HIT MAX DEF USE SEC FUEL	REVERT	  FUNCTION
+     1,  0,  0,  6, -3,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::vacutainer,
+mfb(IF_SPEAR), "\
+A tool for drawing blood, including a vacuum-sealed test tube for holding the\n\
+sample.  Use this tool to draw blood, either from yourself or from a corpse\n\
+you are standing on.");
 
 // BIONICS
 // These are the modules used to install new bionics in the player.  They're
@@ -2946,7 +3024,7 @@ BIO("CBM: Internal Battery",	24, 3800,	c_green,	 1, "\
 Compact Bionics Module which upgrades your power capacity by 4 units. Having\n\
 at least one of these is a prerequisite to using powered bionics.  You will\n\
 also need a power supply, found in another CBM.",
-    NULL); // This is a special case, which increases power capacity by 10
+    NULL); // This is a special case, which increases power capacity by 4
 
 BIO("CBM: Power Sources",	18, 5000,	c_yellow,	 4, "\
 Compact Bionics Module containing the materials necessary to install any one\n\
@@ -3040,6 +3118,27 @@ Good for those who want a gun on occasion, but do not wish to carry lots of\n\
 heavy ammunition and weapons.",
     bio_blaster, bio_laser, bio_emp, NULL);
 
+// SOFTWARE
+
+#define SOFTWARE(name, price, swtype, power, description) \
+index++; itypes.push_back(new it_software(index, 0, price, name, description,\
+	' ', c_white, MNULL, MNULL, 0, 0, 0, 0, 0, 0, swtype, power))
+SOFTWARE("misc software", 300, SW_USELESS, 0, "\
+A miscellaneous piece of hobby software.  Probably useless.");
+
+SOFTWARE("hackPRO", 800, SW_HACKING, 2, "\
+A piece of hacking software.");
+
+SOFTWARE("MediSoft", 600, SW_MEDICAL, 2, "\
+A piece of medical software.");
+
+SOFTWARE("MatheMAX", 500, SW_SCIENCE, 3, "\
+A piece of mathematical software.");
+
+SOFTWARE("infection data", 200, SW_DATA, 5, "\
+Medical data on zombie blood.");
+
+
 #define MACGUFFIN(name, price, sym, color, mat1, mat2, volume, wgt, dam, cut,\
                   to_hit, readable, function, description) \
 index++; itypes.push_back(new it_macguffin(index, 0, price, name, description,\
@@ -3076,6 +3175,9 @@ GUN("fusion blaster",	 0,0,c_magenta,	STEEL,	PLASTIC,
 //	SKILL		AMMO	   VOL WGT MDG HIT DMG ACC REC DUR BST CLIP REL
 	sk_rifle,	AT_FUSION, 12,  0,  0,  0,  0,  4,  0, 10,  0,  1, 500,
 "",0);
+
+
+
  if (itypes.size() != num_all_items)
   debugmsg("%d items, %d itypes (+bio)", itypes.size(), num_all_items - 1);
 

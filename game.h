@@ -19,6 +19,8 @@
 #include "construction.h"
 #include "calendar.h"
 #include "posix_time.h"
+#include "artifact.h"
+#include "mutation.h"
 #include <vector>
 
 #define LONG_RANGE 10
@@ -52,6 +54,7 @@ struct mission_type;
 class map;
 class player;
 class calendar;
+struct mutation_branch;
 
 class game
 {
@@ -102,12 +105,25 @@ class game
                   std::vector<point> &trajectory);
   void cancel_activity();
   void cancel_activity_query(std::string message);
+  int assign_mission_id(); // Just returns the next available one
   void give_mission(mission_id type);
+  void assign_mission(int id);
 // reserve_mission() creates a new mission of the given type and pushes it to
 // active_missions.  The function returns the UID of the new mission, which can
 // then be passed to a MacGuffin or something else that needs to track a mission
-  int reserve_mission(mission_id type);
+  int reserve_mission(mission_id type, int npc_id = -1);
+  int reserve_random_mission(mission_origin origin, point p = point(-1, -1),
+                             int npc_id = -1);
+  npc* find_npc(int id);
   mission* find_mission(int id); // Mission with UID=id; NULL if non-existant
+  mission_type* find_mission_type(int id); // Same, but returns its type
+  bool mission_complete(int id, int npc_id); // True if we made it
+  bool mission_failed(int id); // True if we failed it
+  void wrap_up_mission(int id); // Perform required actions
+  void fail_mission(int id); // Perform required actions, move to failed list
+  void mission_step_complete(int id, int step); // Parial completion
+  void process_missions(); // Process missions, see if time's run out
+
   void teleport(player *p = NULL);
   void plswim(int x, int y); // Called by plmove.  Handles swimming
   void nuke(int x, int y);
@@ -121,16 +137,19 @@ class game
   bool u_see (int x, int y, int &t);
   bool u_see (monster *mon, int &t);
   bool pl_sees(player *p, monster *mon, int &t);
-  point look_around();// Look at nearby terrain	';'
   void refresh_all();
   void update_map(int &x, int &y);  // Called by plmove when the map updates
+  void update_overmap_seen(); // Update which overmap tiles we can see
+  point om_location(); // levx and levy converted to overmap coordinates
 
   faction* random_good_faction();
   faction* random_evil_faction();
 
   itype* new_artifact();
   void process_artifact(item *it, player *p, bool wielded = false);
+  void add_artifact_messages(std::vector<art_effect_passive> effects);
 
+  point look_around();// Look at nearby terrain	';'
   char inv(std::string title = "Inventory:");
   std::vector<item> multidrop();
   faction* list_factions(std::string title = "FACTIONS:");
@@ -142,7 +161,12 @@ class game
   std::vector <trap*> traps;
   std::vector <itype_id> mapitems[num_itloc]; // Items at various map types
   std::vector <items_location_and_chance> monitems[num_monsters];
+  std::vector <mission_type> mission_types; // The list of mission templates
+  mutation_branch mutation_data[PF_MAX2]; // Mutation data
+
   calendar turn;
+  signed char temperature;              // The air temperature
+  weather_type weather;			// Weather pattern--SEE weather.h
   char nextinv;	// Determines which letter the next inv item will have
   overmap cur_om;
   map m;
@@ -154,6 +178,7 @@ class game
   std::vector<npc> active_npc;
   std::vector<mon_id> moncats[num_moncats];
   std::vector<faction> factions;
+  std::vector<mission> active_missions; // Missions which may be assigned
 // NEW: Dragging a piece of furniture, with a list of items contained
   ter_id dragging;
   std::vector<item> items_dragged;
@@ -185,12 +210,15 @@ class game
   void init_recipes();      // Initializes crafting recipes
   void init_construction(); // Initializes construction "recipes"
   void init_missions();     // Initializes mission templates
+  void init_mutations();    // Initializes mutation "tech tree"
 
   void create_factions();   // Creates new factions (for a new game world)
+  void create_starting_npcs(); // Creates NPCs that start near you
 
 // Player actions
   void wish();	// Cheat by wishing for an item 'Z'
   void monster_wish(); // Create a monster
+  void mutation_wish(); // Mutate
 
   void plmove(int x, int y); // Standard movement; handles attacks, traps, &c
   void wait();	// Long wait (player action)	'^'
@@ -203,15 +231,15 @@ class game
   void pick_recipes(std::vector<recipe*> &current,
                     std::vector<bool> &available, craft_cat tab);// crafting.cpp
   void construction_menu();                   // See construction.cpp
-  bool player_can_build(player &p, inventory inv, constructable con,
+  bool player_can_build(player &p, inventory inv, constructable* con,
                         int level = -1, bool cont = false);
-  void place_construction(constructable con); // See construction.cpp
+  void place_construction(constructable *con); // See construction.cpp
   void complete_construction();               // See construction.cpp
   void examine();// Examine nearby terrain	'e'
   void pickup(int posx, int posy, int min);// Pickup items; ',' or via examine()
 // Pick where to put liquid; false if it's left where it was
   bool handle_liquid(item &liquid, bool from_ground, bool infinite);
-  void drop();	  // Drop an item		'd'	TODO: Multidrop
+  void drop();	  // Drop an item		'd'
   void drop_in_direction(); // Drop w/ direction 'D'
   void reassign_item(); // Reassign the letter of an item   '='
   void butcher(); // Butcher a corpse		'B'
@@ -243,6 +271,7 @@ class game
   mon_id valid_monster_from(std::vector<mon_id> group);
   int valid_group(mon_id type, int x, int y);// Picks a group from cur_om
   moncat_id mt_to_mc(mon_id type);// Monster type to monster category
+  void set_adjacent_overmaps(bool from_scratch = false);
 
 // Routine loop functions, approximately in order of execution
   void monmove();          // Monster movement
@@ -287,26 +316,24 @@ class game
   char run_mode; // 0 - Normal run always; 1 - Running allowed, but if a new
 		 //  monsters spawns, go to 2 - No movement allowed
   int mostseen;	 // # of mons seen last turn; if this increases, run_mode++
-  bool autorunmode; // is autorunmode enabled?
-  int turnssincelastmon; // turns since the last monster was spotted needed for auto run mode
+  bool autosafemode; // is autosafemode enabled?
+  int turnssincelastmon; // needed for auto run mode
   quit_status uquit;    // Set to true if the player quits ('Q')
 
   calendar nextspawn; // The turn on which monsters will spawn next.
+  calendar nextweather; // The turn on which weather will shift next.
+  overmap *om_hori, *om_vert, *om_diag; // Adjacent overmaps
   int next_npc_id, next_faction_id, next_mission_id; // Keep track of UIDs
-  signed char temperature;              // The air temperature
-  weather_type weather;			// Weather pattern--SEE weather.h
   std::vector <std::string> messages;   // Messages to be printed
   unsigned char curmes;	  // The last-seen message.  Older than 256 is deleted.
-  int grscent[SEEX * 3][SEEY * 3];	// The scent map
+  int grscent[SEEX * MAPSIZE][SEEY * MAPSIZE];	// The scent map
   int nulscent;				// Returned for OOB scent checks
   std::vector<event> events;	        // Game events to be processed
   int kills[num_monsters];	        // Player's kill count
   std::string last_action;		// The keypresses of last turn
 
-  std::vector<recipe> recipes;	// The list of valid recipes
-  std::vector<mission_type> mission_types; // The list of mission templates
-  std::vector<constructable> constructions; // The list of constructions
-  std::vector<mission> active_missions; // Missions which may be assigned
+  std::vector<recipe*> recipes;	// The list of valid recipes
+  std::vector<constructable*> constructions; // The list of constructions
 
   bool tutorials_seen[NUM_LESSONS]; // Which tutorial lessons have we learned
   bool in_tutorial;                 // True if we're in a tutorial right now

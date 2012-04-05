@@ -10,6 +10,7 @@
 #include "morale.h"
 #include "inventory.h"
 #include "artifact.h"
+#include "mutation.h"
 #include <vector>
 #include <string>
 
@@ -17,6 +18,16 @@ class monster;
 class game;
 class trap;
 class mission;
+
+struct special_attack
+{
+ std::string text;
+ int bash;
+ int cut;
+ int stab;
+
+ special_attack() { bash = 0; cut = 0; stab = 0; };
+};
 
 class player {
 public:
@@ -40,11 +51,12 @@ public:
 
  void disp_info(game *g);	// '@' key; extended character info
  void disp_morale();		// '%' key; morale info
- void disp_status(WINDOW* w);	// The constant data in the lower right
+ void disp_status(WINDOW* w, game *g = NULL);// On-screen data
 
- void reset();	// Resets movement points, stats, and applies pain, effects, etc
+ void reset(game *g = NULL);// Resets movement points, stats, applies effects
  void update_morale();	// Ticks down morale counters and removes them
- int  current_speed(); // Returns the number of movement points we get each turn
+ int  current_speed(game *g = NULL); // Number of movement points we get a turn
+ int  run_cost(int base_cost); // Adjust base_cost
  int  swim_speed();	// Our speed when swimming
 
  bool has_trait(int flag);
@@ -59,34 +71,43 @@ public:
  void activate_bionic(int b, game *g);
 
  void mutate(game *g);
+ void mutate_towards(game *g, pl_flag mut);
+ void remove_mutation(game *g, pl_flag mut);
+ bool has_child_flag(game *g, pl_flag mut);
+ void remove_child_flag(game *g, pl_flag mut);
 
  int  sight_range(int light_level);
+ int  overmap_sight_range(int light_level);
+ int  clairvoyance(); // Sight through walls &c
  bool has_two_arms();
  bool can_wear_boots();
  bool is_armed();	// True if we're wielding something; true for bionics
  bool unarmed_attack(); // False if we're wielding something; true for bionics
  bool avoid_trap(trap *tr);
 
- void pause();		// '.' command; pauses & reduces recoil
+ void pause(); // '.' command; pauses & reduces recoil
  int  hit_roll(); // Our basic hit roll, compared to our target's dodge roll
- bool scored_crit();
+ bool scored_crit(int target_dodge = 0);
  int  hit_mon(game *g, monster *z); // Handles hitting a monster up to its death
 // hit_player returns false on a miss, and modifies bp, hitdam, and hitcut
- bool hit_player(player &p, body_part &bp, int &hitdam, int &hitcut);
+ bool hit_player(game *g, player &p, body_part &bp, int &hitdam, int &hitcut);
+ std::vector<special_attack> mutation_attacks(monster *z);
  void stumble(game *g);
- int  dodge();		//Returns the players's dodge, modded by clothing etc
- int  dodge_roll();	// For comparison to hit_roll()
+ int  dodge(game *g);     // Returns the players's dodge, modded by clothing etc
+ int  dodge_roll(game *g);// For comparison to hit_roll()
 
- int throw_range(int index);	// Range of throwing item; -1:ERR 0:Can't throw
+ int throw_range(int index); // Range of throwing item; -1:ERR 0:Can't throw
  int base_damage	(bool real_life = true);
  int base_to_hit	(bool real_life = true);
  int ranged_dex_mod	(bool real_life = true);
  int ranged_per_mod	(bool real_life = true);
  int throw_dex_mod	(bool real_life = true);
 
+// Mental skills and stats
  int comprehension_percent(skill s, bool real_life = true);
  int read_speed		(bool real_life = true);
- int convince_score(); // Skill at convincing NPCs of stuff
+ int talk_skill(); // Skill at convincing NPCs of stuff
+ int intimidation(); // Physical intimidation
 
 // Converts bphurt to a hp_part (if side == 0, the left), then does/heals dam
 // hit() processes damage through armor
@@ -159,11 +180,13 @@ public:
  item i_rem(char let);	// Remove item from inventory; returns ret_null on fail
  item i_rem(itype_id type);// Remove first item w/ this type; fail is ret_null
  item remove_weapon();
+ void remove_mission_items(int mission_id);
  item i_remn(int index);// Remove item from inventory; returns ret_null on fail
  item &i_at(char let);	// Returns the item with inventory letter let
  item &i_of_type(itype_id type); // Returns the first item with this type
  std::vector<item> inv_dump(); // Inventory + weapon + worn (for death, etc)
  int  butcher_factor();	// Automatically picks our best butchering tool
+ int  pick_usb(); // Pick a usb drive, interactively if it matters
  bool is_wearing(itype_id it);	// Are we wearing a specific itype?
  bool has_artifact_with(art_effect_passive effect);
 
@@ -176,23 +199,27 @@ public:
  int  amount_of(itype_id it);
  int  charges_of(itype_id it);
 
+ bool has_watertight_container();
  bool has_weapon_or_armor(char let);	// Has an item with invlet let
  bool has_item(char let);		// Has an item with invlet let
  bool has_item(item *it);		// Has a specific item
+ bool has_mission_item(int mission_id);	// Has item with mission_id
  std::vector<int> has_ammo(ammotype at);// Returns a list of indices of the ammo
 
 // ---------------VALUES-----------------
  int posx, posy;
  player_activity activity;
- std::vector<mission> active_missions;
- std::vector<mission> completed_missions;
- std::vector<mission> failed_missions;
+// _missions vectors are of mission IDs
+ std::vector<int> active_missions;
+ std::vector<int> completed_missions;
+ std::vector<int> failed_missions;
  int active_mission;
  
  std::string name;
  bool male;
  bool my_traits[PF_MAX2];
  bool my_mutations[PF_MAX2];
+ int mutation_category_level[NUM_MUTATION_CATEGORIES];
  std::vector<bionic> my_bionics;
 // Current--i.e. modified by disease, pain, etc.
  int str_cur, dex_cur, int_cur, per_cur;

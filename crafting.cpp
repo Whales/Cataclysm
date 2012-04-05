@@ -19,10 +19,10 @@ void game::init_recipes()
 
  #define RECIPE(result, category, skill1, skill2, difficulty, time) \
 tl = 0; cl = 0; id++;\
-recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
-                          time) )
- #define TOOL(...)	setvector(recipes[id].tools[tl],      __VA_ARGS__); tl++
- #define COMP(...)	setvector(recipes[id].components[cl], __VA_ARGS__); cl++
+recipes.push_back( new recipe(id, result, category, skill1, skill2, difficulty,\
+                              time) )
+ #define TOOL(...)  setvector(recipes[id]->tools[tl],      __VA_ARGS__); tl++
+ #define COMP(...)  setvector(recipes[id]->components[cl], __VA_ARGS__); cl++
 
 /* A recipe will not appear in your menu until your level in the primary skill
  * is at least equal to the difficulty.  At that point, your chance of success
@@ -110,7 +110,7 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
  RECIPE(itm_smg_45, CC_WEAPON, sk_mechanics, sk_gun, 5, 20000);
   TOOL(itm_hacksaw, -1, itm_toolset, -1, NULL);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
+  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, NULL);
   COMP(itm_pipe, 1, NULL);
   COMP(itm_2x4, 2, NULL);
   COMP(itm_nail, 4, NULL);
@@ -144,7 +144,7 @@ recipes.push_back( recipe(id, result, category, skill1, skill2, difficulty, \
 
  RECIPE(itm_chainsaw_off, CC_WEAPON, sk_mechanics, sk_null, 4, 20000);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
+  TOOL(itm_hammer, -1, itm_hatchet, -1, NULL);
   TOOL(itm_wrench, -1, itm_toolset, -1, NULL);
   COMP(itm_motor, 1, NULL);
   COMP(itm_chain, 1, NULL);
@@ -227,11 +227,13 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   TOOL(itm_hotplate, 2, itm_toolset, 1, itm_fire, -1, NULL);
   TOOL(itm_pot, -1, NULL);
   COMP(itm_tea_raw, 1, NULL);
+  COMP(itm_water, 1, NULL);
 
  RECIPE(itm_coffee, CC_FOOD, sk_cooking, sk_null, 0, 4000);
   TOOL(itm_hotplate, 2, itm_toolset, 1, itm_fire, -1, NULL);
   TOOL(itm_pot, -1, NULL);
   COMP(itm_coffee_raw, 1, NULL);
+  COMP(itm_water, 1, NULL);
 
  RECIPE(itm_oj, CC_FOOD, sk_cooking, sk_null, 1, 5000);
   TOOL(itm_rock, -1, itm_toolset, -1, NULL);
@@ -381,7 +383,7 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
 
  RECIPE(itm_water_purifier, CC_ELECTRONIC, sk_mechanics,sk_electronics,3,25000);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  COMP(itm_hotplate, 2, itm_toolset, 1, NULL);
+  COMP(itm_hotplate, 2, NULL);
   COMP(itm_bottle_glass, 2, itm_bottle_plastic, 5, NULL);
   COMP(itm_hose, 1, NULL);
 
@@ -480,11 +482,11 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
 
  RECIPE(itm_hoodie, CC_ARMOR, sk_tailor, sk_null, 3, 40000);
   TOOL(itm_sewing_kit, 14, NULL);
-  COMP(itm_rag, 8, NULL);
+  COMP(itm_rag, 12, NULL);
 
  RECIPE(itm_trenchcoat, CC_ARMOR, sk_tailor, sk_null, 3, 42000);
   TOOL(itm_sewing_kit, 24, NULL);
-  COMP(itm_rag, 10, NULL);
+  COMP(itm_rag, 11, NULL);
 
  RECIPE(itm_coat_fur, CC_ARMOR, sk_tailor, sk_null, 4, 100000);
   TOOL(itm_sewing_kit, 20, NULL);
@@ -662,6 +664,11 @@ void game::craft()
  crafting_inv.form_from_map(this, point(u.posx, u.posy), PICKUP_RANGE);
  crafting_inv += u.inv;
  crafting_inv += u.weapon;
+ if (u.has_bionic(bio_tools)) {
+  item tools(itypes[itm_toolset], turn);
+  tools.charges = u.power_level;
+  crafting_inv += tools;
+ }
 
  do {
   if (redraw) { // When we switch tabs, redraw the header
@@ -817,6 +824,9 @@ Press ? to describe object.  Press <ENTER> to attempt to craft object.");
   case '\n':
    if (!available[line])
     popup("You can't do that!");
+   else if (itypes[current[line]->result]->m1 == LIQUID &&
+            !u.has_watertight_container())
+    popup("You don't have anything to store that liquid in!");
    else {
     make_craft(current[line]);
     done = true;
@@ -944,6 +954,11 @@ void game::pick_recipes(std::vector<recipe*> &current,
  crafting_inv.form_from_map(this, point(u.posx, u.posy), PICKUP_RANGE);
  crafting_inv += u.inv;
  crafting_inv += u.weapon;
+ if (u.has_bionic(bio_tools)) {
+  item tools(itypes[itm_toolset], turn);
+  tools.charges = u.power_level;
+  crafting_inv += tools;
+ }
 
  bool have_tool[5], have_comp[5];
 
@@ -951,12 +966,12 @@ void game::pick_recipes(std::vector<recipe*> &current,
  available.clear();
  for (int i = 0; i < recipes.size(); i++) {
 // Check if the category matches the tab, and we have the requisite skills
-  if (recipes[i].category == tab &&
-      (recipes[i].sk_primary == sk_null ||
-       u.sklevel[recipes[i].sk_primary] >= recipes[i].difficulty) &&
-      (recipes[i].sk_secondary == sk_null ||
-       u.sklevel[recipes[i].sk_secondary] > 0))
-  current.push_back(&(recipes[i]));
+  if (recipes[i]->category == tab &&
+      (recipes[i]->sk_primary == sk_null ||
+       u.sklevel[recipes[i]->sk_primary] >= recipes[i]->difficulty) &&
+      (recipes[i]->sk_secondary == sk_null ||
+       u.sklevel[recipes[i]->sk_secondary] > 0))
+  current.push_back(recipes[i]);
   available.push_back(false);
  }
  for (int i = 0; i < current.size() && i < 22; i++) {
@@ -1010,63 +1025,63 @@ void game::make_craft(recipe *making)
 
 void game::complete_craft()
 {
- recipe making = recipes[u.activity.index]; // Which recipe is it?
+ recipe* making = recipes[u.activity.index]; // Which recipe is it?
 
 // # of dice is 75% primary skill, 25% secondary (unless secondary is null)
- int skill_dice = u.sklevel[making.sk_primary] * 3;
- if (making.sk_secondary == sk_null)
-  skill_dice += u.sklevel[making.sk_primary];
+ int skill_dice = u.sklevel[making->sk_primary] * 3;
+ if (making->sk_secondary == sk_null)
+  skill_dice += u.sklevel[making->sk_primary];
  else
-  skill_dice += u.sklevel[making.sk_secondary];
+  skill_dice += u.sklevel[making->sk_secondary];
 // Sides on dice is 16 plus your current intelligence
  int skill_sides = 16 + u.int_cur;
 
- int diff_dice = making.difficulty * 4; // Since skill level is * 4 also
+ int diff_dice = making->difficulty * 4; // Since skill level is * 4 also
  int diff_sides = 24;	// 16 + 8 (default intelligence)
 
  int skill_roll = dice(skill_dice, skill_sides);
  int diff_roll  = dice(diff_dice,  diff_sides);
 
- if (making.sk_primary != sk_null)
-  u.practice(making.sk_primary, making.difficulty * 5 + 20);
- if (making.sk_secondary != sk_null)
-  u.practice(making.sk_secondary, 5);
+ if (making->sk_primary != sk_null)
+  u.practice(making->sk_primary, making->difficulty * 5 + 20);
+ if (making->sk_secondary != sk_null)
+  u.practice(making->sk_secondary, 5);
 
 // Messed up badly; waste some components.
- if (making.difficulty != 0 && diff_roll > skill_roll * (1 + 0.1 * rng(1, 5))) {
+ if (making->difficulty != 0 && diff_roll > skill_roll * (1 + 0.1 * rng(1, 5))) {
   add_msg("You fail to make the %s, and waste some materials.",
-          itypes[making.result]->name.c_str());
+          itypes[making->result]->name.c_str());
   for (int i = 0; i < 5; i++) {
-   if (making.components[i].size() > 0) {
-    std::vector<component> copy = making.components[i];
+   if (making->components[i].size() > 0) {
+    std::vector<component> copy = making->components[i];
     for (int j = 0; j < copy.size(); j++)
      copy[j].count = rng(0, copy[j].count);
     consume_items(this, copy);
    }
-   if (making.tools[i].size() > 0)
-    consume_tools(this, making.tools[i]);
+   if (making->tools[i].size() > 0)
+    consume_tools(this, making->tools[i]);
   }
   u.activity.type = ACT_NULL;
   return;
   // Messed up slightly; no components wasted.
  } else if (diff_roll > skill_roll) {
   add_msg("You fail to make the %s, but don't waste any materials.",
-          itypes[making.result]->name.c_str());
+          itypes[making->result]->name.c_str());
   u.activity.type = ACT_NULL;
   return;
  }
 // If we're here, the craft was a success!
 // Use up the components and tools
  for (int i = 0; i < 5; i++) {
-  if (making.components[i].size() > 0)
-   consume_items(this, making.components[i]);
-  if (making.tools[i].size() > 0)
-   consume_tools(this, making.tools[i]);
+  if (making->components[i].size() > 0)
+   consume_items(this, making->components[i]);
+  if (making->tools[i].size() > 0)
+   consume_tools(this, making->tools[i]);
  }
 
   // Set up the new item, and pick an inventory letter
  int iter = 0;
- item newit(itypes[making.result], turn, nextinv);
+ item newit(itypes[making->result], turn, nextinv);
  if (!newit.craft_has_charges())
   newit.charges = 0;
  do {

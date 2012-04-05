@@ -165,7 +165,7 @@ void mattack::boomer(game *g, monster *z)
    return;
   }
  }
- if (rng(0, 10) > g->u.dodge() || one_in(g->u.dodge()))
+ if (rng(0, 10) > g->u.dodge(g) || one_in(g->u.dodge(g)))
   g->u.infect(DI_BOOMERED, bp_eyes, 3, 12, g);
  else if (u_see)
   g->add_msg("You dodge it!");
@@ -183,8 +183,10 @@ void mattack::resurrect(game *g, monster *z)
    if (g->is_empty(x, y) && g->m.sees(z->posx, z->posy, x, y, -1, junk)) {
     for (int i = 0; i < g->m.i_at(x, y).size(); i++) {
      if (g->m.i_at(x, y)[i].type->id == itm_corpse &&
-         g->m.i_at(x, y)[i].corpse->sym == 'Z')
+         g->m.i_at(x, y)[i].corpse->species == species_zombie) {
       corpses.push_back(point(x, y));
+      i = g->m.i_at(x, y).size();
+     }
     }
    }
   }
@@ -204,9 +206,10 @@ void mattack::resurrect(game *g, monster *z)
    if (g->m.i_at(x, y)[n].type->id == itm_corpse && one_in(2)) {
     if (g->u_see(x, y, junk))
      raised++;
+    int burnt_penalty = g->m.i_at(x, y)[n].burnt;
     monster mon(g->m.i_at(x, y)[n].corpse, x, y);
-    mon.speed = int(mon.speed * .8);	// Raised corpses are slower
-    mon.hp    = int(mon.hp    * .7);	// Raised corpses are weaker
+    mon.speed = int(mon.speed * .8) - burnt_penalty / 2;
+    mon.hp    = int(mon.hp    * .7) - burnt_penalty;
     g->m.i_rem(x, y, n);
     n = g->m.i_at(x, y).size();	// Only one body raised per tile
     g->z.push_back(mon);
@@ -264,7 +267,7 @@ void mattack::science(game *g, monster *z)	// I said SCIENCE again!
   g->add_msg("The %s opens it's mouth and a beam shoots towards you!",
              z->name().c_str());
   z->moves -= 400;
-  if (g->u.dodge() > rng(1, 16))
+  if (g->u.dodge(g) > rng(1, 16))
    g->add_msg("You dodge the beam!");
   else if (one_in(6))
    g->u.mutate(g);
@@ -326,7 +329,7 @@ void mattack::growplants(game *g, monster *z)
        g->add_msg("A tree bursts forth from the earth and pierces the %s!",
                   g->z[mondex].name().c_str());
       int rn = rng(10, 30);
-      rn -= g->z[mondex].armor();
+      rn -= g->z[mondex].armor_cut();
       if (rn < 0)
        rn = 0;
       if (g->z[mondex].hurt(rn))
@@ -379,7 +382,7 @@ void mattack::growplants(game *g, monster *z)
         g->add_msg("Underbrush forms into a tree, and it pierces the %s!",
                    g->z[mondex].name().c_str());
        int rn = rng(10, 30);
-       rn -= g->z[mondex].armor();
+       rn -= g->z[mondex].armor_cut();
        if (rn < 0)
         rn = 0;
        if (g->z[mondex].hurt(rn))
@@ -540,7 +543,8 @@ void mattack::triffid_heartbeat(game *g, monster *z)
  g->sound(z->posx, z->posy, 14, "thu-THUMP.");
  z->moves -= 300;
  z->sp_timeout = z->type->sp_freq;
- if (z->posx < 0 || z->posx >= SEEX * 3 & z->posy < 0 && z->posy >= SEEY * 3)
+ if ((z->posx < 0 || z->posx >= SEEX * MAPSIZE) &&
+     (z->posy < 0 || z->posy >= SEEY * MAPSIZE)   )
   return;
  if (rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 5 &&
      !g->m.route(g->u.posx, g->u.posy, z->posx, z->posy).empty()) {
@@ -590,6 +594,8 @@ void mattack::triffid_heartbeat(game *g, monster *z)
 
 void mattack::fungus(game *g, monster *z)
 {
+ if (g->z.size() > 100)
+  return; // Prevent crowding the monster list.
 // TODO: Infect NPCs?
  z->moves = -200;			// It takes a while
  z->sp_timeout = z->type->sp_freq;	// Reset timer
@@ -703,7 +709,7 @@ void mattack::dermatik(game *g, monster *z)
 
 // Can we dodge the attack?
  int attack_roll = dice(z->type->melee_skill, 10);
- int player_dodge = g->u.dodge_roll();
+ int player_dodge = g->u.dodge_roll(g);
  if (player_dodge > attack_roll) {
   g->add_msg("The %s tries to land on you, but you dodge.", z->name().c_str());
   z->stumble(g, false);
@@ -852,7 +858,7 @@ void mattack::tentacle(game *g, monster *z)
   g->m.shoot(g, line[i].x, line[i].y, tmpdam, true, 0);
  }
 
- if (rng(0, 20) > g->u.dodge() || one_in(g->u.dodge())) {
+ if (rng(0, 20) > g->u.dodge(g) || one_in(g->u.dodge(g))) {
   g->add_msg("You dodge it!");
   return;
  }
@@ -865,6 +871,12 @@ void mattack::tentacle(game *g, monster *z)
 
 void mattack::vortex(game *g, monster *z)
 {
+// Make sure that the player's butchering is interrupted!
+ if (g->u.activity.type == ACT_BUTCHER &&
+     rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) <= 2) {
+  g->add_msg("The buffeting winds interrupt your butchering!");
+  g->u.activity.type = ACT_NULL;
+ }
  int t;
 // Moves are NOT used up by this attack, as it is "passive"
  z->sp_timeout = z->type->sp_freq;
@@ -1069,7 +1081,9 @@ void mattack::fear_paralyze(game *g, monster *z)
  int t;
  if (g->u_see(z->posx, z->posy, t)) {
   z->sp_timeout = z->type->sp_freq;	// Reset timer
-  if (rng(1, 20) > g->u.int_cur) {
+  if (g->u.has_artifact_with(AEP_PSYSHIELD)) {
+   g->add_msg("The %s probes your mind, but is rebuffed!", z->name().c_str());
+  } else if (rng(1, 20) > g->u.int_cur) {
    g->add_msg("The terrifying visage of the %s paralyzes you.",
               z->name().c_str());
    g->u.moves -= 100;
@@ -1180,6 +1194,7 @@ void mattack::smg(game *g, monster *z)
  tmp.weapon.charges = 10;
  std::vector<point> traj = line_to(z->posx, z->posy, g->u.posx, g->u.posy, t);
  g->fire(tmp, g->u.posx, g->u.posy, traj, true);
+ z->add_effect(ME_TARGETED, 3);
 }
 
 void mattack::flamethrower(game *g, monster *z)
@@ -1231,10 +1246,26 @@ void mattack::multi_robot(game *g, monster *z)
  if (mode == 0)
   return;	// No attacks were valid!
 
- mattack tmp;
  switch (mode) {
-  case 1: tmp.tazer(g, z);        break;
-  case 2: tmp.flamethrower(g, z); break;
-  case 3: tmp.smg(g, z);          break;
+  case 1: this->tazer(g, z);        break;
+  case 2: this->flamethrower(g, z); break;
+  case 3: this->smg(g, z);          break;
  }
+}
+
+void mattack::ratking(game *g, monster *z)
+{
+ if (rl_dist(z->posx, z->posy, g->u.posx, g->u.posy) > 4)
+  return;
+ z->sp_timeout = z->type->sp_freq;	// Reset timer
+
+ switch (rng(1, 5)) { // What do we say?
+  case 1: g->add_msg("\"YOU... ARE FILTH...\""); break;
+  case 2: g->add_msg("\"VERMIN... YOU ARE VERMIN...\""); break;
+  case 3: g->add_msg("\"LEAVE NOW...\""); break;
+  case 4: g->add_msg("\"WE... WILL FEAST... UPON YOU...\""); break;
+  case 5: g->add_msg("\"FOUL INTERLOPER...\""); break;
+ }
+
+ g->u.add_disease(DI_RAT, 20, g);
 }

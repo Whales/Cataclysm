@@ -1,7 +1,12 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
-#include <curses.h>
+#if (defined _WIN32 || defined WINDOWS)
+	#include "catacurse.h"
+#else
+	#include <curses.h>
+#endif
+
 #include <stdlib.h>
 #include <vector>
 #include <string>
@@ -12,6 +17,8 @@
 #include "item.h"
 #include "monster.h"
 #include "npc.h"
+
+#define MAPSIZE 11
 
 class player;
 class item;
@@ -32,8 +39,8 @@ class map
  void drawsq(WINDOW* w, player &u, int x, int y, bool invert, bool show_items);
 
 // File I/O
- void save(overmap *om, unsigned int turn, int x, int y);
- void load(game *g, int wx, int wy);
+ virtual void save(overmap *om, unsigned int turn, int x, int y);
+ virtual void load(game *g, int wx, int wy);
  void shift(game *g, int wx, int wy, int x, int y);
  void spawn_monsters(game *g);
 
@@ -44,7 +51,11 @@ class map
  // tc indicates the Bresenham line used to connect the two points, and may
  //  subsequently be used to form a path between them
  bool sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc);
- std::vector<point> route(int Fx, int Fy, int Tx, int Ty); // Best route
+// clear_path is the same idea, but uses cost_min <= move_cost <= cost_max
+ bool clear_path(int Fx, int Fy, int Tx, int Ty, int range, int cost_min,
+                 int cost_max, int &tc);
+// route() generates an A* best path; if bash is true, we can bash through doors
+ std::vector<point> route(int Fx, int Fy, int Tx, int Ty, bool bash = true);
 
 // Terrain
  ter_id& ter(int x, int y); // Terrain at coord (x, y); {x|y}=(0, SEE{X|Y}*3]
@@ -77,6 +88,7 @@ class map
  void add_item(int x, int y, itype* type, int birthday);
  void add_item(int x, int y, item new_item);
  void process_active_items(game *g);
+ void process_active_items_in_submap(game *g, int nonant);
 
  void use_amount(point origin, int range, itype_id type, int quantity,
                  bool use_container = false);
@@ -90,7 +102,9 @@ class map
 // Fields
  field& field_at(int x, int y);
  bool add_field(game *g, int x, int y, field_id t, unsigned char density);
+ void remove_field(int x, int y);
  bool process_fields(game *g);				// See fields.cpp
+ bool process_fields_in_submap(game *g, int gridn);	// See fields.cpp
  void step_in_field(int x, int y, game *g);		// See fields.cpp
  void mon_in_field(int x, int y, game *g, monster *z);	// See fields.cpp
 
@@ -102,12 +116,16 @@ class map
  void place_items(items_location loc, int chance, int x1, int y1,
                   int x2, int y2, bool ongrass, int turn);
  void make_all_items_owned();
- void add_spawn(mon_id type, int count, int x, int y, bool friendly = false);
+ void add_spawn(mon_id type, int count, int x, int y, bool friendly = false,
+                int faction_id = -1, int mission_id = -1,
+                std::string name = "NONE");
+ void add_spawn(monster *mon);
  computer* add_computer(int x, int y, std::string name, int security);
  
-private:
+protected:
  void saven(overmap *om, unsigned int turn, int x, int y, int gridx, int gridy);
  bool loadn(game *g, int x, int y, int gridx, int gridy);
+ void copy_grid(int to, int from);
  void draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
                oter_id t_south, oter_id t_west, oter_id t_above, int turn,
                game *g);
@@ -115,7 +133,10 @@ private:
  void rotate(int turns);// Rotates the current map 90*turns degress clockwise
 			// Useful for houses, shops, etc
 
- submap grid[9];
+ bool inbounds(int x, int y);
+ int my_MAPSIZE;
+ virtual bool is_tiny() { return false; };
+
  std::vector<item> nulitems; // Returned when &i_at() is asked for an OOB value
  ter_id nulter;	// Returned when &ter() is asked for an OOB value
  trap_id nultrap; // Returned when &tr_at() is asked for an OOB value
@@ -125,6 +146,24 @@ private:
  std::vector <itype*> *itypes;
  std::vector <trap*> *traps;
  std::vector <itype_id> (*mapitems)[num_itloc];
+
+private:
+ submap grid[MAPSIZE * MAPSIZE];
+};
+
+class tinymap : public map
+{
+public:
+ tinymap();
+ tinymap(std::vector<itype*> *itptr, std::vector<itype_id> (*miptr)[num_itloc],
+     std::vector<trap*> *trptr);
+ ~tinymap();
+
+protected:
+ virtual bool is_tiny() { return true; };
+
+private:
+ submap grid[4];
 };
 
 #endif

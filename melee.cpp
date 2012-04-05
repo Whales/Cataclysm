@@ -3,8 +3,14 @@
 #include "game.h"
 #include "keypress.h"
 #include <sstream>
-#include <curses.h>
 #include <stdlib.h>
+
+#if (defined _WIN32 || defined WINDOWS)
+	#include "catacurse.h"
+#else
+	#include <curses.h>
+#endif
+
 
 /* Melee Functions!
  * These all belong to class player.
@@ -51,7 +57,7 @@ int player::hit_roll()
  if (unarmed_attack()) {
   best_bonus = sklevel[sk_unarmed];
   if (sklevel[sk_unarmed] > 4)
-   best_bonus += sklevel[sk_unarmed] - 2; // Extra bonus for high levels
+   best_bonus += sklevel[sk_unarmed] - 4; // Extra bonus for high levels
  }
 
 // Using a bashing weapon?
@@ -95,6 +101,8 @@ int player::hit_roll()
 int player::hit_mon(game *g, monster *z)
 {
  bool is_u = (this == &(g->u));	// Affects how we'll display messages
+ if (is_u)
+  z->add_effect(ME_HIT_BY_PLAYER, 100); // Flag as attacked by us
  int j;
  bool can_see = (is_u || g->u_see(posx, posy, j));
  std::string You  = (is_u ? "You"  : name);
@@ -102,71 +110,112 @@ int player::hit_mon(game *g, monster *z)
  std::string your = (is_u ? "your" : (male ? "his" : "her"));
 
 // Types of combat (may overlap!)
- bool unarmed  = unarmed_attack(), bashing = weapon.is_bashing_weapon(),
+ bool unarmed  = unarmed_attack(),
+      bashing  = weapon.is_bashing_weapon(),
       cutting  = weapon.is_cutting_weapon(),
       stabbing = (weapon.has_flag(IF_SPEAR) ||
                   weapon.has_flag(IF_STAB)    );
+
+ bool can_poison = false;
+
+ bool conductive = (weapon.conductive() && !wearing_something_on(bp_hands));
 
 // Recoil penalty
  if (recoil <= 30)
   recoil += 6;
 // Movement cost
- moves -= weapon.attack_time() + 20 * encumb(bp_torso);
+ int move_cost = weapon.attack_time() + 20 * encumb(bp_torso);
+ if (has_trait(PF_LIGHT_BONES))
+  move_cost *= .9;
+ if (has_trait(PF_HOLLOW_BONES))
+  move_cost *= .8;
+ moves -= move_cost;
 // Different sizes affect your chance to hit
- if (hit_roll() < z->dodge_roll()) {// A miss!
+ if (hit_roll() < z->dodge_roll() ||
+     one_in(4 + dex_cur + weapon.type->m_to_hit)) {// A miss!
   stumble(g);
   return 0;
  }
 // For very high hit rolls, we crit!
- bool critical_hit = scored_crit();
+ bool critical_hit = scored_crit(z->dodge_roll());
  int dam = base_damage(true);
  int cutting_penalty = 0; // Moves lost from getting a cutting weapon stuck
 
 // Drunken Master damage bonuses
  if (has_trait(PF_DRUNKEN) && has_disease(DI_DRUNK)) {
 // Remember, a single drink gives 600 levels of DI_DRUNK
-  if (unarmed)
-   dam += disease_level(DI_DRUNK) / 250;
-  else
-   dam += disease_level(DI_DRUNK) / 400;
+  int mindrunk, maxdrunk;
+  if (unarmed) {
+   mindrunk = disease_level(DI_DRUNK) / 600;
+   maxdrunk = disease_level(DI_DRUNK) / 250;
+  } else {
+   mindrunk = disease_level(DI_DRUNK) / 900;
+   maxdrunk = disease_level(DI_DRUNK) / 400;
+  }
+  dam += rng(mindrunk, maxdrunk);
  }
 
  if (unarmed) { // Unarmed bonuses
   dam += rng(0, sklevel[sk_unarmed]);
-  if (has_trait(PF_TALONS) && z->type->armor - sklevel[sk_unarmed] < 10) {
-   int z_armor = (z->type->armor - sklevel[sk_unarmed]);
+  if (has_trait(PF_NAILS) && z->armor_cut() == 0 &&
+      !wearing_something_on(bp_hands)) {
+   dam++;
+   if (one_in(2))
+    can_poison = true;
+  }
+  if (has_trait(PF_CLAWS) && z->armor_cut() < 6 &&
+      !wearing_something_on(bp_hands)) {
+   dam += 6;
+   if (one_in(2))
+    can_poison = true;
+  }
+  if (has_trait(PF_TALONS) && z->armor_cut() - sklevel[sk_unarmed] < 10) {
+   int z_armor = (z->armor_cut() - sklevel[sk_unarmed]);
    if (z_armor < 0)
     z_armor = 0;
    dam += 10 - z_armor;
+   if (one_in(2))
+    can_poison = true;
+  }
+  if (has_trait(PF_THORNS) && z->armor_cut() < 4 &&
+      !wearing_something_on(bp_hands)) {
+   dam += 4 - z->armor_cut();
+   if (one_in(2))
+    can_poison = true;
+  }
+  if (has_trait(PF_SLIME_HANDS) && !z->has_flag(MF_ACIDPROOF) &&
+      !wearing_something_on(bp_hands)) {
+   dam += rng(4, 6);
+   can_poison = true;
   }
  }
+
  if (rng(1, 45 - dex_cur) < 2 * sklevel[sk_unarmed] &&
      rng(1, 65 - dex_cur) < 2 * sklevel[sk_unarmed]   ) {
 // Bonus unarmed attack!
   if (is_u || can_see) {
-   switch (rng(1, 4)) {
-    case 1: g->add_msg("%s kick%s the %s!", You.c_str(), (is_u ? "" : "s"),
+   switch (rng(1, 2)) {
+    case 1: g->add_msg("%s elbow%s the %s!", You.c_str(), (is_u ? "" : "s"),
                        z->name().c_str()); break;
-    case 2: g->add_msg("%s headbutt%s the %s!", You.c_str(), (is_u ? "" : "s"),
-                       z->name().c_str()); break;
-    case 3: g->add_msg("%s elbow%s the %s!", You.c_str(), (is_u ? "" : "s"),
-                       z->name().c_str()); break;
-    case 4: g->add_msg("%s knee%s the %s!", You.c_str(), (is_u ? "" : "s"),
+    case 2: g->add_msg("%s knee%s the %s!", You.c_str(), (is_u ? "" : "s"),
                        z->name().c_str()); break;
    }
   }
-  dam += rng(1, sklevel[sk_unarmed]);
+  if (sklevel[sk_unarmed] >= 4)
+   dam += rng(1, sklevel[sk_unarmed] / 2);
+  else
+   dam++;
   practice(sk_unarmed, 2);
  }
 // Melee skill bonus
  dam += rng(0, sklevel[sk_melee]);
 // Bashing damage bonus
- int bash_dam = weapon.damage_bash(),
+ int bash_dam = weapon.damage_bash() - z->armor_bash(),
      bash_cap = 5 + str_cur + sklevel[sk_bashing];
  if (bash_dam > bash_cap)// Cap for weak characters
   bash_dam = (bash_cap * 3 + bash_dam) / 4;
  if (bashing)
-  bash_dam += rng(0, sklevel[sk_bashing] + sqrt(str_cur));
+  bash_dam += rng(0, sklevel[sk_bashing] + sqrt(double(str_cur)));
  if (z->has_flag(MF_PLASTIC))
   bash_dam /= rng(2, 4);
  int bash_min = bash_dam / 4;
@@ -175,11 +224,14 @@ int player::hit_mon(game *g, monster *z)
  dam += rng(bash_min, bash_dam);
 // Take some moves away from the target; at this point it's skill & bash damage
  z->moves -= rng(0, dam * 2);
+
 // Spears treat cutting damage specially.
  if (weapon.has_flag(IF_SPEAR) &&
-     weapon.damage_cut() > z->type->armor - int(sklevel[sk_stabbing])) {
-  int z_armor = z->type->armor - int(sklevel[sk_stabbing]);
-  dam += int(weapon.damage_cut() / 5);
+     weapon.damage_cut() > z->armor_cut() - 2 * sklevel[sk_stabbing]) {
+  int z_armor = z->armor_cut() - 2 * sklevel[sk_stabbing];
+  dam += int((weapon.damage_cut() - z_armor) / 5);
+  if (z->speed > 100) // Bonus against fast monsters
+   dam += rng( int((z->speed - 100) / 10), int((z->speed - 100) / 5));
   int minstab = sklevel[sk_stabbing] *  5 + weapon.volume() * 2,
       maxstab = sklevel[sk_stabbing] * 15 + weapon.volume() * 4;
   int monster_penalty = rng(minstab, maxstab);
@@ -191,16 +243,35 @@ int player::hit_mon(game *g, monster *z)
   cutting_penalty = weapon.damage_cut() * 4 + z_armor * 8 -
                     dice(sklevel[sk_stabbing], 10);
   practice(sk_stabbing, 2);
+
 // Cutting damage bonus
- } else if (weapon.damage_cut() >
-            z->type->armor - int(sklevel[sk_cutting] / 2)) {
-  int z_armor = z->type->armor - int(sklevel[sk_cutting] / 2);
-  if (z_armor < 0)
-   z_armor = 0;
-  dam += weapon.damage_cut() - z_armor;
-  cutting_penalty = weapon.damage_cut() * 3 + z_armor * 8 -
-                    dice(sklevel[sk_cutting], 10);
+ } else if ((weapon.damage_cut() >
+             z->armor_cut() - int(sklevel[sk_cutting] / 2)) ||
+            (stabbing && 
+             weapon.damage_cut() > z->armor_cut() - 2 * sklevel[sk_stabbing])) {
+
+  int z_armor_cut = z->armor_cut() - int(sklevel[sk_cutting] / 2);
+  if (z_armor_cut < 0)
+   z_armor_cut = 0;
+  int z_armor_stab = z->armor_cut() - 2 * sklevel[sk_stabbing];
+  if (z_armor_stab < 0)
+   z_armor_stab = 0;
+// Check cut dam vs. stab dam and automatically pick one
+  int cutdam = weapon.damage_cut() - z_armor_cut;
+  int stabdam = int((weapon.damage_cut() - z_armor_stab) / 5);
+  if (z->speed > 100)
+   stabdam += rng( int((z->speed - 100) / 10), int((z->speed - 100) / 5));
+  if (cutdam > stabdam || !stabbing) {
+   dam += cutdam;
+   cutting_penalty = weapon.damage_cut() * 3 + z_armor_cut * 8 -
+                     dice(sklevel[sk_cutting], 10);
+  } else {
+   dam += stabdam;
+   cutting_penalty = weapon.damage_cut() * 3 + z_armor_stab * 8 -
+                     dice(sklevel[sk_cutting], 10);
+  }
  }
+
  if (weapon.has_flag(IF_MESSY)) { // e.g. chainsaws
   cutting_penalty /= 6; // Harder to get stuck
   for (int x = z->posx - 1; x <= z->posx + 1; x++) {
@@ -216,33 +287,10 @@ int player::hit_mon(game *g, monster *z)
   }
  }
 
-// Bonus attacks!
-
- bool shock_them = (has_bionic(bio_shock) && power_level >= 2 && unarmed &&
-                    one_in(3));
- bool drain_them = (has_bionic(bio_heat_absorb) && power_level >= 1 &&
-                    !is_armed() && z->has_flag(MF_WARM));
- bool  bite_them = (has_trait(PF_FANGS) && z->armor() < 18 &&
-                    one_in(20 - dex_cur - sklevel[sk_unarmed]));
- bool  peck_them = (has_trait(PF_BEAK)  && z->armor() < 16 &&
-                    one_in(15 - dex_cur - sklevel[sk_unarmed]));
- if (drain_them)
-  power_level--;
- drain_them &= one_in(2);	// Only works half the time
 
 // Critical hit effects
  if (critical_hit) {
   bool headshot = (!z->has_flag(MF_NOHEAD) && !one_in(3));
-// Second chance for shock_them, drain_them, bite_them and peck_them
-  shock_them = (shock_them || (has_bionic(bio_shock)&& power_level >= 2 &&
-                               unarmed && !one_in(3)));
-  drain_them = (drain_them || (has_bionic(bio_heat_absorb) && !is_armed() &&
-                               power_level >= 1 && z->has_flag(MF_WARM) &&
-                               !one_in(3)));
-  bite_them  = ( bite_them || (has_trait(PF_FANGS) && z->armor() < 18 &&
-                               one_in(5)));
-  peck_them  = ( peck_them || (has_trait(PF_BEAK)  && z->armor() < 16 &&
-                               one_in(4)));
 
   if (weapon.has_flag(IF_SPEAR) || weapon.has_flag(IF_STAB)) {
    dam += weapon.damage_cut();
@@ -251,10 +299,9 @@ int player::hit_mon(game *g, monster *z)
   }
 
   if (unarmed) {
-   dam += rng(2, 6) * sklevel[sk_unarmed];
-   if (sklevel[sk_unarmed] > 5)
-    dam += 4 * (sklevel[sk_unarmed - 3]);
+   dam += rng(1, 4) * sklevel[sk_unarmed];
    z->moves -= dam;	// Stunning blow
+
    if (weapon.type->id == itm_bio_claws) {
     if (sklevel[sk_cutting] >= 3)
      dam += 5;
@@ -284,20 +331,27 @@ int player::hit_mon(game *g, monster *z)
    }
    if (z->hp > 0 && rng(1, 5) < sklevel[sk_unarmed])
     z->add_effect(ME_STUNNED, 1 + sklevel[sk_unarmed]);
+
   } else {	// Not unarmed
+
    if (bashing) {
-    dam += 8 + (str_cur / 2);
-    int turns_stunned = int(dam / 20) + int(sklevel[sk_bashing] / 2);
+    dam += (str_cur / 2);
+    int turns_stunned = int(dam / 20) + rng(0, int(sklevel[sk_bashing] / 2));
     if (turns_stunned > 6)
      turns_stunned = 6;
     z->add_effect(ME_STUNNED, turns_stunned);
    }
    if (cutting || stabbing) {
-    double cut_multiplier = double(sklevel[sk_cutting] / 12);
+    double cut_multiplier;
+    if (cutting)
+     cut_multiplier = double(sklevel[sk_cutting]  / 12);
+    else
+     cut_multiplier = double(sklevel[sk_stabbing] /  5);
     if (cut_multiplier > 1.5)
      cut_multiplier = 1.5;
     dam += cut_multiplier * weapon.damage_cut();
     headshot &= z->hp < dam;
+
     if (stabbing) {
      if (headshot && can_see)
       g->add_msg("%s %s stabs through the %s's skull!", Your.c_str(),
@@ -325,6 +379,17 @@ int player::hit_mon(game *g, monster *z)
   }	// End of not-unarmed
  }	// End of critical hit
 
+// Bonus attacks!
+ bool shock_them = (has_bionic(bio_shock) && power_level >= 2 && unarmed &&
+                    !z->has_flag(MF_ELECTRIC) && one_in(3));
+ bool drain_them = (has_bionic(bio_heat_absorb) && power_level >= 1 &&
+                    !is_armed() && z->has_flag(MF_WARM));
+ if (drain_them)
+  power_level--;
+ drain_them &= one_in(2);	// Only works half the time
+
+ std::vector<special_attack> special_attacks = mutation_attacks(z);
+
  if (shock_them) {
   power_level -= 2;
   if (can_see)
@@ -342,17 +407,37 @@ int player::hit_mon(game *g, monster *z)
   dam += rng(4, 10);
   z->moves -= rng(80, 120);
  }
- if (bite_them) {
-  if (can_see)
-   g->add_msg("%s sink %s fangs into the %s!", You.c_str(), your.c_str(),
-              z->name().c_str());
-  dam += 18 - z->armor();
+
+ for (int i = 0; i < special_attacks.size(); i++) {
+  int spec_dam = 0;
+  spec_dam += special_attacks[i].bash;
+  if (special_attacks[i].cut > z->armor_cut())
+   spec_dam += special_attacks[i].cut - z->armor_cut();
+  if (special_attacks[i].stab > z->armor_cut() * .8)
+   spec_dam += special_attacks[i].stab - z->armor_cut() * .8;
+
+  if (!can_poison && one_in(2) &&
+      (special_attacks[i].cut > z->armor_cut() ||
+       special_attacks[i].stab > z->armor_cut() * .8))
+   can_poison = true;
+
+  if (spec_dam > 0) {
+   g->add_msg( special_attacks[i].text.c_str() );
+   dam += spec_dam;
+  }
  }
- if (peck_them) {
-  if (can_see)
-   g->add_msg("%s peck%s the %s viciously!", You.c_str(), (is_u ? "" : "s"),
-              z->name().c_str());
-  dam += 16 - z->armor();
+
+ if (can_poison && has_trait(PF_POISONOUS)) {
+  z->add_effect(ME_POISONED, 6);
+  if (is_u)
+   g->add_msg("You poison the %s!", z->name().c_str());
+ }
+
+ if (z->has_flag(MF_ELECTRIC) && conductive) {
+  hurtall(rng(0, 1));
+  moves -= rng(0, 50);
+  if (is_u)
+   g->add_msg("Contact with the %s shocks you!", z->name().c_str());
  }
 
 // Make a rather quiet sound, to alert any nearby monsters
@@ -456,16 +541,19 @@ void player::stumble(game *g)
 }
 
 
-bool player::hit_player(player &p, body_part &bp, int &hitdam, int &hitcut)
+bool player::hit_player(game *g, player &p, body_part &bp,
+                        int &hitdam, int &hitcut)
 {
 // TODO: Add bionics and other bonus (e.g. heat drain, shock, etc)
  if (!is_npc() && p.is_npc()) {
   npc *foe = dynamic_cast<npc*>(&p);
   foe->make_angry();
  }
+// Movement cost
+ moves -= weapon.attack_time() + 20 * encumb(bp_torso);
  bool unarmed = unarmed_attack(), bashing = weapon.is_bashing_weapon(),
       cutting = weapon.is_cutting_weapon();
- int hitit = hit_roll() - p.dodge_roll();
+ int hitit = hit_roll() - p.dodge_roll(g);
  if (hitit < 0) {	// They dodged
   practice(sk_melee, rng(2, 4));
   if (unarmed)
@@ -505,9 +593,9 @@ bool player::hit_player(player &p, body_part &bp, int &hitdam, int &hitcut)
 // Weapon adds (melee_dam / 4) to (melee_dam)
  hitdam += rng(weapon.damage_bash() / 4, weapon.damage_bash());
  if (bashing)
-  hitdam += rng(0, sklevel[sk_bashing]) * sqrt(str_cur);
+  hitdam += rng(0, sklevel[sk_bashing]) * sqrt(double(str_cur));
 
- hitdam += int(pow(1.5, sklevel[sk_melee]));
+ hitdam += int(pow(1.5, double(sklevel[sk_melee])));
  hitcut = weapon.damage_cut();
  if (hitcut > 0)
   hitcut += int(sklevel[sk_cutting] / 3);
@@ -532,9 +620,10 @@ bool player::hit_player(player &p, body_part &bp, int &hitdam, int &hitcut)
  return true;
 }
 
-bool player::scored_crit()
+bool player::scored_crit(int target_dodge)
 {
  bool to_hit_crit = false, dex_crit = false, skill_crit = false;
+ int num_crits = 0;
 
  int chance = 25;
  if (weapon.type->m_to_hit > 0) {
@@ -544,7 +633,8 @@ bool player::scored_crit()
   for (int i = 0; i > weapon.type->m_to_hit; i--)
    chance /= 2;
  }
- to_hit_crit = rng(0, 99) < chance;
+ if (rng(0, 99) < chance)
+  num_crits++;
 
  chance = 25;
  if (dex_cur > 8) {
@@ -558,7 +648,8 @@ bool player::scored_crit()
     decrease--;
   }
  }
- dex_crit = rng(0, 99) < chance;
+ if (rng(0, 99) < chance)
+  num_crits++;
 
  int best_skill = 0;
  if (weapon.is_bashing_weapon() && sklevel[sk_bashing] > best_skill)
@@ -581,16 +672,19 @@ bool player::scored_crit()
   for (int i = 3; i > best_skill; i--)
    chance /= 2;
  }
- skill_crit = rng(0, 99) < chance;
+ if (rng(0, 99) < chance)
+  num_crits++;
 
- return ((to_hit_crit && dex_crit) || (to_hit_crit && skill_crit) ||
-         (dex_crit && skill_crit));
+ if (num_crits == 3)
+  return true;
+ else if (num_crits == 2)
+  return (hit_roll() >= target_dodge * 1.5 && !one_in(4));
+
+ return false;
 }
 
-int player::dodge()
+int player::dodge(game *g)
 {
-// If this function is called, it should be assumed that we're exercising
-//  the dodge skill.
  if (has_disease(DI_SLEEP) || has_disease(DI_LYING_DOWN))
   return 0;
  if (activity.type != ACT_NULL)
@@ -598,7 +692,15 @@ int player::dodge()
  int ret = 4 + (dex_cur / 2);
  ret += sklevel[sk_dodge];
  ret -= (encumb(bp_legs) / 2) + encumb(bp_torso);
- ret += int(current_speed() / 150);
+ ret += int(current_speed(g) / 150);
+ if (has_trait(PF_TAIL_LONG))
+  ret += 4;
+ if (has_trait(PF_TAIL_FLUFFY))
+  ret += 8;
+ if (has_trait(PF_WHISKERS))
+  ret += 1;
+ if (has_trait(PF_WINGS_BAT))
+  ret -= 3;
  if (str_max >= 16)
   ret--; // Penalty if we're hyuuge
  else if (str_max <= 5)
@@ -610,13 +712,15 @@ int player::dodge()
    ret = 0;
  }
  can_dodge = false;
+ if (ret > int(dex_cur / 2) + sklevel[sk_dodge] * 2)
+  ret = int(dex_cur / 2) + sklevel[sk_dodge] * 2;
  return ret;
 }
 
 
-int player::dodge_roll()
+int player::dodge_roll(game *g)
 {
- return dice(dodge(), 6);
+ return dice(dodge(g), 6);
 }
 
 
@@ -632,4 +736,133 @@ int player::base_damage(bool real_life)
   dam += int((str - 20) * 1.5);
 
  return dam;
+}
+
+std::vector<special_attack> player::mutation_attacks(monster *z)
+{
+ bool is_u = (!is_npc());// Affects how we'll display messages
+ std::string You  = (is_u ? "You"  : name);
+ std::string Your = (is_u ? "Your" : name + "'s");
+ std::string your = (is_u ? "your" : (male ? "his" : "her"));
+
+ std::vector<special_attack> ret;
+ std::stringstream text;
+
+ if (has_trait(PF_FANGS) && !wearing_something_on(bp_mouth) &&
+     one_in(20 - dex_cur - sklevel[sk_unarmed])) {
+  special_attack tmp;
+  text << You << " sink" << (is_u ? " " : "s ") << your << " fangs into the " <<
+          z->name() << "!";
+  tmp.text = text.str();
+  tmp.stab = 20;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_MANDIBLES) && one_in(22 - dex_cur - sklevel[sk_unarmed])) {
+  special_attack tmp;
+  text << You << " slice" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " mandibles!";
+  tmp.text = text.str();
+  tmp.cut = 12;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_BEAK) && one_in(15 - dex_cur - sklevel[sk_unarmed])) {
+  special_attack tmp;
+  text << You << " peck" << (is_u ? " " : "s ") << "the " << z->name() << "!";
+  tmp.text = text.str();
+  tmp.stab = 15;
+  ret.push_back(tmp);
+ }
+  
+ if (has_trait(PF_HOOVES) && one_in(25 - dex_cur - 2 * sklevel[sk_unarmed])) {
+  special_attack tmp;
+  text << You << " kick" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " hooves!";
+  tmp.text = text.str();
+  tmp.bash = str_cur * 3;
+  if (tmp.bash > 40)
+   tmp.bash = 40;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_HORNS) && one_in(20 - dex_cur - sklevel[sk_unarmed])) {
+  special_attack tmp;
+  text << You << " headbutt" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " horns!";
+  tmp.text = text.str();
+  tmp.bash = 3;
+  tmp.stab = 3;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_HORNS_CURLED) && one_in(20 - dex_cur - sklevel[sk_unarmed])) {
+  special_attack tmp;
+  text << You << " headbutt" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " curled horns!";
+  tmp.text = text.str();
+  tmp.bash = 14;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_HORNS_POINTED) && one_in(22 - dex_cur - sklevel[sk_unarmed])){
+  special_attack tmp;
+  text << You << " stab" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " pointed horns!";
+  tmp.text = text.str();
+  tmp.stab = 24;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_ANTLERS) && one_in(20 - dex_cur - sklevel[sk_unarmed])) {
+  special_attack tmp;
+  text << You << " butt" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " antlers!";
+  tmp.text = text.str();
+  tmp.bash = 4;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_TAIL_STING) && one_in(3) && one_in(10 - dex_cur)) {
+  special_attack tmp;
+  text << You << " sting" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " tail!";
+  tmp.text = text.str();
+  tmp.stab = 20;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_TAIL_CLUB) && one_in(3) && one_in(10 - dex_cur)) {
+  special_attack tmp;
+  text << You << " hit" << (is_u ? " " : "s ") << "the " << z->name() <<
+          " with " << your << " tail!";
+  tmp.text = text.str();
+  tmp.bash = 18;
+  ret.push_back(tmp);
+ }
+
+ if (has_trait(PF_ARM_TENTACLES) || has_trait(PF_ARM_TENTACLES_4) ||
+     has_trait(PF_ARM_TENTACLES_8)) {
+  int num_attacks = 1;
+  if (has_trait(PF_ARM_TENTACLES_4))
+   num_attacks = 3;
+  if (has_trait(PF_ARM_TENTACLES_8))
+   num_attacks = 7;
+  if (weapon.is_two_handed(this))
+   num_attacks--;
+
+  for (int i = 0; i < num_attacks; i++) {
+   if (one_in(18 - dex_cur - sklevel[sk_unarmed])) {
+    special_attack tmp;
+    text.str("");
+    text << You << " slap" << (is_u ? " " : "s ") << "the " << z->name() <<
+            " with " << your << " tentacle!";
+    tmp.text = text.str();
+    tmp.bash = str_cur / 2;
+    ret.push_back(tmp);
+   }
+  }
+ }
+
+ return ret;
 }

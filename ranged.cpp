@@ -34,10 +34,11 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
  }
  bool is_bolt = false;
  unsigned int flags = p.weapon.curammo->item_flags;
- if (p.weapon.curammo->type == AT_BOLT || p.weapon.curammo->type == AT_ARROW)	// Bolts and arrows are silent
+// Bolts and arrows are silent
+ if (p.weapon.curammo->type == AT_BOLT || p.weapon.curammo->type == AT_ARROW)
   is_bolt = true;
- if ((p.weapon.has_flag(IF_STR8_DRAW)  && p.str_cur <  8) ||
-     (p.weapon.has_flag(IF_STR10_DRAW) && p.str_cur < 10)   ) {
+ if ((p.weapon.has_flag(IF_STR8_DRAW)  && p.str_cur <  4) ||
+     (p.weapon.has_flag(IF_STR10_DRAW) && p.str_cur <  5)   ) {
   add_msg("You're not strong enough to draw the bow!");
   return;
  }
@@ -71,19 +72,63 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
  ts.tv_nsec = BULLET_SPEED;
 
 // Use up some ammunition
- p.weapon.charges -= num_shots;
+ if (p.weapon.has_flag(IF_FIRE_100))
+  p.weapon.charges -= 100;
+ else
+  p.weapon.charges -= num_shots;
+ if (p.weapon.charges < 0)
+  p.weapon.charges = 0;
  bool missed = false;
  int tart;
  for (int curshot = 0; curshot < num_shots; curshot++) {
+// Burst-fire weapons allow us to pick a new target after killing the first
+  if (curshot > 0 &&
+      (mon_at(tarx, tary) == -1 || z[mon_at(tarx, tary)].hp <= 0)) {
+   std::vector<point> new_targets;
+   for (int radius = 1; radius <= 2 + p.sklevel[sk_gun] && new_targets.empty();
+        radius++) {
+    for (int diff = 0 - radius; diff <= radius; diff++) {
+     if (mon_at(tarx + diff, tary - radius) != -1)
+      new_targets.push_back( point(tarx + diff, tary - radius) );
+     if (mon_at(tarx + diff, tary + radius) != -1)
+      new_targets.push_back( point(tarx + diff, tary + radius) );
+     if (diff != 0 - radius && diff != radius) { // Corners were already checked
+      if (mon_at(tarx - radius, tary + diff) != -1)
+       new_targets.push_back( point(tarx - radius, tary + diff) );
+      if (mon_at(tarx + radius, tary + diff) != -1)
+       new_targets.push_back( point(tarx + radius, tary + diff) );
+     }
+    }
+   }
+   if (!new_targets.empty()) {
+    int target_picked = rng(0, new_targets.size() - 1);
+    tarx = new_targets[target_picked].x;
+    tary = new_targets[target_picked].y;
+   }
+  }
   int trange = calculate_range(p, tarx, tary);
   double missed_by = calculate_missed_by(p, trange);
-  p.recoil += recoil_add(p);
+// Calculate a penalty based on the monster's speed
+  double monster_speed_penalty = 1.;
+  int target_index = mon_at(tarx, tary);
+  if (target_index != -1) {
+   monster_speed_penalty = double(z[target_index].speed) / 80.;
+   if (monster_speed_penalty < 1.)
+    monster_speed_penalty = 1.;
+  }
 
-  if (missed_by >= 1) {
+  if (curshot > 0) {
+   if (recoil_add(p) % 2 == 1)
+    p.recoil++;
+   p.recoil += recoil_add(p) / 2;
+  } else
+   p.recoil += recoil_add(p);
+
+  if (missed_by >= 1.) {
 // We missed D:
 // Shoot a random nearby space?
-   tarx += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
-   tary += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
+   tarx += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
+   tary += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
    if (m.sees(p.posx, p.posy, x, y, -1, tart))
     trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
    else
@@ -95,7 +140,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     else if (u_see_shooter)
      add_msg("%s misses!", p.name.c_str());
    }
-  } else if (missed_by >= .7) {
+  } else if (missed_by >= .7 / monster_speed_penalty) {
 // Hit the space, but not necessarily the monster there
    missed = true;
    if (!burst) {
@@ -112,7 +157,7 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
 // Drawing the bullet uses player u, and not player p, because it's drawn
 // relative to YOUR position, which may not be the gunman's position.
    if (u_see(trajectory[i].x, trajectory[i].y, junk)) {
-    char bullet = '`';
+    char bullet = '*';
     if (flags & mfb(IF_AMMO_FLAME))
      bullet = '#';
     mvwputch(w_terrain, trajectory[i].y + SEEY - u.posy,
@@ -145,8 +190,14 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     double goodhit = missed_by;
     if (i < trajectory.size() - 1) // Unintentional hit
      goodhit = double(rand() / (RAND_MAX + 1.0)) / 2;
+
+// Penalize for the monster's speed
+    if (z[mondex].speed > 80)
+     goodhit *= double( double(z[mondex].speed) / 80.);
     
-    splatter(this, trajectory, dam, &z[mondex]);
+    std::vector<point> blood_traj = trajectory;
+    blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
+    splatter(this, blood_traj, dam, &z[mondex]);
     shoot_monster(this, p, z[mondex], dam, goodhit);
 
 
@@ -161,7 +212,9 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     else
      h = &(active_npc[npc_at(tx, ty)]);
 
-    splatter(this, trajectory, dam);
+    std::vector<point> blood_traj = trajectory;
+    blood_traj.insert(blood_traj.begin(), point(p.posx, p.posy));
+    splatter(this, blood_traj, dam);
     shoot_player(this, p, h, dam, goodhit);
 
    } else
@@ -222,8 +275,8 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
 // Shoot a random nearby space?
   if (missed_by > 9)
    missed_by = 9;
-  tarx += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
-  tary += rng(0 - int(sqrt(missed_by)), int(sqrt(missed_by)));
+  tarx += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
+  tary += rng(0 - int(sqrt(double(missed_by))), int(sqrt(double(missed_by))));
   if (m.sees(p.posx, p.posy, tarx, tary, -1, tart))
    trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
   else
@@ -241,8 +294,11 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
  std::string message;
  int dam = (thrown.weight() / 4 + thrown.type->melee_dam / 2 + p.str_cur / 2) /
             double(2 + double(thrown.volume() / 4));
- int i, tx, ty;
- for (i = 0; i < trajectory.size() && dam > 0; i++) {
+ if (dam > thrown.weight() * 3)
+  dam = thrown.weight() * 3;
+
+ int i = 0, tx = 0, ty = 0;
+ for (i = 0; i < trajectory.size() && dam > -10; i++) {
   message = "";
   double goodhit = missed_by;
   tx = trajectory[i].x;
@@ -258,8 +314,8 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
      message += z[mon_at(tx, ty)].name();
      message += "!";
     }
-    if (thrown.type->melee_cut > z[mon_at(tx, ty)].armor())
-     dam += (thrown.type->melee_cut - z[mon_at(tx, ty)].armor());
+    if (thrown.type->melee_cut > z[mon_at(tx, ty)].armor_cut())
+     dam += (thrown.type->melee_cut - z[mon_at(tx, ty)].armor_cut());
    }
    if (thrown.made_of(GLASS) && !thrown.active && // active = molotov, etc.
        rng(0, thrown.volume() + 8) - rng(0, p.str_cur) < thrown.volume()) {
@@ -269,8 +325,8 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
      m.add_item(tx, ty, thrown.contents[i]);
     sound(tx, ty, 16, "glass breaking!");
     int glassdam = rng(0, thrown.volume() * 2);
-    if (glassdam > z[mon_at(tx, ty)].armor())
-     dam += (glassdam - z[mon_at(tx, ty)].armor());
+    if (glassdam > z[mon_at(tx, ty)].armor_cut())
+     dam += (glassdam - z[mon_at(tx, ty)].armor_cut());
    } else
     m.add_item(tx, ty, thrown);
    if (i < trajectory.size() - 1)
@@ -322,11 +378,11 @@ void game::throw_item(player &p, int tarx, int tary, item &thrown,
  }
  if (thrown.made_of(GLASS) && !thrown.active && // active means molotov, etc
      rng(0, thrown.volume() + 8) - rng(0, p.str_cur) < thrown.volume()) {
-   if (u_see(tx, ty, tart))
-    add_msg("The %s shatters!", thrown.tname().c_str());
-   for (int i = 0; i < thrown.contents.size(); i++)
-    m.add_item(tx, ty, thrown.contents[i]);
-   sound(tx, ty, 16, "glass breaking!");
+  if (u_see(tx, ty, tart))
+   add_msg("The %s shatters!", thrown.tname().c_str());
+  for (int i = 0; i < thrown.contents.size(); i++)
+   m.add_item(tx, ty, thrown.contents[i]);
+  sound(tx, ty, 16, "glass breaking!");
  } else {
   sound(tx, ty, 8, "thud.");
   m.add_item(tx, ty, thrown);
@@ -490,46 +546,58 @@ void game::hit_monster_with_flags(monster &z, unsigned int flags)
 
 int time_to_fire(player &p, it_gun* firing)
 {
+ int time = 0;
  switch (firing->skill_used) {
- case (sk_pistol):
+
+ case sk_pistol:
   if (p.sklevel[sk_pistol] > 6)
-   return 10;
+   time = 10;
   else
-   return (80 - 10 * p.sklevel[sk_pistol]);
+   time = (80 - 10 * p.sklevel[sk_pistol]);
   break;
- case (sk_shotgun):
+
+ case sk_shotgun:
   if (p.sklevel[sk_shotgun] > 3)
-   return 70;
+   time = 70;
   else
-   return (150 - 25 * p.sklevel[sk_shotgun]);
- break;
- case (sk_smg):
+   time = (150 - 25 * p.sklevel[sk_shotgun]);
+  break;
+
+ case sk_smg:
   if (p.sklevel[sk_smg] > 5)
-   return 20;
+   time = 20;
   else
-   return (80 - 10 * p.sklevel[sk_smg]);
- break;
- case (sk_rifle):
+   time = (80 - 10 * p.sklevel[sk_smg]);
+  break;
+
+ case sk_rifle:
   if (p.sklevel[sk_rifle] > 8)
-   return 30;
+   time = 30;
   else
-   return (150 - 15 * p.sklevel[sk_rifle]);
- case (sk_archery):
+   time = (150 - 15 * p.sklevel[sk_rifle]);
+  break;
+
+ case sk_archery:
   if (p.sklevel[sk_archery] > 8)
-   return 20;
+   time = 20;
   else
-   return (220 - 25 * p.sklevel[sk_archery]); break;
+   time = (220 - 25 * p.sklevel[sk_archery]);
+  break;
+
  case sk_launcher:
   if (p.sklevel[sk_launcher] > 8)
-   return 30;
+   time = 30;
   else
-   return (200 - 20 * p.sklevel[sk_launcher]);
+   time = (200 - 20 * p.sklevel[sk_launcher]);
+  break;
+
  default:
   debugmsg("Why is shooting %s using %s skill?", (firing->name).c_str(),
 		skill_name(firing->skill_used).c_str());
-  return 0;
+  time =  0;
  }
- return 0;
+
+ return time;
 }
 
 void make_gun_sound_effect(game *g, player &p, bool burst)
@@ -645,7 +713,7 @@ void shoot_monster(game *g, player &p, monster &mon, int &dam, double goodhit)
   goodhit = 1;
  } else { // Not HARDTOSHOOT
 // Armor blocks BEFORE any critical effects.
-  int zarm = mon.armor();
+  int zarm = mon.armor_cut();
   zarm -= p.weapon.curammo->pierce;
   if (p.weapon.curammo->accuracy < 4) // Shot doesn't penetrate armor well
    zarm *= rng(2, 4);
@@ -773,7 +841,7 @@ void splatter(game *g, std::vector<point> trajectory, int dam, monster* mon)
  int distance = 1;
  if (dam > 50)
   distance = 3;
- else if (dam > 15)
+ else if (dam > 20)
   distance = 2;
 
  std::vector<point> spurt = continue_line(trajectory, distance);

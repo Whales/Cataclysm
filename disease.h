@@ -31,6 +31,12 @@ void dis_msg(game *g, dis_type type)
  case DI_FBFEET:
   g->add_msg("Your feet are frostbitten.");
   break;
+ case DI_COMMON_COLD:
+  g->add_msg("You feel a cold coming on...");
+  break;
+ case DI_FLU:
+  g->add_msg("You feel a flu coming on...");
+  break;
  case DI_ONFIRE:
   g->add_msg("You're on fire!");
   break;
@@ -150,6 +156,55 @@ void dis_effect(game *g, player &p, disease &dis)
   p.str_cur -=  1;
   break;
 
+ case DI_COMMON_COLD:
+  if (int(g->turn) % 300 == 0)
+   p.thirst++;
+  if (p.has_disease(DI_TOOK_FLUMED)) {
+   p.str_cur--;
+   p.int_cur--;
+  } else {
+   p.str_cur -= 3;
+   p.dex_cur--;
+   p.int_cur -= 2;
+   p.per_cur--;
+  }
+  if (one_in(300)) {
+   p.moves -= 80;
+   if (!p.is_npc()) {
+    g->add_msg("You cough noisily.");
+    g->sound(p.posx, p.posy, 12, "");
+   } else
+    g->sound(p.posx, p.posy, 12, "loud coughing");
+  }
+  break;
+
+ case DI_FLU:
+  if (int(g->turn) % 300 == 0)
+   p.thirst++;
+  if (p.has_disease(DI_TOOK_FLUMED)) {
+   p.str_cur -= 2;
+   p.int_cur--;
+  } else {
+   p.str_cur -= 4;
+   p.dex_cur -= 2;
+   p.int_cur -= 2;
+   p.per_cur--;
+  }
+  if (one_in(300)) {
+   p.moves -= 80;
+   if (!p.is_npc()) {
+    g->add_msg("You cough noisily.");
+    g->sound(p.posx, p.posy, 12, "");
+   } else
+    g->sound(p.posx, p.posy, 12, "loud coughing");
+  }
+  if (one_in(3600) || (p.has_trait(PF_WEAKSTOMACH) && one_in(3000)) ||
+      (p.has_trait(PF_NAUSEA) && one_in(2400))) {
+   if (!p.has_disease(DI_TOOK_FLUMED) || one_in(2))
+    p.vomit(g);
+  }
+  break;
+
  case DI_SMOKE:
   p.str_cur--;
   p.dex_cur--;
@@ -243,6 +298,7 @@ void dis_effect(game *g, player &p, disease &dis)
     p.hurt(g, bp_torso, 0, 5);
    }
    if ((p.has_trait(PF_WEAKSTOMACH) && one_in(1600 + bonus *  8)) ||
+       (p.has_trait(PF_NAUSEA) && one_in(800 + bonus * 6)) ||
        one_in(2000 + bonus * 10)) {
     if (!p.is_npc())
      g->add_msg("You vomit a thick, gray goop.");
@@ -382,7 +438,7 @@ void dis_effect(game *g, player &p, disease &dis)
   if (dis.duration <= 600)
    p.str_cur += 1;
   if (dis.duration > 2000 + 100 * dice(2, 100) && 
-      (p.has_trait(PF_WEAKSTOMACH) || one_in(20)))
+      (p.has_trait(PF_WEAKSTOMACH) || p.has_trait(PF_NAUSEA) || one_in(20)))
    p.vomit(g);
   if (!p.has_disease(DI_SLEEP) && dis.duration >= 4500 &&
       one_in(500 - int(dis.duration / 80))) {
@@ -397,7 +453,8 @@ void dis_effect(game *g, player &p, disease &dis)
    p.str_cur--;
    p.dex_cur--;
    if (dis.duration >= 1200 && (one_in(50) ||
-                                (p.has_trait(PF_WEAKSTOMACH) && one_in(20))))
+                                (p.has_trait(PF_WEAKSTOMACH) && one_in(30)) ||
+                                (p.has_trait(PF_NAUSEA) && one_in(20))))
     p.vomit(g);
   } else {
    p.dex_cur++;
@@ -451,6 +508,7 @@ void dis_effect(game *g, player &p, disease &dis)
    p.hurt(g, bp_torso, 0, 1);
   }
   if ((p.has_trait(PF_WEAKSTOMACH) && one_in(350 + bonus)) ||
+      (p.has_trait(PF_NAUSEA) && one_in(50 + bonus)) ||
       one_in(900 + bonus)) 
    p.vomit(g);
   p.str_cur -= 3;
@@ -524,6 +582,18 @@ void dis_effect(game *g, player &p, disease &dis)
  case DI_WEBBED:
   p.str_cur -= 2;
   p.dex_cur -= 4;
+  break;
+
+ case DI_RAT:
+  p.int_cur -= int(dis.duration / 20);
+  p.str_cur -= int(dis.duration / 50);
+  p.per_cur -= int(dis.duration / 25);
+  if (rng(30, 100) < rng(0, dis.duration) && one_in(3))
+   p.vomit(g);
+  if (rng(0, 100) < rng(0, dis.duration))
+   p.mutation_category_level[MUTCAT_RAT]++;
+  if (rng(50, 500) < rng(0, dis.duration))
+   p.mutate(g);
   break;
 
  case DI_FORMICATION:
@@ -769,6 +839,7 @@ int disease_speed_boost(disease dis)
  switch (dis.type) {
  case DI_COLD:		return 0 - int(dis.duration / 5);
  case DI_HEATSTROKE:	return -15;
+ case DI_INFECTION:	return -80;
  case DI_SAP:		return -25;
  case DI_SPORES:	return -15;
  case DI_SLIMED:	return -25;
@@ -797,6 +868,8 @@ std::string dis_name(disease dis)
  case DI_FBFACE:	return "Frostbite - Face";
  case DI_FBHANDS:	return "Frostbite - Hands";
  case DI_FBFEET:	return "Frostbite - Feet";
+ case DI_COMMON_COLD:	return "Common Cold";
+ case DI_FLU:		return "Influenza";
  case DI_SMOKE:		return "Smoke";
  case DI_TEARGAS:	return "Tear gas";
  case DI_ONFIRE:	return "On Fire";
@@ -812,6 +885,7 @@ std::string dis_name(disease dis)
  case DI_SHAKES:	return "Shakes";
  case DI_FORMICATION:	return "Bugs Under Skin";
  case DI_WEBBED:	return "Webbed";
+ case DI_RAT:		return "Ratting";
  case DI_DRUNK:
   if (dis.duration > 2200) return "Wasted";
   if (dis.duration > 1400) return "Trashed";
@@ -911,6 +985,16 @@ Dexterity - 2";
  case DI_FBFEET:	return "\
 Speed -40%;     Strength - 1";
 
+ case DI_COMMON_COLD:	return "\
+Increased thirst;  Frequent coughing\n\
+Strength - 3;  Dexterity - 1;  Intelligence - 2;  Perception - 1\n\
+Symptoms alleviated by medication (Dayquil or Nyquil).";
+
+ case DI_FLU:		return "\
+Increased thirst;  Frequent coughing;  Occasional vomiting\n\
+Strength - 4;  Dexterity - 2;  Intelligence - 2;  Perception - 1\n\
+Symptoms alleviated by medication (Dayquil or Nyquil).";
+
  case DI_SMOKE:		return "\
 Strength - 1;     Dexterity - 1;\n\
 Occasionally you will cough, costing movement and creating noise.\n\
@@ -968,6 +1052,19 @@ this urge.";
 
  case DI_WEBBED:	return "\
 Strength - 1;     Dexterity - 4;    Speed - 25";
+
+ case DI_RAT:
+  intpen = int(dis.duration / 20);
+  perpen = int(dis.duration / 25);
+  strpen = int(dis.duration / 50);
+  stream << "You feal nauseated and rat-like.\n";
+  if (intpen > 0)
+   stream << "Intelligence - " << intpen << ";   ";
+  if (perpen > 0)
+   stream << "Perception - " << perpen << ";   ";
+  if (strpen > 0)
+   stream << "Strength - " << strpen << ";   ";
+  return stream.str();
 
  case DI_DRUNK:
   perpen = int(dis.duration / 1000);

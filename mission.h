@@ -5,35 +5,29 @@
 #include <string>
 #include "itype.h"
 #include "texthash.h"
+#include "npc.h"
 
 struct mission;
 class game;
+enum talk_topic;
 
 enum mission_id {
  MISSION_NULL,
- MISSION_REACH_SAFETY,
- MISSION_FIND_FAMILY,
- MISSION_FIND_FAMILY_FACTION,
- MISSION_FIND_FAMILY_KIDNAPPER,
- MISSION_FOLLOW_TO_SAFETY,
- MISSION_MEET_FACTION,
- MISSION_GET_JELLY,
- MISSION_GET_JELLY_IGNT,
- MISSION_FIND_NPC,
- MISSION_RESCUE_KIDNAPPED,
+ MISSION_GET_ANTIBIOTICS,
+ MISSION_GET_SOFTWARE,
+ MISSION_GET_ZOMBIE_BLOOD_ANAL,
+ MISSION_RESCUE_DOG,
+ MISSION_KILL_ZOMBIE_MOM,
  NUM_MISSION_IDS
 };
+
+std::string mission_dialogue(mission_id id, talk_topic state);
 
 enum mission_origin {
  ORIGIN_NULL = 0,
  ORIGIN_GAME_START,	// Given when the game starts
  ORIGIN_OPENER_NPC,	// NPC comes up to you when the game starts
- ORIGIN_SECONDARY,	// Given when you complete another mission
- ORIGIN_BLACK_BOX,	// Found on a helicopter's black box
- ORIGIN_RADIO_TOWER,	// Given via radio signal
- ORIGIN_NPC_MISC,	// Given via any NPC
- ORIGIN_NPC_FACTION,	// Given by a NPC representing a faction
- ORIGIN_TOWN_BOARD,	// Given by a settlement's event board
+ ORIGIN_SECONDARY,	// Given at the end of another mission
  NUM_ORIGIN
 };
 
@@ -41,18 +35,18 @@ enum mission_goal {
  MGOAL_NULL = 0,
  MGOAL_GO_TO,		// Reach a certain overmap tile
  MGOAL_FIND_ITEM,	// Find an item of a given type
+ MGOAL_FIND_ANY_ITEM,	// Find an item tagged with this mission
+ MGOAL_FIND_MONSTER,	// Find and retrieve a friendly monster
  MGOAL_FIND_NPC,	// Find a given NPC
  MGOAL_ASSASSINATE,	// Kill a given NPC
+ MGOAL_KILL_MONSTER,	// Kill a particular hostile monster
  NUM_MGOAL
 };
 
 struct mission_place {	// Return true if [posx,posy] is valid in overmap
  bool never		(game *g, int posx, int posy) { return false; }
  bool always		(game *g, int posx, int posy) { return true;  }
- bool danger		(game *g, int posx, int posy);
- bool get_jelly		(game *g, int posx, int posy);
- bool lost_npc		(game *g, int posx, int posy);
- bool kidnap_victim	(game *g, int posx, int posy);
+ bool near_town		(game *g, int posx, int posy);
 };
 
 /* mission_start functions are first run when a mission is accepted; this
@@ -62,55 +56,65 @@ struct mission_place {	// Return true if [posx,posy] is valid in overmap
  * goal, or run the appropriate mission_end function.
  */
 struct mission_start {
- void standard		(game *, mission *);
- void danger		(game *, mission *);
- void find_family	(game *, mission *);
- void find_family_note	(game *, mission *);
- void get_jelly		(game *, mission *);
- void get_jelly_ignt	(game *, mission *);
- void lost_npc		(game *, mission *);
- void kidnap_victim	(game *, mission *);
+ void standard		(game *, mission *); // Standard for its goal type
+ void infect_npc	(game *, mission *); // DI_INFECTION, remove antibiotics
+ void place_dog		(game *, mission *); // Put a dog in a house!
+ void place_zombie_mom	(game *, mission *); // Put a zombie mom in a house!
+ void place_npc_software(game *, mission *); // Put NPC-type-dependant software
+ void reveal_hospital	(game *, mission *); // Reveal the nearest hospital
 };
 
 struct mission_end {	// These functions are run when a mission ends
  void standard		(game *, mission *){}; // Nothing special happens
- void find_family	(game *, mission *){};
- void join_faction	(game *, mission *){}; // Offer to join GOODFAC
- void get_jelly		(game *, mission *){}; // Cure whoever was sick
- void get_jelly_ignt	(game *, mission *){}; // ^, also teach about jelly
- void lost_npc		(game *, mission *){};
- void kidnap_victim	(game *, mission *){};
- void demo		(game *, mission *){};
+ void heal_infection	(game *, mission *);
+};
+
+struct mission_fail {
+ void standard		(game *, mission *){}; // Nothing special happens
+ void kill_npc		(game *, mission *); // Kill the NPC who assigned it!
 };
 
 struct mission_type {
+ int id;		// Matches it to a mission_id above
  std::string name;	// The name the mission is given in menus
  mission_goal goal;	// The basic goal type
  int difficulty;	// Difficulty; TODO: come up with a scale
+ int value;		// Value; determines rewards and such
  int deadline_low, deadline_high; // Low and high deadlines (turn numbers)
+ bool urgent;	// If true, the NPC will press this mission!
 
  std::vector<mission_origin> origins;	// Points of origin
- std::vector<std::string> intros;
-
- std::vector<itype_id> items;
+ itype_id item_id;
+ mission_id follow_up;
 
  bool (mission_place::*place)(game *g, int x, int y);
  void (mission_start::*start)(game *g, mission *);
  void (mission_end  ::*end  )(game *g, mission *);
+ void (mission_fail ::*fail )(game *g, mission *);
 
- mission_type(std::string NAME, mission_goal GOAL, int DIF,
+ mission_type(int ID, std::string NAME, mission_goal GOAL, int DIF, int VAL,
+              bool URGENT,
               bool (mission_place::*PLACE)(game *, int x, int y),
               void (mission_start::*START)(game *, mission *),
-              void (mission_end::*END)(game *, mission *)) :
-  name (NAME), goal (GOAL), difficulty (DIF), place (PLACE), start (START),
-  end (END) { deadline_low = 0; deadline_high = 0; };
+              void (mission_end  ::*END  )(game *, mission *),
+              void (mission_fail ::*FAIL )(game *, mission *)) :
+  id (ID), name (NAME), goal (GOAL), difficulty (DIF), value (VAL),
+  urgent(URGENT), place (PLACE), start (START), end (END), fail (FAIL)
+  {
+   deadline_low = 0;
+   deadline_high = 0;
+   item_id = itm_null;
+   follow_up = MISSION_NULL;
+  };
 
- mission create(game *g); // Create a mission based on this template
+ mission create(game *g, int npc_id = -1); // Create a mission
 };
 
 struct mission {
  mission_type *type;
  std::string description; // Basic descriptive text
+ bool failed;		// True if we've failed it!
+ int value;
  int uid;		// Unique ID number, used for referencing elsewhere
  point target;		// Marked on the player's map.  (-1,-1) for none
  itype_id item_id;	// Item that needs to be found (or whatever)
@@ -118,9 +122,27 @@ struct mission {
  int deadline;		// Turn number
  int npc_id;		// ID of a related npc
  int good_fac_id, bad_fac_id;	// IDs of the protagonist/antagonist factions
+ int step;		// How much have we completed?
+ mission_id follow_up;	// What mission do we get after this succeeds?
  text_hash text;
 
  std::string name();
+ mission()
+ {
+  type = NULL;
+  description = "";
+  failed = false;
+  value = 0;
+  uid = -1;
+  target = point(-1, -1);
+  item_id = itm_null;
+  count = 0;
+  deadline = 0;
+  npc_id = -1;
+  good_fac_id = -1;
+  bad_fac_id = -1;
+  step = 0;
+ }
 };
 
 #endif
