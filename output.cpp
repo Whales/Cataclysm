@@ -677,10 +677,10 @@ bool draw_object(WINDOW* w, int x, int y, int name, bool highlight, bool alpha) 
   if(active_tileset) {
    if(!alpha) {
     mvwaddch(w,y,x, ' ');
-    wrefresh(w); // need to call refresh because otherwise the draw will be quequed and overwritten
+    //wrefresh(w); // need to call refresh because otherwise the draw will be quequed and overwritten
    }
    mvwaddch(w,y,x, A_TILESET | (name + 0x80) | highlight );
-   wrefresh(w);
+   //wrefresh(w);
    return true;
   } // if symbol doesn't exist, it's rendered as the normal character
  #endif
