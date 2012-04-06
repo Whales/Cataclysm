@@ -505,12 +505,12 @@ void game::create_starting_npcs()
  if (one_in(2))
   tmp.chatbin.missions.push_back( reserve_mission(MISSION_GET_SOFTWARE, tmp.id));
  else
-  tmp.chatbin.missions.push_back( 
+  tmp.chatbin.missions.push_back(
       reserve_random_mission(ORIGIN_OPENER_NPC, om_location(), tmp.id) );
 
  active_npc.push_back(tmp);
 }
- 
+
 
 // MAIN GAME LOOP
 // Returns true if game is over (death, saved, quit, etc)
@@ -912,7 +912,7 @@ void game::assign_mission(int id)
  mission *miss = find_mission(id);
  (m_s.*miss->type->start)(this, miss);
 }
- 
+
 int game::reserve_mission(mission_id type, int npc_id)
 {
  mission tmp = mission_types[type].create(this, npc_id);
@@ -1888,7 +1888,7 @@ void game::list_missions()
   for (int i = 0; i < umissions.size(); i++) {
    mission *miss = find_mission(umissions[i]);
    nc_color col = c_white;
-   if (i == u.active_mission && tab == 0) 
+   if (i == u.active_mission && tab == 0)
     col = c_ltred;
    if (selection == i)
     mvwprintz(w_missions, 3 + i, 0, hilite(col), miss->name().c_str());
@@ -1981,6 +1981,7 @@ void game::draw()
  draw_footsteps();
  mon_info();
  // Draw Status
+ werase(w_HP);
  draw_HP();
  werase(w_status);
  u.disp_status(w_status, this);
@@ -2364,7 +2365,7 @@ faction* game::random_evil_faction()
 bool game::sees_u(int x, int y, int &t)
 {
  return (!u.has_active_bionic(bio_cloak) &&
-         !u.has_artifact_with(AEP_INVISIBLE) && 
+         !u.has_artifact_with(AEP_INVISIBLE) &&
          m.sees(x, y, u.posx, u.posy, light_level(), t));
 }
 
@@ -2903,7 +2904,7 @@ void game::add_footstep(int x, int y, int volume, int distance)
 void game::draw_footsteps()
 {
  for (int i = 0; i < footsteps.size(); i++) {
-  mvwputch(w_terrain, SEEY + footsteps[i].y - u.posy, 
+  mvwputch(w_terrain, SEEY + footsteps[i].y - u.posy,
            SEEX + footsteps[i].x - u.posx, c_yellow, '?');
  }
  footsteps.clear();
@@ -5578,7 +5579,7 @@ void game::update_map(int &x, int &y)
   npc temp;
   for (int i = 0; i < cur_om.npcs.size(); i++) {
    if (rl_dist(levx + int(MAPSIZE / 2), levy + int(MAPSIZE / 2),
-               cur_om.npcs[i].mapx, cur_om.npcs[i].mapy) <= 
+               cur_om.npcs[i].mapx, cur_om.npcs[i].mapy) <=
                int(MAPSIZE / 2) + 1) {
     int dx = cur_om.npcs[i].mapx - levx, dy = cur_om.npcs[i].mapy - levy;
     if (debugmon)
