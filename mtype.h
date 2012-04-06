@@ -10,6 +10,7 @@
 #include "monattack.h"
 #include "enums.h"
 #include "color.h"
+#include "output.h"
 
 class mdeath;
 
@@ -157,6 +158,7 @@ struct mtype {
  monster_species species;
  char sym;	// Symbol on the map
  nc_color color;// Color of symbol (see color.h)
+ int sprite; // Graphical representation in tileset mode
 
  m_size size;
  material mat;	// See enums.h for material list.  Generally, flesh; veggy?
@@ -195,6 +197,7 @@ struct mtype {
   species = species_none;
   sym = ' ';
   color = c_white;
+  sprite = 0;
   size = MS_MEDIUM;
   mat = FLESH;
   difficulty = 0;
@@ -230,6 +233,7 @@ struct mtype {
   id = pid; 
   name = pname; 
   species = pspecies;
+	sprite = active_tileset->name_to_position(pname.c_str());
   sym = psym;
   color = pcolor;
   size = psize;

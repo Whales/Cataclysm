@@ -3,23 +3,25 @@
 # DEBUG is best turned on if you plan to debug in gdb -- please do!
 # PROFILE is for use with gprof or a similar program -- don't bother generally
 #WARNINGS = -Wall
-DEBUG = -g
+#DEBUG = -g -ggdb
 #PROFILE = -pg
+OPTIMIZE = -O3 -Os
 
 ODIR = obj
 DDIR = .deps
 
 TARGET = cataclysm
 
-OS  = $(shell uname -o)
+OS  = $(shell uname -s)
 CXX = g++
 
 CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE)
 
-ifeq ($(OS), Msys)
-LDFLAGS = -static -lpdcurses
+ifeq ($(OS), MINGW32_NT-5.1)
+CFLAGS = $(WARNINGS) $(OPTIMIZE) $(DEBUG) $(PROFILE) -D__TILESET
+LDFLAGS = -static -lpdcurses -lSDL -Wl,-stack,12000000,-subsystem,windows
 else 
-LDFLAGS = -lncurses
+LDFLAGS = -lncurses -Wl,-stack,12000000,-subsystem,windows
 endif
 
 SOURCES = $(wildcard *.cpp)

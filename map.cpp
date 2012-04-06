@@ -59,7 +59,7 @@ ter_id& map::ter(int x, int y)
 {
  if (!INBOUNDS(x, y)) {
   nulter = t_null;
-  return nulter;	// Out-of-bounds - null terrain 
+  return nulter;	// Out-of-bounds - null terrain
  }
 /*
  int nonant;
@@ -938,7 +938,7 @@ void map::use_charges(point origin, int range, itype_id type, int quantity)
   }
  }
 }
- 
+
 trap_id& map::tr_at(int x, int y)
 {
  if (!INBOUNDS(x, y)) {
@@ -958,7 +958,7 @@ trap_id& map::tr_at(int x, int y)
   nultrap = tr_null;
   return nultrap;	// Out-of-bounds, return our null trap
  }
- 
+
  return grid[nonant].trp[x][y];
 }
 
@@ -1002,7 +1002,7 @@ void map::disarm_trap(game *g, int x, int y)
   (f.*(tr->act))(g, x, y);
  }
 }
- 
+
 field& map::field_at(int x, int y)
 {
  if (!INBOUNDS(x, y)) {
@@ -1108,7 +1108,10 @@ void map::draw(game *g, WINDOW* w)
     drawsq(w, g->u, realx, realy, false, true);
   }
  }
- mvwputch(w, SEEY, SEEX, g->u.color(), '@');
+ // first try to draw the graphical representation, if that fails draw an @
+ if(!draw_object(w,SEEX,SEEY,active_tileset->name_to_position("self"))) {
+  mvwputch(w, SEEY, SEEX, g->u.color(), '@');
+ }
 }
 
 void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
@@ -1121,6 +1124,21 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
  nc_color tercol;
  char sym = terlist[ter(x, y)].sym;
  bool hi = false;
+
+ // we should really cache this stuff in a std::map at startup
+ std::string terrain_name = terlist[ter(x, y)].name.c_str();
+ if(terrain_name == "wall" && sym == '|') {
+  terrain_name = "wall NS";
+ }
+ else if(terrain_name == "wall" && sym == '-') {
+  terrain_name = "wall WE";
+ }
+ int graphic = active_tileset->name_to_position(terrain_name.c_str());
+ if(graphic) {
+  sym = 0;
+  draw_object(w, k, j, graphic, terlist[ter(x, y)].flags & A_BOLD);
+ }
+
  if (u.has_disease(DI_BOOMERED))
   tercol = c_magenta;
  else if ((u.is_wearing(itm_goggles_nv) && u.has_active_item(itm_UPS_on)) ||
@@ -1164,13 +1182,27 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
   if ((terlist[ter(x, y)].sym != '.'))
    hi = true;
   else {
-   tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
-   if (i_at(x, y).size() > 1)
+   // if we can draw the object's sprite, no need to do anything else
+   if(i_at(x, y)[i_at(x, y).size() - 1].type->sprite) {
+    graphic = i_at(x, y)[i_at(x, y).size() - 1].type->sprite;
+    sym = 0;
+   } else {
+    tercol = i_at(x, y)[i_at(x, y).size() - 1].color();
+    if (i_at(x, y).size() > 1)
     invert = !invert;
-   sym = i_at(x, y)[i_at(x, y).size() - 1].symbol();
+    sym = i_at(x, y)[i_at(x, y).size() - 1].symbol();
+   }
+
   }
  }
- if (invert)
+
+ if (graphic && !sym) {
+  draw_object(w, k, j, graphic, false, true);
+  if(invert) {
+   draw_object(w, k, j, active_tileset->name_to_position("cursor"), false, true);
+  }
+ }
+ else if (invert)
   mvwputch_inv(w, j, k, tercol, sym);
  else if (hi)
   mvwputch_hi (w, j, k, tercol, sym);
@@ -1194,7 +1226,7 @@ bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
  int y = Fy;
  int t = 0;
  int st;
- 
+
  if (range >= 0 && (abs(dx) > range || abs(dy) > range))
   return false;	// Out of range!
  if (ax > ay) { // Mostly-horizontal line
@@ -1557,7 +1589,7 @@ void map::saven(overmap *om, unsigned int turn, int worldx, int worldy,
  }
 // Dump the radiation
  for (int j = 0; j < SEEY; j++) {
-  for (int i = 0; i < SEEX; i++) 
+  for (int i = 0; i < SEEX; i++)
    fout << grid[n].rad[i][j] << " ";
  }
  fout << std::endl;
@@ -1782,7 +1814,7 @@ void map::spawn_monsters(game *g)
       tmp.friendly = -1;
      int fx = mx + gx * SEEX, fy = my + gy * SEEY;
 
-     while ((!g->is_empty(fx, fy) || !tmp.can_move_to(g->m, fx, fy)) && 
+     while ((!g->is_empty(fx, fy) || !tmp.can_move_to(g->m, fx, fy)) &&
             tries < 10) {
       mx = (grid[n].spawns[i].posx + rng(-3, 3)) % SEEX;
       my = (grid[n].spawns[i].posy + rng(-3, 3)) % SEEY;

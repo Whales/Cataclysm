@@ -14,9 +14,20 @@
 #include "game.h"
 #include "color.h"
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#include <SDL/SDL.h>
+#undef main
+#endif
+
 int main(int argc, char *argv[])
 {
  srand(time(NULL));
+
+// set the screen size
+ set_screen_size(argc, argv);
+
+// prepare a tileset for graphical rendering
+ active_tileset = new Tileset();
 
 // ncurses stuff
  initscr(); // Initialize ncurses

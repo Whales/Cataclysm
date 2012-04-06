@@ -604,7 +604,7 @@ void npc::randomize_from_faction(game *g, faction *fac)
    case 4: sklevel[sk_tailor] += dice(2,  4);		break;
   }
  }
-   
+
  if (fac->has_value(FACVAL_CHARITABLE)) {
   personality.aggression -= rng(2, 5);
   personality.bravery += rng(0, 4);
@@ -1013,7 +1013,7 @@ std::vector<item> starting_inv(npc *me, npc_class type, game *g)
    }
   }
  }
- 
+
  return ret;
 }
 
@@ -1148,7 +1148,7 @@ bool npc::wear_if_wanted(item it)
   }
  }
  return false;
-} 
+}
 
 bool npc::wield(game *g, int index)
 {
@@ -1663,14 +1663,14 @@ int npc::danger_assessment(game *g)
   if (rl_dist(posx, posy, g->u.posx, g->u.posy) < 10) {
    if (g->u.weapon.is_gun())
     ret += 10;
-   else 
+   else
     ret += 10 - rl_dist(posx, posy, g->u.posx, g->u.posy);
   }
  } else if (is_friend()) {
   if (rl_dist(posx, posy, g->u.posx, g->u.posy) < 8) {
    if (g->u.weapon.is_gun())
     ret -= 8;
-   else 
+   else
     ret -= 8 - rl_dist(posx, posy, g->u.posx, g->u.posy);
   }
  }
@@ -1751,7 +1751,7 @@ void npc::told_to_wait(game *g)
   say(g, "No way, man!");
  }
 }
- 
+
 void npc::told_to_leave(game *g)
 {
  if (!is_following()) {
@@ -1796,10 +1796,12 @@ void npc::draw(WINDOW* w, int ux, int uy, bool inv)
   col = c_green;
  else if (is_following())
   col = c_ltgreen;
- if (inv)
-  mvwputch_inv(w, y, x, col, '@');
- else
-  mvwputch    (w, y, x, col, '@');
+ if(!draw_object(w, x, y, active_tileset->name_to_position("npc"), false, true)) {
+     if (inv)
+      mvwputch_inv(w, y, x, col, '@');
+     else
+      mvwputch    (w, y, x, col, '@');
+ }
 }
 
 void npc::print_info(WINDOW* w)
@@ -1949,7 +1951,7 @@ void npc::die(game *g, bool your_fault)
   if (g->active_missions[i].npc_id == id)
    g->fail_mission( g->active_missions[i].uid );
  }
-  
+
  item my_body;
  my_body.make_corpse(g->itypes[itm_corpse], g->mtypes[mon_null], g->turn);
  my_body.name = name;

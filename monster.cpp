@@ -207,6 +207,12 @@ void monster::draw(WINDOW *w, int plx, int ply, bool inv)
  int x = SEEX + posx - plx;
  int y = SEEY + posy - ply;
  nc_color color = type->color;
+ 
+ // see if it's possible to draw a graphical sprite
+ if(type->sprite) {
+  if(draw_object(w, x, y, type->sprite)) return;
+ }
+ 
  if (friendly != 0 && !inv)
   mvwputch_hi(w, y, x, color, type->sym);
  else if (inv)
