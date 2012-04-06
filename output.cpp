@@ -741,6 +741,7 @@ Tileset::Tileset() {
  string_to_position["human corpse"]    = 0;
 
  string_to_position["self"]            = 1;
+ string_to_position["npc"]             = 5;
 
  string_to_position["corpse"]          = 0;
  string_to_position["cursor"]          = 9;

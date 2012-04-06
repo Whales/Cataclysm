@@ -780,6 +780,8 @@ int overmap::dist_from_city(point p)
 void overmap::draw(WINDOW *w, game *g, int &cursx, int &cursy,
                    int &origx, int &origy, char &ch, bool blink)
 {
+ werase(w); // make sure there's no clutter
+
  bool legend = true, note_here = false, npc_here = false;
  std::string note_text, npc_name;
 
@@ -897,10 +899,6 @@ void overmap::draw(WINDOW *w, game *g, int &cursx, int &cursy,
       if (cur_ter >= num_ter_types || cur_ter < 0)
        debugmsg("Bad ter %d (%d, %d)", cur_ter, omx, omy);
 
-      // if we can draw the tile graphically just go to the next iteration
-      int tilepos = active_tileset->name_to_position(oterlist[cur_ter].name.c_str());
-      if(tilepos && draw_object(w, 25+i, 12+j, tilepos) ) continue;
-
       ter_color = oterlist[cur_ter].color;
       ter_sym = oterlist[cur_ter].sym;
      }
@@ -908,10 +906,26 @@ void overmap::draw(WINDOW *w, game *g, int &cursx, int &cursy,
      ter_color = c_dkgray;
      ter_sym = '#';
     }
+
+    // if we can draw the tile graphically just go to the next iteration
+    int tilepos;
+    if(see) tilepos = active_tileset->name_to_position(oterlist[cur_ter].name.c_str());
+    else tilepos = active_tileset->name_to_position("fog");
+
+    if(note_here || (omx == origx && omy == origy) || npc_here || (omx == target.x && omy == target.y))
+     tilepos = 0; // some stuff shouldn't be drawn graphically just yet
+
+    if(!tilepos || !draw_object(w, 25+i, 12+j, tilepos) ) {
     if (j == 0 && i == 0)
      mvwputch_hi (w, 12,     25,     ter_color, ter_sym);
     else
      mvwputch    (w, 12 + j, 25 + i, ter_color, ter_sym);
+    }
+    else {
+     // see if we can draw stuff ON TOP of the tile
+     if(j == 0 && i == 0) draw_object(w, 25, 12, active_tileset->name_to_position("cursor"), false, true);
+    }
+
    }
   }
   if (target.x != -1 && target.y != -1 && blink &&
