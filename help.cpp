@@ -45,50 +45,52 @@ m: Survival tips\n\
 4: Description of gun types\n\
 5: Frequently Asked Questions (Some spoilers!)\n\
 \n\
-q: Return to game");
- 
+q: Return to menu");
+
   ch = getch();
   switch (ch) {
   case 'a':
   case 'A':
    erase();
    mvprintz(0, 0, c_white, "\
-Cataclysm is a roguelike with a monster apocalypse setting. You have survived\n\
+Cataclysm is a roguelike with a monster apocalypse setting.  You have survived\n\
 the original onslaught, and are ready to set out in search of safety.\n\
 \n\
-Cataclysm differs from most roguelikes in several ways. Rather than exploring\n\
+Cataclysm differs from most roguelikes in several ways.  Rather than exploring\n\
 an underground dungeon, with a limited area on each level, you are exploring\n\
 a truly infinite world, stretching in all four cardinal directions.\n\
 As in most roguelikes, you will have to find food; you also need to keep\n\
 yourself hydrated, and sleep periodically.\n\
 \n\
 While Cataclysm has more challenges than many roguelikes, the near-future\n\
-setting makes some tasks easier. Firearms, medications, and a wide variety of\n\
+setting makes some tasks easier.  Firearms, medications, and a wide variety of\n\
 tools are all available to help you survive.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
- 
+
   case 'b':
   case 'B':
    erase();
    mvprintz(0, 0, c_white, "\
-Movement is performed using the numpad, or vikeys. Each step will take 100\n\
+Movement is performed using the numpad, or vikeys.  Each step will take 100\n\
                     movement points (or more, depending on the terrain); you\n\
 y  k  u   7  8  9   will then replenish a variable amount of movement points,\n\
  \\ | /     \\ | /    depending on many factors (press '@' to see the exact\n\
-  \\|/       \\|/     amount). To attempt to hit a monster with your weapon,\n\
-h--.--l   4--5--6   simply move into it. You may find doors, ('+'); these may\n\
-  /|\\       /|\\     be opened with 'o' or closed with 'c'. Some doors are\n\
- / | \\     / | \\    locked. Locked doors, windows, and some other obstacles\n\
+  \\|/       \\|/     amount).  To attempt to hit a monster with your weapon,\n\
+h--.--l   4--5--6   simply move into it.  You may find doors, ('+'); these may\n\
+  /|\\       /|\\     be opened with 'o' or closed with 'c'.  Some doors are\n\
+ / | \\     / | \\    locked.  Locked doors, windows, and some other obstacles\n\
 b  j  n   1  2  3   can be destroyed by smashing them ('s', then choose a\n\
-                    direction). Smashing down obstacles is much easier with a\n\
+                    direction).  Smashing down obstacles is much easier with a\n\
 good weapon or a strong character.\n\
 \n\
 There may be times when you want to move more quickly by holding down a\n\
-movement key. However, fast movement in this fashion may lead to the player\n\
+movement key.  However, fast movement in this fashion may lead to the player\n\
 getting into a dangerous situation or even killed before they have a chance\n\
-to react. Pressing '!' will toggle \"Run Mode.\" While this is on, any\n\
+to react.  Pressing '!' will toggle \"Safe Mode.\" While this is on, any\n\
 movement will be ignored if new monsters enter the player's view.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -98,10 +100,10 @@ movement will be ignored if new monsters enter the player's view.");
    mvprintz(0, 0, c_white, "\
 As time passes, you will begin to feel hunger and thirst.  A status warning\n\
 at the bottom of the screen will appear.  As hunger and thirst reach critical\n\
-levels, you will begin to suffer movement penalties. Thirst is more dangerous\n\
+levels, you will begin to suffer movement penalties.  Thirst is more dangerous\n\
 than hunger.  Finding food in a city is usually easy; outside of a city, you\n\
 may have to hunt an animal, then stand over its corpse and 'B'utcher it into\n\
-small chunks of meat. Likewise, outside of a city you may have to drink water\n\
+small chunks of meat.  Likewise, outside of a city you may have to drink water\n\
 from a river or other natural source; stand in shallow water and press 'g' or\n\
 ',' to pick it up.  You'll need a watertight container.  Be forewarned that\n\
 some sources of water aren't trustworthy and may produce diseased water.  To\n\
@@ -114,6 +116,7 @@ You may not always fall asleep right away.  Sleeping indoors, especially on a\n\
 bed, will help; or you can always use sleeping pills.  While sleeping, you'll\n\
 slowly replenish lost hit points.  You'll also be vulnerable to attack, so\n\
 try to find a safe place, or set traps for unwary intruders.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -142,8 +145,9 @@ notably intelligence, making them useful study aids.  There are two drawbacks\n\
 to stimulants; they make it more difficult to sleep, and, more importantly,\n\
 most are highly addictive.  Stimulants range from the caffeine rush of cola to\n\
 the more intense high of Adderall and methamphetamine.");
-  getch();
-  break;
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
+   getch();
+   break;
 
   case 'e':
   case 'E':
@@ -157,8 +161,9 @@ days, and will leave you very weak, so try to do it in a safe area.\n\
 \n\
 If you are suffering from drug withdrawal, taking more of the drug will cause\n\
 the effects to cease immediately, but may deepen your dependance.");
-  getch();
-  break;
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
+   getch();
+   break;
 
   case 'f':
   case 'F':
@@ -181,9 +186,8 @@ Low morale will make you sluggish and unmotivated.  It will also reduce your\n\
 stats, particularly intelligence.  If your morale drops very low, you may\n\
 even commit suicide.  Very high morale fills you with gusto and energy, and\n\
 you will find yourself moving faster.  At extremely high levels, you will\n\
-receive stat bonuses.\n\
-\n\
-Press any key for more...");
+receive stat bonuses.");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -195,6 +199,7 @@ skills cannot be improved except through the use of books.\n\
 Your XP pool will not fill unless your morale is at least 0.  A morale level\n\
 between 0 and 100 gives the percentage chance for your XP to increase by 1\n\
 each turn.  Above 100, you get 1 XP point each turn for every 100 morale.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -212,6 +217,7 @@ these mutations will be negative; however, many are beneficial, and others\n\
 have both positive and negative effects.  Your mutations may change your play\n\
 style considerably.  It is possible to find substances that will remove\n\
 mutations, though these are extremely rare.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -236,6 +242,7 @@ installation.  Performing such a task requires high levels of first aid,\n\
 mechanics, and/or electronics, and failure may cripple you!  Bionics canisters\n\
 are difficult to find, but they may be purchased from certain NPCs for a very\n\
 high price.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -251,20 +258,21 @@ Some recipes require a set of tools.  These are not used up when crafting, so\n\
 you can keep your tool set.  All recipes require one or more ingredients.\n\
 These ARE used up in crafting.\n\
 \n\
-To craft items, press '&'.  There are five categories; Weapons, Food,\n\
+To craft items, press '&'.  There are five categories: Weapons, Food,\n\
 Electronics, Armor, and Miscellaneous.  While a few items require no skill to\n\
 create, the majority require you to have some knowledge:\n\
 \n\
-->Mechanic skill is used for weapons, traps, and a few tools.\n\
-->Cooking skill, at low levels, is used for making tasty recipes; at higher\n\
-levels, you have an understanding of chemistry and can make chemical weapons\n\
-and beneficial elixirs.\n\
-->Electronics skill lets you make a wide variety of tools with intricate uses.\n\
-->Tailoring skill is used to create basic clothing, and later tough armor.\n\
+Mechanic    - weapons, traps, and a few tools.\n\
+Cooking     - at low levels, for making tasty recipes; at higher levels you\n\
+              have an understanding of chemistry and can make chemical weapons\n\
+              and beneficial elixirs.\n\
+Electronics - a wide variety of tools with intricate uses.\n\
+Tailoring   - repair/create basic clothing, and later tough armor.\n\
 \n\
 In addition to the primary crafting skills, other skills may be necessary to\n\
 create certain items.  Traps skill, Firearms skill, and First Aid skill are\n\
 all required for certain items.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -292,7 +300,7 @@ is a chance that you will set off the trap, suffering the consequences.\n\
 Many traps are fully or partially hidden.  Your ability to detect traps is\n\
 entirely dependent upon your Perception.  Should you stumble into a trap, you\n\
 may have a chance to avoid it, depending on your Dodge skill.");
-
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -300,16 +308,16 @@ may have a chance to avoid it, depending on your Dodge skill.");
   case 'K':
    erase();
    mvprintz(0, 0, c_white, "\
-There are a wide variety of items available for your use. You may find them\n\
+There are a wide variety of items available for your use.  You may find them\n\
 lying on the ground; if so, simply press ',' or 'g' to pick up items on the\n\
-same square. Some items are found inside a container, drawn as a { with a\n\
-blue background. Pressing 'e', then a direction, will allow you to examine\n\
+same square.  Some items are found inside a container, drawn as a { with a\n\
+blue background.  Pressing 'e', then a direction, will allow you to examine\n\
 these containers and loot their contents.\n\
 \n\
 All items may be used as a melee weapon, though some are better than others.\n\
 You can check the melee attributes of an item you're carrying by hitting 'i'\n\
 to enter your inventory, then pressing the letter of the item.  There are 3\n\
-melee values, bashing, cutting, and to-hit bonus (or penalty).\n\
+melee values: bashing, cutting, and to-hit bonus (or penalty).\n\
 Bashing damage is universally effective, but is capped by low strength.\n\
 Cutting damage is a guaranteed increase in damage, but it may be reduced by\n\
 a monster's natural armor.\n\
@@ -323,6 +331,7 @@ your inventory, or will be dropped on the ground if there is no space.\n\
 To wear a piece of clothing, press 'W' then the proper letter.  Armor reduces\n\
 damage and helps you resist things like smoke.  To take off an item, press\n\
 'T' then the proper letter.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -330,11 +339,11 @@ damage and helps you resist things like smoke.  To take off an item, press\n\
   case 'L':
    erase();
    mvprintz(0, 0, c_white, "\
-After 30 minutes of warmup time, monsters will begin to appear. They are\n\
+After 30 minutes of warmup time, monsters will begin to appear.  They are\n\
 represented by letters on your screen; a list of monster names, and their\n\
 positions relative to you, is displayed on the right side of the screen.\n\
 \n\
-To attack a monster with a melee weapon, simply move into them. The time it\n\
+To attack a monster with a melee weapon, simply move into them.  The time it\n\
 takes to attack depends on the size and weight of your weapon.  Small, light\n\
 weapons are the fastest; unarmed attacks increase in speed with your Unarmed\n\
 Combat skill, and will eventually be VERY fast.  A successful hit with a\n\
@@ -344,47 +353,49 @@ stuck in it will move much more slowly.  A miss may make you stumble and lose\n\
 movement points.  If a monster hits you, your clothing may absorb some damage,\n\
 but you will absorb the excess.\n\
 \n\
-Swarms of monsters may call for firearms. If you find one, wield it first,\n\
-then reload by pressing 'r'. If you wish to change ammo, you must unload the\n\
-weapon by pressing 'U', then reload again. To fire, press 'f', move the\n\
-cursor to the relevant space, then hit '.' or 'f'. Some guns have automatic\n\
+Swarms of monsters may call for firearms.  If you find one, wield it first,\n\
+then reload by pressing 'r'.  If you wish to change ammo, you must unload the\n\
+weapon by pressing 'U', then reload again.  To fire, press 'f', move the\n\
+cursor to the relevant space, then hit '.' or 'f'.  Some guns have automatic\n\
 fire; to shoot a burst, press 'F'.  This will severely reduce accuracy.\n\
 \n\
 Unlike most roguelikes, fleeing will often be your best option, especially\n\
 when overwhelmed by a swarm of zombies.  Try to avoid getting cornered inside\n\
 a building.  Ducking down into the subways or sewers is often an excellent\n\
 escape tactic.");
-  getch();
-  break;
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
+   getch();
+   break;
 
   case 'm':
   case 'M':
    erase();
    mvprintz(0, 0, c_white, "\
-The first thing to do is to check your home for useful items. Your initial\n\
+The first thing to do is to check your home for useful items.  Your initial\n\
 storage is limited, and a backpack, trenchcoat, or other storage medium will\n\
-let you carry a lot more. Finding a weapon is important; frying pans, butcher\n\
+let you carry a lot more.  Finding a weapon is important; frying pans, butcher\n\
 knives, and more are common in your home; hardware stores may carry others.\n\
 Unless you plan on concentrating on melee combat, seek out gun stores as soon\n\
 as possible and load up on more than one type.\n\
 \n\
 It's also important to carry a few medications; painkillers are a must-have,\n\
 and drugs such as cigarettes will make life easier (but beware addiction).\n\
-Leave cities as soon as you have a good stockpile of equipment. Their high\n\
+Leave cities as soon as you have a good stockpile of equipment.  Their high\n\
 concentration of zombies makes them a deathtrap--but a necessary resource for\n\
 food and ammunition.\n\
 \n\
-Combat is much easier if you can fight just one monster at once. Use doorways\n\
+Combat is much easier if you can fight just one monster at once.  Use doorways\n\
 as a choke point, or stand behind a window and strike as the zombies slowly\n\
-climb through. Never be afraid to just run if you can outpace your enemies.\n\
+climb through.  Never be afraid to just run if you can outpace your enemies.\n\
 Irregular terrain, like forests, may help you lose monsters.\n\
 \n\
 Firearms are the easiest way to kill an enemy, but the sound will attract\n\
-unwanted attention. Save the guns for emergencies, and melee when you can.\n\
+unwanted attention.  Save the guns for emergencies, and melee when you can.\n\
 \n\
 Try to keep your inventory as full as possible without being overloaded.  You\n\
 never know when you might need an item, most are good to sell, and you can\n\
 easily drop unwanted items on the floor.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
 
@@ -418,10 +429,11 @@ C - Chat with NPC                            ?      - Help page");
    mvprintz(22, 0, c_ltgray, "\
 S - Save game                                Q - Quit w/o saving");
    mvprintz(23, 0, c_red, "\
-Note that 'a' is context-sensitive, and can be used in place of 'W', 'E', or\n\
-'R', if you like.");
+Note: 'a' is context-sensitive, and can be used in place of 'W', 'E', or 'R'");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    break;
+
   case '2':
    erase();
    mvprintz(0, 0, c_white, "\
@@ -429,48 +441,48 @@ ITEM TYPES:\n\
 ~       Liquid\n\
 %%%%       Food\n\
 !       Medication\n\
-    These are all consumed by using 'E'. They provide a certain amount of\n\
+    These are all consumed by using 'E'.  They provide a certain amount of\n\
  nutrition, quench your thirst, may be a stimulant or a depressant, and may\n\
- provide morale. There may also be more subtle effects.\n\
+ provide morale.  There may also be more subtle effects.\n\
 \n\
 /       Large weapon\n\
 ;       Small weapon or tool\n\
 ,       Tiny item\n\
     These are all generic items, useful only to be wielded as a weapon.\n\
  However, some have special uses; they will show up under the TOOLS section\n\
- in your inventory. Press 'a' to use these.\n\
+ in your inventory.  Press 'a' to use these.\n\
 \n\
 )       Container\n\
-    These items may hold other items. Someare passable weapons. Many will be\n\
- listed with their contents, e.g. \"plastic bottle of water\". Those containing\n\
- comestibles may be eaten with 'E'; this may leave you with an empty container.\n\
-Press any key to continue...");
+    These items may hold other items.  Someare passable weapons.  Many will be\n\
+ listed with their contents, e.g. \"plastic bottle of water\".  Those containing\n\
+ comestibles may be eaten with 'E'; this may leave you with an empty container.");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    clear();
    mvprintz(0, 0, c_white, "\
 ITEM TYPES:\n\
 [       Clothing\n\
-    This may be worn with the 'W' key or removed with the 'T' key. It may\n\
+    This may be worn with the 'W' key or removed with the 'T' key.  It may\n\
  cover one or more body parts; you can wear multiple articles of clothing on\n\
- any given body part, but this will encumber you severely. Each article of\n\
+ any given body part, but this will encumber you severely.  Each article of\n\
  clothing may provide storage space, warmth, an encumberment, and a resistance\n\
- to bashing and/or cutting attacks. Some may protect against environmental\n\
+ to bashing and/or cutting attacks.  Some may protect against environmental\n\
  effects.\n\
 \n\
 (       Firearm\n\
     This weapon may be loaded with ammunition with 'r', unloaded with 'U', and\n\
- fired with 'f'. Some have automatic fire, which may be used with 'F' at a\n\
- penalty to accuracy. The color refers to the type; handguns are gray, shotguns\n\
+ fired with 'f'.  Some have automatic fire, which may be used with 'F' at a\n\
+ penalty to accuracy.  The color refers to the type: handguns are gray, shotguns\n\
  are red, submachine guns are cyan, rifles are brown, assault rifles are blue,\n\
- and heavy machine guns are light red. Each has an accuracy rating, a bonus to\n\
- damage, a rate of fire, and a maximum load. Note that most firearms load\n\
+ and heavy machine guns are light red.  Each has an accuracy rating, a bonus to\n\
+ damage, a rate of fire, and a maximum load.  Note that most firearms load\n\
  fully in one action, while shotguns must be loaded one shell at a time.\n\
 \n\
 =       Ammunition\n\
-    Ammunition is worthless without a gun to load it into. Generally, there\n\
- are several variants for any particular calibre. Ammunition has a damage\n\
- rating, an accuracy, a range, and an armor-piercing quality.\n\
-Press any key to continue...");
+    Ammunition is worthless without a gun to load it into.  Generally, there\n\
+ are several variants for any particular calibre.  Ammunition has a damage\n\
+ rating, an accuracy, a range, and an armor-piercing quality.");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -481,12 +493,14 @@ ITEM TYPES:\n\
  thrown, such as grenades, molotov cocktails, or tear gas.\n\
 \n\
 ?       Book or magazine\n\
-    This can be read for training or entertainment by pressing 'R'. Most\n\
+    This can be read for training or entertainment by pressing 'R'.  Most\n\
  require a basic level of intelligence; some require some base knowledge in\n\
  the relevant subject.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    erase();
    break;
+
   case '3':
    erase();
    mvprintz( 0, 0, c_ltgray,  "MAP SYMBOLS:");
@@ -505,7 +519,6 @@ F           Forest - May be dense or sparse.  Slow moving; foragable food.");
    mvputch(3,  8, c_dkgray, LINE_XOXX);
    mvputch(3,  9, c_dkgray, LINE_OXXX);
    mvputch(3, 10, c_dkgray, LINE_XXXX);
- 
    mvprintz( 3, 12, c_dkgray,  "\
 Road - Safe from burrowing animals.");
    mvprintz( 4, 0, c_dkgray,  "\
@@ -540,9 +553,11 @@ O           Parking lot - Empty lot, few items.  Mostly useless.");
 ^>v< are always man-made buildings.  The pointed side indicates the front door."
             );
    mvprintw(22, 0, "There are many others out there... search for them!");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    erase();
    break;
+
   case '4':
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -568,7 +583,7 @@ given enough Mechanics skill.  Likewise, it is possible to make wooden bolts\n\
 from any number of wooden objects, though these are much less effective than\n\
 steel bolts.\n\
 Crossbows use the handgun skill.");
-   mvprintz(24, 0, c_white, "Press any key to continue...");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -591,7 +606,7 @@ of bullets.  However, they are more effective when firing single shots, so\n\
 use discretion.  They mainly use the 9mm and .45 ammunition; however, other\n\
 SMGs exist.  They reload moderately quickly, and are suitable for close or\n\
 medium-long range combat.");
-   mvprintz(22, 0, c_white, "Press any key to continue...");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -614,7 +629,7 @@ fire, so save it for when you're highly skilled.\n\
 Assault rifles are an excellent choice for medium or long range combat, or\n\
 even close-range bursts again a large number of enemies.  They are difficult\n\
 to use, and are best saved for skilled riflemen.");
-   mvprintz(24, 0, c_white, "Press any key to continue...");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "Gun types:");
@@ -629,23 +644,25 @@ making them very good at clearing out large numbers of enemies.");
    mvprintz(10, 0, c_magenta, "( Energy Weapons");
    mvprintz(11, 0, c_white, "\
 Energy weapons is an umbrella term used to describe a variety of rifles and\n\
-handguns which fire lasers, plasma, or energy atttacks.  They started to\n\
+handguns which fire lasers, plasma, or energy attacks.  They started to\n\
 appear in military use just prior to the start of the apocalypse, and as such\n\
 are very difficult to find.\n\
 Energy weapons have no recoil at all; they are nearly silent, have a long\n\
 range, and are fairly damaging.  The biggest drawback to energy weapons is\n\
 scarcity of ammunition; it is wise to reserve the precious ammo for when you\n\
 really need it.");
-   mvprintz(24, 0, c_white, "Press any key to continue...");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    erase();
    break;
+
   case '5':
+   erase();
    mvprintz(0, 0, c_white, "\
-Q: What is Run Mode, and why does it prevent me from moving?\n\
-A: Run Mode is a way to guarantee that you won't die by holding a movement\n\
+Q: What is Safe Mode, and why does it prevent me from moving?\n\
+A: Safe Mode is a way to guarantee that you won't die by holding a movement\n\
    key down.  When a monster comes into view, your movement will be ignored\n\
-   until Run Mode is turned off with the ! key.  This ensures that the\n\
+   until Safe Mode is turned off with the ! key.  This ensures that the\n\
    sudden appearence of a monster won't catch you off guard.\n\
 \n\
 Q: It seems like everything I eat makes me sick!  What's wrong?\n\
@@ -666,6 +683,7 @@ A: You'll need a hammer, nails, and two by fours.  Use the hammer and choose\n\
 Q: How can I prevent monsters from attacking while I sleep?\n\
 A: Find a safe place to sleep, in a building far from the front door.  Set\n\
    traps if you have them, or build a fire.");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -690,6 +708,7 @@ Q: Why does my crafting fail so often?\n\
 A: Check the difficulty of the recipe, and the primary skill used; your skill\n\
    level should be around one and a half times the difficulty to be confident\n\
    that it will succeed.");
+   mvprintz(24, 0, c_dkgray, "Press any key to continue...");
    getch();
    erase();
    mvprintz(0, 0, c_white, "\
@@ -703,10 +722,10 @@ A: You have the Schizophrenic trait, which might make the game seem buggy.\n\
 Q: I have a question that's not addressed here.  How can I get an answer?\n\
 A: Email your question to fivedozenwhales@gmail.com.  I'll answer it for you,\n\
    and possibly include it on this list.");
+   mvprintz(24, 0, c_dkgray, "Press any key to return to help");
    getch();
    erase();
    break;
-
   }
  } while (ch != 'q' && ch != KEY_ESCAPE);
 }
