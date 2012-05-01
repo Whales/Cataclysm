@@ -2587,8 +2587,8 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      break;
     case 3: // Supplies
      for (int i = by1 + 1; i <= by2 - 1; i += 3) {
-      line(this, t_rack, bx1 + 1, i, bx2 - 1, i);
-      place_items(mi_mil_food, 78, bx1 + 1, i, bx2 - 1, i, false, 0);
+      line(this, t_rack, bx1 + 2, i, bx2 - 1, i);
+      place_items(mi_mil_food, 78, bx1 + 2, i, bx2 - 1, i, false, 0);
      }
      break;
     }
@@ -4921,12 +4921,12 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
   square(this, t_floor, 1, 11, SEEX * 2 - 1, SEEY * 2 - 2);
   build_mansion_room(this, room_mansion_entry, 1, 11, SEEX * 2 - 1, SEEY*2 - 2);
 // Rotate to face the road
-  if (t_east >= ot_road_null && t_east <= ot_bridge_ew)
-   rotate(1);
-  if (t_south >= ot_road_null && t_south <= ot_bridge_ew)
-   rotate(2);
-  if (t_west >= ot_road_null && t_west <= ot_bridge_ew)
-   rotate(3);
+  // if (t_east >= ot_road_null && t_east <= ot_bridge_ew)
+  //  rotate(1);
+  // if (t_south >= ot_road_null && t_south <= ot_bridge_ew)
+  //  rotate(2);
+  // if (t_west >= ot_road_null && t_west <= ot_bridge_ew)
+  //  rotate(3);
  } break;
 
  case ot_mansion:
@@ -4949,7 +4949,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    line(this, t_wall_v, SEEX * 2 - 1, 0, SEEX * 2 - 1, SEEX * 2 - 1);
   }
 // Now pick a random layout
-  switch (rng(1, 6)) {
+  switch (rng(1, 4)) {
 
   case 1: // Just one. big. room.
    mansion_room(this, 1, tw, rw, SEEY * 2 - 2);

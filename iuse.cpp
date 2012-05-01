@@ -1351,7 +1351,7 @@ That trap needs a 3x3 space to be clear, centered two tiles from you.");
  g->add_msg(message.str().c_str());
  p->practice(sk_traps, practice);
  g->m.add_trap(posx, posy, type);
- p->moves -= practice * 25;
+ p->moves -= practice * 75;
  if (type == tr_engine) {
   for (int i = -1; i <= 1; i++) {
    for (int j = -1; j <= 1; j++) {

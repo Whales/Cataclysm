@@ -544,13 +544,15 @@ bool game::do_turn()
   if ((!u.has_trait(PF_LIGHTEATER) || !one_in(3)) &&
       (!u.has_bionic(bio_recycler) || turn % 300 == 0))
    u.hunger++;
-  if (!u.has_bionic(bio_recycler) || turn % 100 == 0)
+  if ((!u.has_bionic(bio_recycler) || turn % 100 == 0) &&
+      (!u.has_trait(PF_PLANTSKIN) || !one_in(4)))
    u.thirst++;
   u.fatigue++;
   if (u.fatigue == 192 && !u.has_disease(DI_LYING_DOWN) &&
       !u.has_disease(DI_SLEEP)) {
+   cancel_activity_query("You're feeling tired.");
    add_msg("You're feeling tired.  Press '$' to lie down for sleep.");
-   u.activity.type = ACT_NULL;
+   // u.activity.type = ACT_NULL;
   }
   if (u.stim < 0)
    u.stim++;
@@ -1548,6 +1550,9 @@ void game::load(std::string name)
     u.inv.push_back(item(itemdata, this));
    else if (item_place == 'C')
     u.inv[u.inv.size() - 1].contents.push_back(item(itemdata, this));
+   // Preceding line is what confuses containers.  We're assuming that
+   // the most recently-added item is at position (size - 1), but that's not
+   // true if the empty container stacked with a previous container.
    else if (item_place == 'W')
     u.worn.push_back(item(itemdata, this));
    else if (item_place == 'w')

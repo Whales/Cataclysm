@@ -489,7 +489,7 @@ MED("Dayquil",		70, 75,	c_yellow,	itm_null,
 Daytime flu medication.  Will halt all flu symptoms for a while.");
 
 MED("Nyquil",		70, 85,	c_blue,		itm_null,
-	PLASTIC, -7,  1,  0, 10,  0,&iuse::flusleep,	ADD_NULL, "\
+	PLASTIC, -7,  1,  30, 10,  0,&iuse::flusleep,	ADD_SLEEP, "\
 Nighttime flu medication.  Will halt all flu symptoms for a while, plus make\n\
 you sleepy.");
 

@@ -84,8 +84,8 @@ monster::monster(mtype *t, int x, int y)
  spawnposx = -1;
  spawnposy = -1;
  friendly = 0;
- anger = 0;
- morale = 0;
+ anger = t->agro;
+ morale = t->morale;
  faction_id = -1;
  mission_id = -1;
  dead = false;

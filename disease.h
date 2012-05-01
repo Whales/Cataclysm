@@ -727,7 +727,7 @@ void dis_effect(game *g, player &p, disease &dis)
      beast.spawn(x, y);
      g->z.push_back(beast);
      if (g->u_see(x, y, junk))
-      g->add_msg("A portal opens nearby, and a monster crawls through!");
+      g->cancel_activity_query("A portal opens nearby, and a monster crawls through!");
      if (one_in(2))
       p.rem_disease(DI_TELEGLOW);
     }
@@ -786,8 +786,9 @@ void dis_effect(game *g, player &p, disease &dis)
      g->m.ter(x, y) = t_rubble;
     beast.spawn(x, y);
     g->z.push_back(beast);
-    if (g->u_see(x, y, junk))
-     g->add_msg("A portal opens nearby, and a monster crawls through!");
+    if (g->u_see(x, y, junk)) {
+     g->cancel_activity_query("A portal opens nearby, and a monster crawls through!");
+    }
     dis.duration /= 2;
    }
   }
