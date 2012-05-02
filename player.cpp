@@ -43,6 +43,7 @@ player::player()
  cash = 0;
  recoil = 0;
  scent = 500;
+ health = 0;
  name = "";
  male = true;
  inv_sorted = true;
@@ -50,6 +51,8 @@ player::player()
  oxygen = 0;
  active_mission = -1;
  xp_pool = 0;
+ last_item = itype_id(itm_null);
+
  for (int i = 0; i < num_skill_types; i++) {
   sklevel[i] = 0;
   skexercise[i] = 0;
@@ -97,6 +100,7 @@ player& player::operator= (player rhs)
  inv_sorted = rhs.inv_sorted;
  moves = rhs.moves;
  oxygen = rhs.oxygen;
+ health = rhs.health;
  active_mission = rhs.active_mission;
  xp_pool = rhs.xp_pool;
  for (int i = 0; i < num_skill_types; i++) {
@@ -140,6 +144,8 @@ void player::reset(game *g)
  per_cur = per_max;
 // We can dodge again!
  can_dodge = true;
+// Didn't just pick something up
+ last_item = itype_id(itm_null);
 // Bionic buffs
  if (has_active_bionic(bio_hydraulics))
   str_cur += 20;
@@ -303,7 +309,7 @@ int player::current_speed(game *g)
   newmoves = int(newmoves * 1.10);
 
  if (g != NULL) {
-  if (has_trait(PF_SUNLIGHT_DEPENDANT) && !g->is_in_sunlight(posx, posy))
+  if (has_trait(PF_SUNLIGHT_DEPENDENT) && !g->is_in_sunlight(posx, posy))
    newmoves -= (g->light_level() >= 12 ? 5 : 10);
   if ((has_trait(PF_COLDBLOOD) || has_trait(PF_COLDBLOOD2) ||
        has_trait(PF_COLDBLOOD3)) && g->temperature < 65) {
@@ -422,7 +428,7 @@ void player::load_info(game *g, std::string data)
          max_power_level >> hunger >> thirst >> fatigue >> stim >>
          pain >> pkill >> radiation >> cash >> recoil >> scent >> moves >>
          underwater >> can_dodge >> oxygen >> active_mission >> xp_pool >>
-         male;
+         male >> health;
 
  for (int i = 0; i < PF_MAX2; i++)
   dump >> my_traits[i];
@@ -492,7 +498,8 @@ std::string player::save_info()
          " " << stim << " " << pain << " " << pkill << " " << radiation <<
          " " << cash << " " << recoil << " " << scent << " " << moves << " " <<
          underwater << " " << can_dodge << " " << oxygen << " " <<
-         active_mission << " " << xp_pool << " " << male << " ";
+         active_mission << " " << xp_pool << " " << male << " " << health <<
+         " ";
 
  for (int i = 0; i < PF_MAX2; i++)
   dump << my_traits[i] << " ";
@@ -741,6 +748,22 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
   status = c_green;
  mvwprintz(w_stats,  5, (per_cur < 10 ? 17 : 16), status, "%d", per_cur);
 
+ if (health <= -20)
+   status = c_red;
+ else if (health <= -5)
+   status = c_ltred;
+ else if (health <= 5)
+   status = c_white;
+ else if (health <= 30)
+   status = c_ltgreen;
+ else
+   status = c_green;
+ mvwprintz(w_stats,  6, 2, status, "Health:%s%d", 
+	   abs(health) >= 100 ? "      " : 
+	   abs(health) >= 10 ? "       " : "        ",
+	   health);
+
+
  wrefresh(w_stats);
 
 // Next, draw encumberment.
@@ -881,7 +904,7 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
             (pen < 10 ? " " : ""), pen);
   line++;
  }
- if (has_trait(PF_SUNLIGHT_DEPENDANT) && !g->is_in_sunlight(posx, posy)) {
+ if (has_trait(PF_SUNLIGHT_DEPENDENT) && !g->is_in_sunlight(posx, posy)) {
   pen = (g->light_level() >= 12 ? 5 : 10);
   mvwprintz(w_speed, line, 1, c_red, "Out of Sunlight     -%s%d%%%%",
             (pen < 10 ? " " : ""), pen);
@@ -1838,6 +1861,8 @@ void player::hit(game *g, body_part bphurt, int side, int dam, int cut)
  if (dam <= 0)
   return;
 
+ g->cancel_activity_query("You were hurt!");
+
  if (has_artifact_with(AEP_SNAKES) && dam >= 6) {
   int snakes = int(dam / 6);
   std::vector<point> valid;
@@ -1943,6 +1968,8 @@ void player::hurt(game *g, body_part bphurt, int side, int dam)
 
  if (dam <= 0)
   return;
+
+ g->cancel_activity_query("You were hurt!");
 
  if (has_trait(PF_PAINRESIST))
   painadd = dam / 3;
@@ -2403,8 +2430,10 @@ void player::suffer(game *g)
    g->add_msg("Your asthma wakes you up!");
    auto_use = false;
   }
-  if (auto_use)
+  if (auto_use) {
+   g->add_msg("You take a puff of your inhaler.");
    use_charges(itm_inhaler, 1);
+  }
   else {
    add_disease(DI_ASTHMA, 50 * rng(1, 4), g);
    g->cancel_activity_query("You have an asthma attack!");
@@ -2498,11 +2527,13 @@ void player::suffer(game *g)
  if (has_artifact_with(AEP_MUTAGENIC) && one_in(28800))
   mutate(g);
 
- if (is_wearing(itm_hazmat_suit))
-  radiation += rng(0, g->m.radiation(posx, posy) / 12);
- else
+ if (is_wearing(itm_hazmat_suit)) {
+  if (radiation < 100 * int(g->m.radiation(posx, posy) / 12))
+   radiation += rng(0, g->m.radiation(posx, posy) / 12);
+ } else if (radiation < 100 * int(g->m.radiation(posx, posy) / 4))
   radiation += rng(0, g->m.radiation(posx, posy) / 4);
- if (rng(1, 1000) < radiation && int(g->turn) % 600 == 0) {
+
+ if (rng(1, 1000) < radiation && (int(g->turn) % 150 == 0 || radiation > 2000)){
   mutate(g);
   if (radiation > 2000)
    radiation = 2000;
@@ -2699,10 +2730,10 @@ void player::sort_inv()
    types[1].push_back(tmp);
   else if (tmp[0].is_armor())
    types[3].push_back(tmp);
-  else if (tmp[0].is_tool() || tmp[0].is_gunmod())
-   types[5].push_back(tmp);
   else if (tmp[0].is_food() || tmp[0].is_food_container())
    types[4].push_back(tmp);
+  else if (tmp[0].is_tool() || tmp[0].is_gunmod())
+   types[5].push_back(tmp);
   else if (tmp[0].is_book())
    types[6].push_back(tmp);
   else if (tmp[0].is_weap())
@@ -2720,6 +2751,7 @@ void player::sort_inv()
 
 void player::i_add(item it)
 {
+ last_item = itype_id(it.type->id);
  if (it.is_food() || it.is_ammo() || it.is_gun()  || it.is_armor() || 
      it.is_book() || it.is_tool() || it.is_weap() || it.is_food_container())
   inv_sorted = false;
@@ -2739,6 +2771,24 @@ void player::i_add(item it)
   }
   if (it.charges > 0)
    inv.push_back(it);
+  return;
+ }
+ if (it.is_food() && it.charges != -1) {	// Possibly combine with other food
+   for (int i = 0; i < inv.size(); i++) {
+     if (inv[i].type->id == it.type->id) {
+       it_comest* food = dynamic_cast<it_comest*>(inv[i].type);
+       if (inv[i].charges < food->charges) {
+	 inv[i].charges += it.charges;
+	 if (inv[i].charges > food->charges) {
+	   it.charges = inv[i].charges - food->charges;
+	   inv[i].charges = food->charges;
+	 } else
+	   it.charges = 0;
+       }
+     }
+   }
+  if (it.charges > 0)
+    inv.push_back(it);
   return;
  }
   inv.push_back(it);
@@ -3311,15 +3361,22 @@ bool player::eat(game *g, int index)
    debugmsg("player::eat(%s); comest is NULL!", eaten->tname(g).c_str());
    return false;
   }
-  if (comest->tool != itm_null && !has_amount(comest->tool, 1)) {
-   if (!is_npc())
-    g->add_msg("You need a %s to consume that!",
-               g->itypes[comest->tool]->name.c_str());
-   return false;
+  if (comest->tool != itm_null) {
+   bool has = has_amount(comest->tool, 1);
+   if (g->itypes[comest->tool]->count_by_charges())
+    has = has_charges(comest->tool, 1);
+   if (!has) {
+    if (!is_npc())
+     g->add_msg("You need a %s to consume that!",
+                g->itypes[comest->tool]->name.c_str());
+    return false;
+   }
   }
   bool overeating = (!has_trait(PF_GOURMAND) && hunger < 0 &&
                      comest->nutr >= 15);
   bool spoiled = eaten->rotten(g);
+
+  last_item = itype_id(eaten->type->id);
 
   if (overeating && !is_npc() &&
       !query_yn("You're full.  Force yourself to eat?"))
@@ -3363,7 +3420,7 @@ bool player::eat(game *g, int index)
   }
 // At this point, we've definitely eaten the item, so use up some turns.
   if (has_trait(PF_GOURMAND))
-   moves -= 150;
+   moves -= 150; 
   else
    moves -= 250;
 // If it's poisonous... poison us.  TODO: More several poison effects
@@ -3505,6 +3562,7 @@ bool player::wield(game *g, int index)
    g->add_artifact_messages(art->effects_wielded);
   }
   moves -= 30;
+  last_item = itype_id(weapon.type->id);
   return true;
  } else if (volume_carried() + weapon.volume() - inv[index].volume() <
             volume_capacity()) {
@@ -3517,6 +3575,7 @@ bool player::wield(game *g, int index)
    it_artifact_tool *art = dynamic_cast<it_artifact_tool*>(weapon.type);
    g->add_artifact_messages(art->effects_wielded);
   }
+  last_item = itype_id(weapon.type->id);
   return true;
  } else if (query_yn("No space in inventory for your %s.  Drop it?",
                      weapon.tname(g).c_str())) {
@@ -3529,6 +3588,7 @@ bool player::wield(game *g, int index)
    it_artifact_tool *art = dynamic_cast<it_artifact_tool*>(weapon.type);
    g->add_artifact_messages(art->effects_wielded);
   }
+  last_item = itype_id(weapon.type->id);
   return true;
  }
 
@@ -3629,6 +3689,7 @@ bool player::wear(game *g, char let)
   g->add_artifact_messages(art->effects_worn);
  }
  moves -= 350; // TODO: Make this variable?
+ last_item = itype_id(to_wear->type->id);
  worn.push_back(*to_wear);
  if (index == -2)
   weapon = ret_null;
@@ -3682,6 +3743,8 @@ void player::use(game *g, char let)
   g->add_msg("You do not have that item.");
   return;
  }
+
+ last_item = itype_id(used->type->id);
 
  if (used->is_tool()) {
 
@@ -3771,6 +3834,13 @@ press 'U' while wielding the unloaded gun.", gun->tname(g).c_str());
     inv.add_item(copy);
    return;
   }
+  if ((mod->id == itm_clip || mod->id == itm_clip2) && gun->clip_size() <= 2) {
+   g->add_msg("You can not extend the ammo capacity of your %s.",
+              gun->tname(g).c_str());
+   if (replace_item)
+    inv.add_item(copy);
+   return;
+  }
   for (int i = 0; i < gun->contents.size(); i++) {
    if (gun->contents[i].type->id == used->type->id) {
     g->add_msg("Your %s already has a %s.", gun->tname(g).c_str(),
@@ -3789,13 +3859,6 @@ press 'U' while wielding the unloaded gun.", gun->tname(g).c_str());
               (gun->contents[i].type->id == itm_barrel_big ||
                gun->contents[i].type->id == itm_barrel_small)) {
     g->add_msg("Your %s already has a barrel replacement.",
-               gun->tname(g).c_str());
-    if (replace_item)
-     inv.add_item(copy);
-    return;
-   } else if ((mod->id == itm_clip || mod->id == itm_clip2) &&
-              gun->clip_size() <= 2) {
-    g->add_msg("You can not extend the ammo capacity of your %s.",
                gun->tname(g).c_str());
     if (replace_item)
      inv.add_item(copy);
@@ -3924,6 +3987,11 @@ void player::read(game *g, char ch)
  
 void player::try_to_sleep(game *g)
 {
+  if (g->m.ter(posx, posy) == t_bed)
+    g->add_msg("This bed is a comfortable place to sleep.");
+  else if (g->m.ter(posx, posy) != t_floor)
+    g->add_msg("It's %shard to get to sleep on this %s.", terlist[g->m.ter(posx, posy)].movecost <= 2 ? "a little " : "",  terlist[g->m.ter(posx, posy)].name.c_str());
+
  add_disease(DI_LYING_DOWN, 300, g);
 }
 
