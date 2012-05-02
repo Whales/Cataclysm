@@ -8,6 +8,7 @@ std::string special_game_name(special_game_id id)
   case NUM_SPECIAL_GAMES:	return "nethack (this is a bug)";
   case SGAME_TUTORIAL:		return "Tutorial";
   case SGAME_DEFENSE:		return "Defense";
+ case SGAME_WEST:  return "Journey to the West";
   default:			return "Uncoded (this is a bug)";
  }
 }
@@ -24,6 +25,9 @@ special_game* get_special_game(special_game_id id)
    break;
   case SGAME_DEFENSE:
    ret = new defense_game;
+   break;
+ case SGAME_WEST:
+   ret = new west_game;
    break;
   default:
    debugmsg("Missing something in get_special_game()?");

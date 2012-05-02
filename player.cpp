@@ -52,6 +52,7 @@ player::player()
  active_mission = -1;
  xp_pool = 0;
  last_item = itype_id(itm_null);
+
  for (int i = 0; i < num_skill_types; i++) {
   sklevel[i] = 0;
   skexercise[i] = 0;

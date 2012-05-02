@@ -1734,11 +1734,13 @@ void game::debug()
 
   case 7:
    popup_top("\
-Location %d:%d in %d:%d, %s\n\
+Location %d:%d in %d:%d in %d:%d, %s\n\
+Global Location %d:%d\n\
 Current turn: %d; Next spawn %d.\n\
 %d monsters exist.\n\
-%d events planned.", u.posx, u.posy, levx, levy,
+%d events planned.", u.posx, u.posy, levx, levy, cur_om.posx, cur_om.posy,
 oterlist[cur_om.ter(levx / 2, levy / 2)].name.c_str(),
+	     global_location().x, global_location().y,
 int(turn), int(nextspawn), z.size(), events.size());
    if (!active_npc.empty())
     popup_top("\%s: %d:%d (you: %d:%d)", active_npc[0].name.c_str(),
@@ -3025,7 +3027,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
     m.destroy(this, i, j, false);
 
    int mon_hit = mon_at(i, j), npc_hit = npc_at(i, j);
-   if (mon_hit != -1 && z[mon_hit].hurt(rng(dam / 2, dam * 1.5))) {
+   if (mon_hit != -1 && !z[mon_hit].dead && z[mon_hit].hurt(rng(dam / 2, dam * 1.5))) {
     if (z[mon_hit].hp < 0 - 1.5 * z[mon_hit].type->hp)
      explode_mon(mon_hit); // Explode them if it was big overkill
     else
@@ -5627,6 +5629,14 @@ point game::om_location()
  ret.x = int( (levx + int(MAPSIZE / 2)) / 2);
  ret.y = int( (levy + int(MAPSIZE / 2)) / 2);
  return ret;
+}
+
+point game::global_location()
+{
+  point ret;
+  ret.x = cur_om.posx*OMAPX + om_location().x;
+  ret.y = cur_om.posy*OMAPY + om_location().y;
+  return ret;
 }
 
 void game::replace_stair_monsters()

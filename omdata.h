@@ -10,7 +10,7 @@
 #include "mongroup.h"
 #include "mapdata.h"
 
-#define OMAPX 180
+#define OMAPX 180   // Number of overmap tiles per overmap.
 #define OMAPY 180
 
 #define TUTORIAL_Z	10
