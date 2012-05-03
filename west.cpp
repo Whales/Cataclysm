@@ -53,7 +53,7 @@
 bool west_game::init (game *g)
 {
   // g->start_game();
- g->turn = MINUTES(STARTING_MINUTES + 300);// It's turn 0...
+ g->turn = MINUTES(STARTING_MINUTES);// It's turn 0...
  // run_mode = 1;	// run_mode is on by default...
  // g->mostseen = 0;	// ...and mostseen is 0, we haven't seen any monsters yet.
 
@@ -83,7 +83,8 @@ bool west_game::init (game *g)
 // Init the starting map at this location.
  g->m.load(g, g->levx, g->levy);
 // Start us off somewhere in the shelter.
- g->u.create(g, PLTYPE_CUSTOM);
+ if(!g->u.create(g, PLTYPE_CUSTOM))
+   return false;
  g->u.posx = SEEX * int(MAPSIZE / 2) + 5;
  g->u.posy = SEEY * int(MAPSIZE / 2) + 5;
  g->u.str_cur = g->u.str_max;
