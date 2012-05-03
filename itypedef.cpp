@@ -2470,45 +2470,45 @@ color,mat1,mat2,volume,wgt,melee_dam,0,to_hit,0,type,level,req,fun,intel,time))
 
 BOOK("Playboy",			20,  30,c_pink,		PAPER,	MNULL,
 // VOL WGT DAM HIT	TYPE		LEV REQ FUN INT TIME
-    1,  1, -3,  1,	sk_null,	 0,  0,  1,  0,  10, "\
+    1,  1, -3,  1,	sk_null,	 0,  0,  4,  0,  20, "\
 You can read it for the articles.  Or not.");
 
 BOOK("US Weekly",		40,  40,c_pink,		PAPER,	MNULL,
-    1,  1, -3,  1,	sk_speech,	 1,  0,  1,  3,  8, "\
+    1,  1, -3,  1,	sk_speech,	 1,  0,  2,  3,  8, "\
 Weekly news about a bunch of famous people who're all (un)dead now.");
 
 BOOK("TIME magazine",		35,  40,c_pink,		PAPER,	MNULL,
-    1,  1, -3,  1,	sk_null,	 0,  0,  2,  7,  10, "\
+    1,  1, -3,  1,	sk_null,	 0,  0,  4,  7,  10, "\
 Current events concerning a bunch of people who're all (un)dead now.");
 
 BOOK("Top Gear magazine",	40,  45,c_pink,		PAPER,	MNULL,
-    1,  1, -3,  1,	sk_mechanics,	 1,  0,  1,  2,  8, "\
+    1,  1, -3,  1,	sk_mechanics,	 1,  0,  2,  2,  8, "\
 Lots of articles about cars and mechanics.  You might learn a little.");
 
 BOOK("Bon Appetit",		30,  45,c_pink,		PAPER,	MNULL,
-    1,  1, -3,  1,	sk_cooking,	 1,  0,  1,  5,  8, "\
+    1,  1, -3,  1,	sk_cooking,	 1,  0,  2,  5,  8, "\
 Exciting recipes and restaurant reviews.  Full of handy tips about cooking.");
 
 BOOK("Guns n Ammo",		20,  48,c_pink,		PAPER,	MNULL,
-    1,  1, -3,  1,	sk_gun,		 1,  0,  1,  2,  7, "\
+    1,  1, -3,  1,	sk_gun,		 1,  0,  2,  2,  7, "\
 Reviews of firearms, and various useful tips about their use.");
 
 BOOK("romance novel",		30,  55,c_ltblue,	PAPER,	MNULL,
-    4,  1, -2,  0,	sk_null,	 0,  0,  2,  4, 15, "\
+    4,  1, -2,  0,	sk_null,	 0,  0,  4,  4, 15, "\
 Drama and mild smut.");
 
 BOOK("spy novel",		28,  55,c_ltblue,	PAPER,	MNULL,
-    4,  1, -2,  0,	sk_null,	 0,  0,  3,  5, 18, "\
+    4,  1, -2,  0,	sk_null,	 0,  0,  6,  5, 18, "\
 A tale of intrigue and espionage amongst Nazis, no, Commies, no, Iraqis!");
 
 //	NAME			RAR PRC	COLOR		MAT1	MAT2
 BOOK("scifi novel",		20,  55,c_ltblue,	PAPER,	MNULL,
 // VOL WGT DAM HIT	TYPE		LEV REQ FUN INT TIME
-    3,  1, -3,  0,	sk_null,	 0,  0,  3,  6, 20, "\
+    3,  1, -3,  0,	sk_null,	 0,  0,  6,  6, 20, "\
 Aliens, ray guns, and space ships.");
 
 BOOK("drama novel",		40,  55,c_ltblue,	PAPER,	MNULL,
-    4,  1, -2,  0,	sk_null,	 0,  0,  4,  7, 25, "\
+    4,  1, -2,  0,	sk_null,	 0,  0,  8,  7, 25, "\
 A real book for real adults.");
 
 BOOK("101 Wrestling Moves",	30, 180,c_green,	PAPER,	MNULL,
@@ -2523,7 +2523,7 @@ A classic Soviet text on the art of attacking with a blade.");
 //	NAME			RAR PRC	COLOR		MAT1	MAT2
 BOOK("Under the Hood",		35, 190,c_green,	PAPER,	MNULL,
 // VOL WGT DAM HIT	TYPE		LEV REQ FUN INT TIME
-    3,  1, -3,  0,	sk_mechanics,	 3,  0,  0,  5, 18, "\
+    3,  1, -3,  0,	sk_mechanics,	 3,  0,  -1,  5, 18, "\
 An advanced mechanics manual, covering all sorts of topics.");
 
 BOOK("Self-Esteem for Dummies",	50, 160,c_green,	PAPER,	MNULL,
@@ -2535,35 +2535,35 @@ BOOK("How to Succeed in Business",40,180,c_green,	PAPER,	MNULL,
 Useful if you want to get a good deal when purchasing goods.");
 
 BOOK("The Big Book of First Aid",40,200,c_green,	PAPER,	MNULL,
-    5,  2, -2,  0,	sk_firstaid,	 3,  0,  0,  7, 20, "\
+    5,  2, -2,  0,	sk_firstaid,	 3,  0,  -1,  7, 20, "\
 It's big and heavy, but full of great information about first aid.");
 
 BOOK("How to Browse the Web",	20, 170,c_green,	PAPER,	MNULL,
-    3,  1, -3,  0,	sk_computer,	 2,  0,  0,  5, 15, "\
+    3,  1, -3,  0,	sk_computer,	 2,  0,  -1,  5, 15, "\
 Very beginner-level information about computers.");
 
 //	NAME			RAR PRC	COLOR		MAT1	MAT2
 BOOK("Cooking on a Budget",	35, 160,c_green,	PAPER,	MNULL,
 // VOL WGT DAM HIT	TYPE		LEV REQ FUN INT TIME
-    4,  1, -2,  0,	sk_cooking,	 3,  0,  0,  4, 10, "\
+    4,  1, -2,  0,	sk_cooking,	 3,  0,  -1,  4, 10, "\
 A nice cook book that goes beyond recipes and into the chemistry of food.");
 
 BOOK("What's a Transistor?",	20, 200,c_green,	PAPER,	MNULL,
-    3,  1, -3,  0,	sk_electronics,	 3,  0,  0,  7, 20, "\
+    3,  1, -3,  0,	sk_electronics,	 3,  0,  -1,  7, 20, "\
 A basic manual of electronics and circuit design.");
 
 BOOK("Sew What?  Clothing!",	15, 190,c_green,	PAPER,	MNULL,
-    3,  1, -3,  0,	sk_tailor,	 3,  0,  0,  4, 18, "\
+    3,  1, -3,  0,	sk_tailor,	 3,  0,  -1,  4, 18, "\
 A colorful book about tailoring.");
 
 BOOK("How to Trap Anything",	12, 240,c_green,	PAPER,	MNULL,
-    2,  1, -3,  0,	sk_traps,	 4,  0,  0,  4, 20, "\
+    2,  1, -3,  0,	sk_traps,	 4,  0,  -1,  4, 20, "\
 A worn manual that describes how to set and disarm a wide variety of traps.");
 
 //	NAME			RAR PRC	COLOR		MAT1	MAT2
 BOOK("Building for Beginners",  10, 220,c_green,	PAPER,	MNULL,
 // VOL WGT DAM HIT	TYPE		LEV REQ FUN INT TIME
-    2,  1, -3,  0,	sk_carpentry,	 3,  0,  0,  5, 16, "\
+    2,  1, -3,  0,	sk_carpentry,	 3,  0,  -1,  5, 16, "\
 A large, paperback book detailing several beginner's projects in\n\
 construction.");
 
@@ -2572,30 +2572,30 @@ BOOK("Computer Science 301",	 8, 500,c_blue,		PAPER,	MNULL,
 A college textbook on computer science.");
 
 BOOK("Advanced Electronics",	 6, 520,c_blue,		PAPER,	MNULL,
-    7,  5,  5,  1,	sk_electronics,	 5,  2, -1, 11, 35, "\
+    7,  5,  5,  1,	sk_electronics,	 5,  2, -2, 11, 35, "\
 A college textbook on circuit design.");
 
 BOOK("Advanced Economics",	12, 480,c_blue,		PAPER,	MNULL,
-    7,  4,  5,  1,	sk_barter,	 5,  3, -1,  9, 30, "\
+    7,  4,  5,  1,	sk_barter,	 5,  3, -2,  9, 30, "\
 A college textbook on economics.");
 
 //	NAME			RAR PRC	COLOR		MAT1	MAT2
 BOOK("Chemistry Textbook",	11, 495,c_blue,		PAPER,	MNULL,
 // VOL WGT DAM HIT	TYPE		LEV REQ FUN INT TIME
-    8,  6,  5,  1,	sk_cooking,	 6,  3, -1, 12, 35, "\
+    8,  6,  5,  1,	sk_cooking,	 6,  3, -2, 12, 35, "\
 A college textbook on chemistry.");
 
 BOOK("Engineering 301",		 6, 550,c_blue,		PAPER,	MNULL,
-    6,  3,  4,  1,	sk_carpentry,	 6,  3, -1,  8, 30, "\
+    6,  3,  4,  1,	sk_carpentry,	 6,  3, -2,  8, 30, "\
 A textbook on civil engineering and construction.");
 
 BOOK("SICP",			 3, 780,c_blue,		PAPER,	MNULL,
-    6,  5,  6,  0,	sk_computer,	 8,  4, -1, 13, 50, "\
+    6,  5,  6,  0,	sk_computer,	 8,  4, -3, 13, 50, "\
 A classic text, \"The Structure and Interpretation of Computer Programs.\"\n\
 Written with examples in LISP, but applicable to any language.");
 
 BOOK("Robots for Fun & Profit",  1, 920,c_blue,		PAPER,	MNULL,
-    8,  8,  8,  1,	sk_electronics,	10,  5, -1, 14, 55, "\
+    8,  8,  8,  1,	sk_electronics,	10,  5, -3, 14, 55, "\
 A rare book on the design of robots, with lots of helpful step-by-step guides."
 );
 

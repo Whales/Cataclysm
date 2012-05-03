@@ -117,7 +117,7 @@ player& player::operator= (player rhs)
  inv.clear();
  for (int i = 0; i < rhs.inv.size(); i++)
   inv.add_stack(rhs.inv.stack_at(i));
-
+ worn = rhs.worn;
  return (*this);
 }
 
@@ -240,18 +240,29 @@ void player::reset(game *g)
   xp_pool = 800;
 }
 
-void player::update_morale()
+void player::update_morale(game * g)
 {
  for (int i = 0; i < morale.size(); i++) {
-  if (morale[i].bonus < 0)
-   morale[i].bonus++;
-  else if (morale[i].bonus > 0)
-   morale[i].bonus--;
-
-  if (morale[i].bonus == 0) {
-   morale.erase(morale.begin() + i);
-   i--;
-  }
+   if (morale[i].last_dec == -1) {
+     morale[i].last_dec = g->turn;
+   }
+   else {
+     int cur_turn = g->turn;
+     int time_to_dec = morale_halflives[morale[i].type] * log(1 + 1./(abs(morale[i].bonus))) / log(2.0);
+     if (cur_turn - morale[i].last_dec >= time_to_dec) {
+       morale[i].bonus -= sgn(morale[i].bonus);
+       morale[i].last_dec = g->turn;
+     // if (morale[i].bonus < 0)
+     //   morale[i].bonus++;
+     // else if (morale[i].bonus > 0)
+     //   morale[i].bonus--;
+     
+     if (morale[i].bonus == 0) {
+       morale.erase(morale.begin() + i);
+       i--;
+     }
+     }
+   }
  }
 }
 

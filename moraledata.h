@@ -30,4 +30,31 @@ std::string morale_data[NUM_MORALE_TYPES] = {
 "Read %i",
 };
 
+int morale_halflives[NUM_MORALE_TYPES] = {
+  0,  // (bug)
+  100, // Enjoyed %i
+  75, // Music
+  250, // Marloss
+  75, // Good Feeling / Chem Imbalance
+
+  100, // Nicotine Craving
+  100, // Caffeine Craving
+  100, // Alcohol Craving
+  100, // Opiate Craving
+  100, // Speed Craving
+  100, // Cocaine Craving
+  
+  100, // Disliked %i
+  100, // Ate Meat (vegetarian)
+  75, // Wet
+  75, // Bad Feeling / Chem Imbalance
+  4000, // Killed Innocent
+  10000, // Killed Friend
+  2000, // Killed Mother
+
+  200, // Moodswing
+  4000 // Book
+};
+
+
 #endif

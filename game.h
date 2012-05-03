@@ -202,7 +202,7 @@ class game
 // Game-start procedures
   bool opening_screen();// Warn about screen size, then present the main menu
   bool load_master();	// Load the master data file, with factions &c
-  void load(std::string name);	// Load a player-specific save file
+  bool load(std::string name);	// Load a player-specific save file
   void start_game();	// Starts a new game
   void start_special_game(special_game_id gametype); // See gamemode.cpp
 
