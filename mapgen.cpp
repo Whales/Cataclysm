@@ -6267,6 +6267,22 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    } while (!done);
   }
  }
+ if (terrain_type >= ot_house_north && terrain_type <= ot_mansion) {
+   for (int x = 0; x < SEEX * 2; x++) {
+     for (int y = 0; y <= SEEY * 2; y++) {
+       std::string junk;
+       if (one_in(100) && ter(x,y) != t_grass && ter(x,y) != t_dirt
+	   && ter(x,y) <= t_dumpster) {
+	 ter(x, y) = t_rubble;
+       }
+       if (one_in(3)) {
+	 bash(x, y, rng(0, 150), junk);	// Smash the fuck out of it
+	 bash(x, y, rng(0, 150), junk);	// Smash the fuck out of it
+       }
+     }
+   }
+ }
+
 }
 
 void map::place_items(items_location loc, int chance, int x1, int y1,
@@ -7607,6 +7623,8 @@ x: %d - %d, dx: %d cx: %d/%d", x1, x2, dx, cx_low, cx_hi,
   break;
 
  }
+
+
 }
 
 void mansion_room(map *m, int x1, int y1, int x2, int y2)
