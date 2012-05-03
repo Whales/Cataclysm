@@ -6272,12 +6272,15 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      for (int y = 0; y <= SEEY * 2; y++) {
        std::string junk;
        if (one_in(100) && ter(x,y) != t_grass && ter(x,y) != t_dirt
-	   && ter(x,y) <= t_dumpster) {
+	   && ter(x,y) <= t_dumpster 
+	   && !(ter(x,y) >= t_tree && ter(x,y) <= t_lava)
+	   && ter(x,y) != t_pavement && ter(x,y) != t_pavement_y ) {
 	 ter(x, y) = t_rubble;
        }
        if (one_in(3)) {
-	 bash(x, y, rng(0, 150), junk);	// Smash the fuck out of it
-	 bash(x, y, rng(0, 150), junk);	// Smash the fuck out of it
+	 bash(x, y, rng(0, 10)*rng(0, 10), junk);	// Smash the fuck out of it
+	 if (one_in(2))
+	   bash(x, y, rng(0, 10)*rng(0,10), junk);	// Smash the fuck out of it
        }
      }
    }

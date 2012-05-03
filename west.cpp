@@ -52,53 +52,66 @@
 
 bool west_game::init (game *g)
 {
+  if(!g->u.create(g, PLTYPE_CUSTOM)) 
+    return false;
+
+  if (g->load(g->u.name)) {
+    if(g->u.cash == 0)
+      horde_location = g->global_location().x - 10;
+    else
+      horde_location = g->u.cash;
+
+    g->add_msg("The horde is %d map squares away.", distance_to_horde(g));
+    
+    return true;
+  }
+
   // g->start_game();
- g->turn = MINUTES(STARTING_MINUTES);// It's turn 0...
- // run_mode = 1;	// run_mode is on by default...
- // g->mostseen = 0;	// ...and mostseen is 0, we haven't seen any monsters yet.
+  g->turn = MINUTES(STARTING_MINUTES + 60);// It's turn 0...
+  // run_mode = 1;	// run_mode is on by default...
+  // g->mostseen = 0;	// ...and mostseen is 0, we haven't seen any monsters yet.
+  
+  // Init some factions.
+  // if (!g->load_master())	// Master data record contains factions.
+  //  g->create_factions();
+  g->cur_om = overmap(g, 0, 0, 0);	// We start in the (0,0,0) overmap.
+  // Find a random house on the map, and set us there.
+  g->cur_om.first_house(g->levx, g->levy);
+  g->levx -= int(int(MAPSIZE / 2) / 2);
+  g->levy -= int(int(MAPSIZE / 2) / 2);
+  g->levz = 0;
+  // Start the overmap out with none of it seen by the player...
+  for (int i = 0; i < OMAPX; i++) {
+    for (int j = 0; j < OMAPX; j++)
+      g->cur_om.seen(i, j) = false;
+  }
+  // ...except for our immediate neighborhood.
+  for (int i = -15; i <= 15; i++) {
+    for (int j = -15; j <= 15; j++)
+      g->cur_om.seen(g->levx + i, g->levy + j) = true;
+  }
+  // Convert the overmap coordinates to submap coordinates
+  g->levx = g->levx * 2 - 1;
+  g->levy = g->levy * 2 - 1;
+  g->set_adjacent_overmaps(true);
+  // Init the starting map at this location.
+  g->m.load(g, g->levx, g->levy);
+  // Start us off somewhere in the shelter.
+  g->u.posx = SEEX * int(MAPSIZE / 2) + 5;
+  g->u.posy = SEEY * int(MAPSIZE / 2) + 5;
+  g->u.str_cur = g->u.str_max;
+  g->u.per_cur = g->u.per_max;
+  g->u.int_cur = g->u.int_max;
+  g->u.dex_cur = g->u.dex_max;
+  // g->nextspawn = int(g->turn);	
+  g->temperature = 65; // Springtime-appropriate?
+  
+  g->u.normalize(g);
+  g->u.weapon = item(g->itypes[itm_baton], 0, 'a' + g->u.worn.size());
 
-// Init some factions.
- // if (!g->load_master())	// Master data record contains factions.
- //  g->create_factions();
- g->cur_om = overmap(g, 0, 0, 0);	// We start in the (0,0,0) overmap.
-// Find a random house on the map, and set us there.
- g->cur_om.first_house(g->levx, g->levy);
- g->levx -= int(int(MAPSIZE / 2) / 2);
- g->levy -= int(int(MAPSIZE / 2) / 2);
- g->levz = 0;
-// Start the overmap out with none of it seen by the player...
- for (int i = 0; i < OMAPX; i++) {
-  for (int j = 0; j < OMAPX; j++)
-   g->cur_om.seen(i, j) = false;
- }
-// ...except for our immediate neighborhood.
- for (int i = -15; i <= 15; i++) {
-  for (int j = -15; j <= 15; j++)
-   g->cur_om.seen(g->levx + i, g->levy + j) = true;
- }
-// Convert the overmap coordinates to submap coordinates
- g->levx = g->levx * 2 - 1;
- g->levy = g->levy * 2 - 1;
- g->set_adjacent_overmaps(true);
-// Init the starting map at this location.
- g->m.load(g, g->levx, g->levy);
-// Start us off somewhere in the shelter.
- if(!g->u.create(g, PLTYPE_CUSTOM))
-   return false;
- g->u.posx = SEEX * int(MAPSIZE / 2) + 5;
- g->u.posy = SEEY * int(MAPSIZE / 2) + 5;
- g->u.str_cur = g->u.str_max;
- g->u.per_cur = g->u.per_max;
- g->u.int_cur = g->u.int_max;
- g->u.dex_cur = g->u.dex_max;
- // g->nextspawn = int(g->turn);	
- g->temperature = 65; // Springtime-appropriate?
+  horde_location = g->global_location().x - 10;
 
- g->u.normalize(g);
-
- horde_location = g->global_location().x - 10;
-
- return true;
+  return true;
 }
 
 int west_game::distance_to_horde(game *g) {
@@ -184,14 +197,15 @@ void west_game::per_turn(game *g)
 //  }
 // }
 
-// void defense_game::pre_action(game *g, action_id &act)
-// {
+void west_game::pre_action(game *g, action_id &act)
+{
+ if (act == ACTION_SAVE) {
+   g->u.cash = horde_location;
+  }
+}
+
 //  if (act == ACTION_SLEEP && !sleep) {
 //   g->add_msg("You don't need to sleep!");
-//   act = ACTION_NULL;
-//  }
-//  if (act == ACTION_SAVE) {
-//   g->add_msg("You cannot save in defense mode!");
 //   act = ACTION_NULL;
 //  }
 

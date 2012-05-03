@@ -636,7 +636,7 @@ bool game::do_turn()
 
  update_skills();
  if (turn % 10 == 0)
-  u.update_morale();
+  u.update_morale(this);
  return false;
 }
 
@@ -728,7 +728,8 @@ void game::process_activity()
 
     if (reading->fun != 0) {
      std::stringstream morale_text;
-     u.add_morale(MORALE_BOOK, reading->fun * 5, reading->fun * 15, reading);
+     u.add_morale(MORALE_BOOK, reading->fun, 
+		  reading->fun > 0 ? reading->fun * 3 : 0, reading);
     }
 
     if (u.sklevel[reading->type] < reading->level) {
@@ -746,6 +747,10 @@ void game::process_activity()
         (u.skexercise[reading->type] >= 100 ? 1 : 0) >= reading->level)
       add_msg("You can no longer learn from this %s.", reading->name.c_str());
     }
+    else if (reading->fun > 0)
+      add_msg("You enjoy reading %s.", reading->name.c_str());
+    else 
+      add_msg("You %finish reading a section of %s.", reading->fun == 0 ? "" : " finally", reading->name.c_str());
     break;
 
    case ACT_WAIT:
@@ -1479,7 +1484,7 @@ bool game::load_master()
  return true;
 }
 
-void game::load(std::string name)
+bool game::load(std::string name)
 {
  std::ifstream fin;
  std::stringstream playerfile;
@@ -1488,7 +1493,7 @@ void game::load(std::string name)
 // First, read in basic game state information.
  if (!fin.is_open()) {
   debugmsg("No save game exists!");
-  return;
+  return false;
  }
  u = player();
  u.name = name;
@@ -1566,6 +1571,7 @@ void game::load(std::string name)
  load_master();
  set_adjacent_overmaps(true);
  draw();
+ return true;
 }
 
 void game::save()

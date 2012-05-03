@@ -39,10 +39,12 @@ struct morale_point
  morale_type type;
  itype* item_type;
  int bonus;
- int halflife;
+ int last_dec;
 
 morale_point(morale_type T = MORALE_NULL, itype* I = NULL, int B = 0, int H = 15) :
-  type (T), item_type (I), bonus (B), halflife (H) {};
+  type (T), item_type (I), bonus (B) {
+    last_dec = -1;
+    };
 
  std::string name(std::string morale_data[])
  {
