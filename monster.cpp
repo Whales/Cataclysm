@@ -176,7 +176,7 @@ void monster::print_info(game *g, WINDOW* w)
   damage_info = "It is heavily injured";
   col = c_yellow;
  } else if (hp >= type->hp * .1) {
-  damage_info = "It is severly injured";
+  damage_info = "It is severely injured";
   col = c_ltred;
  } else {
   damage_info = "it is nearly dead";

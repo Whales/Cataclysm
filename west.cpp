@@ -61,7 +61,8 @@ bool west_game::init (game *g)
     else
       horde_location = g->u.cash;
 
-    g->add_msg("The horde is %d map squares away.", distance_to_horde(g));
+    // g->add_msg("The horde is %d map squares away.", distance_to_horde(g));
+    popup_top("The horde comes.");
     
     return true;
   }
@@ -154,48 +155,59 @@ int west_game::distance_to_horde(game *g) {
 
 void west_game::per_turn(game *g)
 {
+  auto spam_zombies = [&] (int n = 200, bool fast_only = false) {
+    if (n <= 0) return;
+    g->cancel_activity();
+    g->u.rem_disease(DI_SLEEP);
+    g->u.rem_disease(DI_LYING_DOWN);
+    int monx, mony;
+    for (int i = 0; i < n; i++) {
+      mon_id type = fast_only ? mon_zombie_fast : g->valid_monster_from(g->moncats[mcat_zombie]);
+      if (type != mon_null) {
+	monx = rng(0, SEEX * MAPSIZE - 1);
+	mony = rng(0, SEEY * MAPSIZE - 1);
+	monster zom = monster(g->mtypes[type]);
+	zom.spawn(monx, mony);
+	zom.wandx = g->u.posx;
+	zom.wandy = g->u.posy;
+	zom.moves = -100;
+	g->z.push_back(zom);
+      }
+    }
+  };
+
   if (int(g->turn) % 300 == 0) {
     horde_location++;
     int dh = distance_to_horde(g);
-    int monx, mony;
     if (dh <= 0) {
-      for (int i = 0; i < 200; i++) {
-	mon_id type = g->valid_monster_from(g->moncats[mcat_zombie]);
-	if (type != mon_null) {
-	  monx = rng(0, SEEX * MAPSIZE - 1);
-	  mony = rng(0, SEEY * MAPSIZE - 1);
-	  monster zom = monster(g->mtypes[type]);
-	  zom.spawn(monx, mony);
-	  zom.wandx = g->u.posx;
-	  zom.wandy = g->u.posy;
-	  g->z.push_back(zom);
-	}
-      }
-      g->add_msg("The horde is upon you!!");
+      popup("The horde is upon you!!");
+      spam_zombies();
     }
-    else if (dh < 20) {
-      g->add_msg("The horde is only %d map squares away!", distance_to_horde(g));
+    else if (dh <= 5) {
+      popup("The horde is starting to catch up with you!\nThe main body of the horde is only %d map squares away!", dh);
+      int badness = 5 - dh;
+      spam_zombies(dice(badness,4), true);
+    }
+    else if (dh < 15) {
+      popup("The horde comes!  They are only %d map squares away.", dh);
+      g->cancel_activity_query("The horde comes!");
+      g->u.rem_disease(DI_SLEEP);
+      g->u.rem_disease(DI_LYING_DOWN);
+    }
+    else if (dh < 30) {
+      if(g->u.has_disease(DI_SLEEP) || g->u.has_disease(DI_LYING_DOWN))
+	g->add_msg("The distant horde approaches.");
+      else
+	popup("The distant horde approaches.");
     }
     else {
-      g->add_msg("The horde is %d map squares away.", distance_to_horde(g));
-    }
+      if(g->u.has_disease(DI_SLEEP) || g->u.has_disease(DI_LYING_DOWN))
+	g->add_msg("In the far distance, the horde moves.");
+      else
+	popup("In the far distance, the horde moves ever forward.");
+    }   
   }
 }
-//  if (!thirst)
-//   g->u.thirst = 0;
-//  if (!hunger)
-//   g->u.hunger = 0;
-//  if (!sleep)
-//   g->u.fatigue = 0;
-//  if (int(g->turn) % (time_between_waves * 10) == 0) {
-//   current_wave++;
-//   if (current_wave > 1 && current_wave % waves_between_caravans == 0) {
-//    popup("A caravan approaches!  Press spacebar...");
-//    caravan(g);
-//   }
-//   spawn_wave(g);
-//  }
-// }
 
 void west_game::pre_action(game *g, action_id &act)
 {

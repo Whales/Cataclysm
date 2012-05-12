@@ -8,6 +8,7 @@
 #include "weather_data.h"
 #include <fstream>
 #include <sstream>
+#include <cassert>
 #include <math.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -1637,7 +1638,7 @@ void game::decrease_nextinv()
  else if (nextinv == 'A')
   nextinv = 'z';
  else
-  nextinv++;
+  nextinv--;
 }
 
 void game::add_msg(const char* msg, ...)

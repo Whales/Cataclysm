@@ -118,6 +118,7 @@ player& player::operator= (player rhs)
  for (int i = 0; i < rhs.inv.size(); i++)
   inv.add_stack(rhs.inv.stack_at(i));
  worn = rhs.worn;
+ weapon = rhs.weapon;
  return (*this);
 }
 
@@ -1685,6 +1686,7 @@ int player::clairvoyance()
 {
  if (has_artifact_with(AEP_CLAIRVOYANCE))
   return 3;
+ return 0;
 }
 
 bool player::has_two_arms()

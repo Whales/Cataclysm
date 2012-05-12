@@ -14,7 +14,7 @@ TARGET = cataclysm
 OS  = $(shell uname -o)
 CXX = g++
 
-CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE)
+CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE) -std=c++0x
 
 ifeq ($(OS), Msys)
 LDFLAGS = -static -lpdcurses
