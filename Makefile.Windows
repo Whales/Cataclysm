@@ -16,7 +16,7 @@ CXX = /usr/local/mingw/bin/i386-mingw32-g++
 LINKER = /usr/local/mingw/bin/i386-mingw32-ld
 LINKERFLAGS = -Wl,-stack,12000000,-subsystem,windows
 
-CFLAGS = -O1 -std=c++0x
+CFLAGS = -O1 -std=gnu++0x
 #CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE)
 
 LDFLAGS = -static -lgdi32
