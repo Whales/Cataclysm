@@ -1822,7 +1822,7 @@ int player::comprehension_percent(skill s, bool real_life)
 
  if (real_life) {
    int rust = std::max(0u, maxskill[s] - sklevel[s]*100 - skexercise[s]);
-   percent *= pow(2.0, rust / 100.0);
+   percent += 10.0 * (rust / 100.0);
  }
  
  if (has_trait(PF_FASTLEARNER))
