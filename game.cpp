@@ -673,6 +673,9 @@ void game::update_skills()
            skill_name(skill(i)).c_str() ,u.sklevel[i]);
    u.skexercise[i] = 0;
   }
+  if (u.sklevel[i]*100 + u.skexercise[i] > u.maxskill[i]) {
+    u.maxskill[i] = u.sklevel[i]*100 + u.skexercise[i];
+  }
  }
 }
 

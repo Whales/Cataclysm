@@ -66,19 +66,19 @@ void game::wish()
     for (int i = 0; i < itypes.size(); i++) {
      if (itypes[i]->name.find(pattern) != std::string::npos) {
       shift = i;
-      a = 0;
       result_selected = 0;
-      if (shift + 23 > itypes.size()) {
-       a = shift + 23 - itypes.size();
-       shift = itypes.size() - 23;
-      }
       found = true;
       search_results.push_back(i);
      }
     }
     if (search_results.size() > 0) {
      shift = search_results[0];
-     a = 0;
+     if (shift + 23 > itypes.size()) {
+       a = shift + 23 - itypes.size();
+       shift = itypes.size() - 23;
+     }
+     else
+       a = 0;
     }
    }
 

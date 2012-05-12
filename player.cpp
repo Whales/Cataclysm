@@ -56,6 +56,7 @@ player::player()
  for (int i = 0; i < num_skill_types; i++) {
   sklevel[i] = 0;
   skexercise[i] = 0;
+  maxskill[i] = 0;
  }
  for (int i = 0; i < PF_MAX2; i++)
   my_traits[i] = false;
@@ -106,6 +107,7 @@ player& player::operator= (player rhs)
  for (int i = 0; i < num_skill_types; i++) {
   sklevel[i] = rhs.sklevel[i];
   skexercise[i] = rhs.skexercise[i];
+  maxskill[i] = rhs.maxskill[i];
  }
  for (int i = 0; i < PF_MAX2; i++)
   my_traits[i] = rhs.my_traits[i];
@@ -454,7 +456,7 @@ void player::load_info(game *g, std::string data)
  for (int i = 0; i < num_hp_parts; i++)
   dump >> hp_cur[i] >> hp_max[i];
  for (int i = 0; i < num_skill_types; i++)
-  dump >> sklevel[i] >> skexercise[i];
+   dump >> sklevel[i] >> skexercise[i] >> maxskill[i];
 
  int numill;
  int typetmp;
@@ -522,7 +524,7 @@ std::string player::save_info()
  for (int i = 0; i < num_hp_parts; i++)
   dump << hp_cur[i] << " " << hp_max[i] << " ";
  for (int i = 0; i < num_skill_types; i++)
-  dump << int(sklevel[i]) << " " << skexercise[i] << " ";
+   dump << int(sklevel[i]) << " " << skexercise[i] << " " << int(maxskill[i]) << " ";
 
  dump << illness.size() << " ";
  for (int i = 0; i < illness.size();  i++)
@@ -1815,6 +1817,14 @@ int player::comprehension_percent(skill s, bool real_life)
  else if (!real_life && intel > 8)
   percent += 125 - 1000 / intel;
 
+ if (real_life && skexercise[s] < 0)
+   percent *= 1.5;
+
+ if (real_life) {
+   int rust = std::max(0u, maxskill[s] - sklevel[s]*100 - skexercise[s]);
+   percent *= pow(2.0, rust / 100.0);
+ }
+ 
  if (has_trait(PF_FASTLEARNER))
   percent += 50.;
  return (int)(percent);
@@ -4299,6 +4309,9 @@ bool player::wearing_something_on(body_part bp)
 
 void player::practice(skill s, int amount)
 {
+  int rust = (std::max)(0u, maxskill[s] - sklevel[s]*100 - skexercise[s]);
+  amount *= pow(2.0, rust / 100.0);
+ 
  skill savant = sk_null;
  int savant_level = 0, savant_exercise = 0;
  if (has_trait(PF_SAVANT)) {
@@ -4316,9 +4329,8 @@ void player::practice(skill s, int amount)
  }
  while (amount > 0 && xp_pool >= (1 + sklevel[s])) {
   amount -= sklevel[s] + 1;
-  if ((savant == sk_null || savant == s || !one_in(2)) &&
-      rng(0, 100) < comprehension_percent(s)) {
-   xp_pool -= (1 + sklevel[s]);
+  if ((savant == sk_null || savant == s || !one_in(2)) && rng(0, 100) < comprehension_percent(s)) {
+    xp_pool -= (1 + sklevel[s])/(1 + rust/100.0);
    skexercise[s]++;
   }
  }

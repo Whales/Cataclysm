@@ -242,6 +242,7 @@ public:
  int xp_pool;
  int sklevel[num_skill_types];
  int skexercise[num_skill_types];
+ unsigned int maxskill[num_skill_types]; //100*level + exercise
  
  bool inv_sorted;
  //std::vector <item> inv;
