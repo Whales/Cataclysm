@@ -6269,7 +6269,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
  }
  if (terrain_type >= ot_house_north && terrain_type <= ot_mansion) {
    for (int x = 0; x < SEEX * 2; x++) {
-     for (int y = 0; y <= SEEY * 2; y++) {
+     for (int y = 0; y < SEEY * 2; y++) {
        std::string junk;
        if (one_in(100) && ter(x,y) != t_grass && ter(x,y) != t_dirt
 	   && ter(x,y) <= t_dumpster 
