@@ -2927,7 +2927,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
        std::vector<point> next;
        for (int nx = x - 1; nx <= x + 1; nx++ ) {
         for (int ny = y; ny <= y + 1; ny++) {
-         if (ter(nx, ny) == t_rock_floor);
+         if (ter(nx, ny) == t_rock_floor)
           next.push_back( point(nx, ny) );
         }
        }
