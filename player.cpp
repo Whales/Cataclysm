@@ -1655,6 +1655,7 @@ int player::clairvoyance()
 {
  if (has_artifact_with(AEP_CLAIRVOYANCE))
   return 3;
+ return 0;
 }
 
 bool player::has_two_arms()
