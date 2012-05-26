@@ -5047,7 +5047,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    if (one_in(2))
     ter(rng(cw + 2, rw - 1), y) = t_door_c;
    else
-    ter(rng(y + 2, SEEY * 2 - 3), cw) = t_door_c;
+    ter(cw, rng(y + 2, SEEY * 2 - 3)) = t_door_c;
 
    if (t_west == ot_mansion_entrance || t_west == ot_mansion)
     line(this, t_floor, 0, SEEY - 1, 0, SEEY);
@@ -7396,7 +7396,7 @@ x: %d - %d, dx: %d cx: %d/%d", x1, x2, dx, cx_low, cx_hi,
                                y1, y2, dy, cy_low, cy_hi);
 */
  bool walled_west = (x1 == 0), walled_north = (y1 == 0),
-      walled_east = (x2 == SEEX * 2 - 1), walled_south = (y2 == SEEY * 2 - 1);
+      walled_east = (x2 == SEEX * 2 - 1), walled_south = (y2 == SEEY * 2 - 2);
 
  switch (type) {
 
@@ -7417,6 +7417,10 @@ x: %d - %d, dx: %d cx: %d/%d", x1, x2, dx, cx_low, cx_hi,
    for (int i = x1; i <= x2; i++) {
     if (m->ter(i, y2 + 1) != t_door_c)
      m->ter(i, y2) = t_shrub;
+   }
+   if (walled_south && x1 <= SEEX && SEEX <= x2) {
+     m->ter(SEEX - 1, y2) = grass_or_dirt();
+     m->ter(SEEX, y2) = grass_or_dirt();
    }
   }
   break;
