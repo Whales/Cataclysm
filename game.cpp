@@ -813,6 +813,10 @@ void game::cancel_activity_query(const char* message, ...)
    if (query_yn("%s Stop construction?", s.c_str()))
     u.activity.type = ACT_NULL;
    break;
+  case ACT_VEHICLE:
+   if (query_yn("%s Stop construction?", s.c_str()))
+    u.activity.type = ACT_NULL;
+   break;
   default:
    u.activity.type = ACT_NULL;
  }
