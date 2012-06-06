@@ -1054,13 +1054,22 @@ void map::disarm_trap(game *g, int x, int y)
     add_item(x, y, g->itypes[comp[i]], 0);
   }
   tr_at(x, y) = tr_null;
- } else if (roll >= diff * .8)
+  if(diff > 1.25*g->u.sklevel[sk_traps]) // failure might have set off trap
+   g->u.practice(sk_traps, 1.5*(diff - g->u.sklevel[sk_traps]));
+ } else if (roll >= diff * .8) {
   g->add_msg("You fail to disarm the trap.");
+  if(diff > 1.25*g->u.sklevel[sk_traps])
+   g->u.practice(sk_traps, 1.5*(diff - g->u.sklevel[sk_traps]));
+ }
  else {
   g->add_msg("You fail to disarm the trap, and you set it off!");
   trap* tr = g->traps[tr_at(x, y)];
   trapfunc f;
   (f.*(tr->act))(g, x, y);
+  if(diff - roll <= 6)
+   // Give xp for failing, but not if we failed terribly (in which
+   // case the trap may not be disarmable).
+   g->u.practice(sk_traps, 2*diff);
  }
 }
  
