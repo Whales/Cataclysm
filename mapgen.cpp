@@ -1085,7 +1085,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     house_room(this, room_bathroom, lw, cw, lw + 3, bw);
     house_room(this, room_bedroom, lw + 3, cw, rw, bw);
     if (one_in(4))
-     ter(rng(lw + 1, lw + 2), bw - 2) = t_door_c;
+     ter(rng(lw + 1, lw + 2), cw) = t_door_c;
     else
      ter(lw + 3, rng(cw + 2, bw - 2)) = t_door_c;
     rn = rng(lw + 4, rw - 2);
