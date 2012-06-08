@@ -104,6 +104,10 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     int target_picked = rng(0, new_targets.size() - 1);
     tarx = new_targets[target_picked].x;
     tary = new_targets[target_picked].y;
+    if (m.sees(p.posx, p.posy, tarx, tary, 0, tart))
+     trajectory = line_to(p.posx, p.posy, tarx, tary, tart);
+    else
+     trajectory = line_to(p.posx, p.posy, tarx, tary, 0);
    }
   }
   int trange = calculate_range(p, tarx, tary);
@@ -484,7 +488,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
   wrefresh(w_status);
   refresh();
   ch = input();
-  get_direction(tarx, tary, ch);
+  get_direction(this, tarx, tary, ch);
   if (tarx != -2 && tary != -2 && ch != '.') {	// Direction character pressed
    if (m.sees(u.posx, u.posy, x, y, -1, junk))
     m.drawsq(w_terrain, u, x, y, false, true);

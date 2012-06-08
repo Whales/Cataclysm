@@ -614,7 +614,7 @@ void iuse::dogfood(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Which direction?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   return;
@@ -643,7 +643,7 @@ void iuse::lighter(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Light where?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   it->charges++;
@@ -827,7 +827,7 @@ void iuse::extinguisher(game *g, player *p, item *it, bool t)
  g->draw();
  mvprintz(0, 0, c_red, "Pick a direction to spray:");
  int dirx, diry;
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction!");
   it->charges++;
@@ -876,7 +876,7 @@ void iuse::hammer(game *g, player *p, item *it, bool t)
  g->draw();
  mvprintz(0, 0, c_red, "Pick a direction in which to pry:");
  int dirx, diry;
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction!");
   return;
@@ -1092,7 +1092,7 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Pry where?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   return;
@@ -1174,7 +1174,7 @@ void iuse::dig(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Dig where?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   return;
@@ -1220,7 +1220,7 @@ void iuse::jackhammer(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Drill in which direction?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   return;
@@ -1242,7 +1242,7 @@ void iuse::set_trap(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Place where?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   return;
@@ -1819,7 +1819,7 @@ void iuse::turret(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Place where?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   return;
@@ -1870,7 +1870,7 @@ void iuse::tazer(game *g, player *p, item *it, bool t)
  int dirx, diry;
  g->draw();
  mvprintw(0, 0, "Shock in which direction?");
- get_direction(dirx, diry, input());
+ get_direction(g, dirx, diry, input());
  if (dirx == -2) {
   g->add_msg("Invalid direction.");
   it->charges += (dynamic_cast<it_tool*>(it->type))->charges_per_use;
