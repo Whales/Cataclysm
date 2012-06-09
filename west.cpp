@@ -195,16 +195,16 @@ void west_game::per_turn(game *g)
       g->u.rem_disease(DI_LYING_DOWN);
     }
     else if (dh < 30) {
-      if(g->u.has_disease(DI_SLEEP) || g->u.has_disease(DI_LYING_DOWN))
+      // if(g->u.has_disease(DI_SLEEP) || g->u.has_disease(DI_LYING_DOWN))
 	g->add_msg("The distant horde approaches.");
-      else
-	popup("The distant horde approaches.");
+ //      else
+	// popup("The distant horde approaches.");
     }
     else {
-      if(g->u.has_disease(DI_SLEEP) || g->u.has_disease(DI_LYING_DOWN))
+      // if(g->u.has_disease(DI_SLEEP) || g->u.has_disease(DI_LYING_DOWN))
 	g->add_msg("In the far distance, the horde moves.");
-      else
-	popup("In the far distance, the horde moves ever forward.");
+ //      else
+	// popup("In the far distance, the horde moves ever forward.");
     }   
   }
 }
