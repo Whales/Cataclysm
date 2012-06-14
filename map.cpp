@@ -1168,7 +1168,7 @@ void map::shoot(game *g, int x, int y, int &dam, bool hit_items, unsigned flags)
 
  int vpart;
  vehicle &veh = veh_at (x, y, vpart);
- if (veh.type != veh_null)
+ if (veh.type != veh_null && hit_items)
  {
      bool inc = (flags & mfb(IF_AMMO_INCENDIARY) || flags & mfb(IF_AMMO_FLAME));
      dam = veh.damage (vpart, dam, inc? 2 : 0, hit_items);
