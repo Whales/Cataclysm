@@ -22,6 +22,10 @@ else
 LDFLAGS = -lncurses
 endif
 
+ifeq ($(OS), Cygwin)
+CFLAGS += -DNCURSES
+endif
+
 SOURCES = $(wildcard *.cpp)
 _OBJS = $(SOURCES:.cpp=.o)
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))

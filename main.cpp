@@ -4,11 +4,7 @@
  * Who knows
  */
 
-#if (defined _WIN32 || defined WINDOWS)
-	#include "catacurse.h"
-#else
-	#include <curses.h>
-#endif
+#include "curses.h"
 
 #include <ctime>
 #include "game.h"
