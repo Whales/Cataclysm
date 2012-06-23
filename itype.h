@@ -146,7 +146,7 @@ itm_mag_porn, itm_mag_tv, itm_mag_news, itm_mag_cars, itm_mag_cooking,
 itm_bag_plastic, itm_bottle_plastic, itm_bottle_glass,
  itm_can_drink, itm_can_food, itm_box_small,
 // Tools
-itm_lighter, itm_sewing_kit, itm_scissors, itm_hammer, itm_extinguisher,
+itm_lighter, itm_flint, itm_sewing_kit, itm_scissors, itm_hammer, itm_extinguisher,
  itm_flashlight, itm_flashlight_on, itm_hotplate, itm_soldering_iron,
  itm_water_purifier, itm_two_way_radio, itm_radio, itm_radio_on, itm_crowbar,
  itm_hoe, itm_shovel, itm_chainsaw_off, itm_chainsaw_on, itm_jackhammer,

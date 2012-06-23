@@ -9,12 +9,12 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_field],
-	itm_rock, itm_strawberries, NULL);
+	itm_rock, itm_strawberries, itm_flint, NULL);
 
  setvector(
    mapitems[mi_forest],
 	itm_rock, itm_stick, itm_mushroom, itm_mushroom_poison,
-	itm_mushroom_magic, itm_blueberries, NULL);
+	itm_mushroom_magic, itm_blueberries, itm_flint, NULL);
 
  setvector(
    mapitems[mi_hive],
@@ -398,6 +398,7 @@ void game::init_mapitems()
 	itm_tophat, itm_ruger_redhawk, itm_deagle_44, itm_m1911, itm_geiger_off,
 	itm_UPS_off, itm_tazer, itm_mp3, itm_fur, itm_leather, itm_string_36,
 	itm_chain, itm_steel_chunk, itm_steel_lump, itm_manhole_cover, itm_rock,
+	itm_chain, itm_steel_chunk, itm_steel_lump, itm_manhole_cover, itm_flint,
 	itm_hammer_sledge, itm_ax, itm_knife_butcher, itm_knife_combat,
 	itm_bat, itm_petrified_eye, itm_binoculars, itm_boots, itm_mocassins,
 	itm_dress_shoes, itm_heels, itm_pants, itm_pants_army, itm_skirt,
@@ -567,7 +568,7 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_mine_storage],
-	itm_rock, itm_coal, NULL);
+	itm_rock, itm_coal, itm_flint, NULL);
 
  setvector(
    mapitems[mi_mine_equipment],
@@ -609,7 +610,7 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_cavern],
-	itm_rock, itm_jackhammer, itm_flashlight, itm_dynamite, NULL);
+	itm_rock, itm_jackhammer, itm_flashlight, itm_dynamite, itm_flint, NULL);
 
  setvector(
    mapitems[mi_spider],

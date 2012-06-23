@@ -632,10 +632,52 @@ void iuse::dogfood(game *g, player *p, item *it, bool t)
   g->add_msg("You spill the dogfood all over the ground.");
 
 }
-  
- 
 
 // TOOLS below this point!
+
+void iuse::flint(game *g, player *p, item *it, bool t)
+{
+ bool hasSteel = false;
+
+ if (p->weapon.made_of(IRON) || p->weapon.made_of(STEEL))
+	hasSteel = true;
+ 
+ for (int i = 0; !hasSteel && i < p->worn.size(); i++) {
+	if (p->worn[i].made_of(IRON) || p->worn[i].made_of(STEEL))
+		hasSteel = true;
+ }
+
+ for (int i = 0; !hasSteel && i < p->inv.size(); i++) {
+	if (p->inv[i].made_of(IRON) || p->inv[i].made_of(STEEL))
+		hasSteel = true;
+ }
+
+ if (!hasSteel) {
+  g->add_msg("You don't have anything to strike with the flint.");
+  it->charges++;
+  return;
+ }
+
+ int dirx, diry;
+ g->draw();
+ mvprintw(0, 0, "Light where?");
+ get_direction(g, dirx, diry, input());
+ if (dirx == -2) {
+  g->add_msg("Invalid direction.");
+  it->charges++;
+  return;
+ }
+ dirx += p->posx;
+ diry += p->posy;
+ if (g->m.flammable_items_at(dirx, diry)) {
+  if (g->m.add_field(g, dirx, diry, fd_fire, 1))
+   p->moves -= 45;
+   g->m.field_at(dirx, diry).age = 30;
+ } else {
+  g->add_msg("There's nothing to light there.");
+  it->charges++;
+ }
+}
 
 void iuse::lighter(game *g, player *p, item *it, bool t)
 {
