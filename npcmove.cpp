@@ -47,7 +47,8 @@ void npc::move(game *g)
 
  choose_monster_target(g, target, danger, total_danger);
  if (g->debugmon)
-  debugmsg("NPC %s: target = %d, danger = %d", name.c_str(), target, danger);
+  debugmsg("NPC %s: target = %d, danger = %d, range = %d",
+           name.c_str(), target, danger, confident_range(-1));
 
  if (is_enemy()) {
   int pl_danger = player_danger( &(g->u) );
@@ -287,6 +288,7 @@ void npc::execute_action(game *g, npc_action action, int target)
 
  case npc_talk_to_player:
   talk_to_u(g);
+  moves = 0;
   break;
 
  case npc_mug_player:
@@ -312,7 +314,7 @@ void npc::execute_action(game *g, npc_action action, int target)
  }
 
  if (oldmoves == moves) {
-  debugmsg("NPC didn't use its moves.  Turning on debug mode.");
+  debugmsg("NPC didn't use its moves.  Action %d.  Turning on debug mode.", action);
   g->debugmon = true;
  }
 }
@@ -546,13 +548,39 @@ npc_action npc::address_player(game *g)
    say(g, "Don't move a <swear> muscle...");
   return npc_mug_player;
  }
+
+ if (attitude == NPCATT_WAIT_FOR_LEAVE) {
+  patience--;
+  if (patience <= 0) {
+   patience = 0;
+   attitude = NPCATT_KILL;
+   return method_of_attack(g, TARGET_PLAYER, player_danger( &(g->u) ));
+  }
+  return npc_undecided;
+ }
  
  if (attitude == NPCATT_FLEE)
   return npc_flee;
 
+ if (attitude == NPCATT_LEAD) {
+  if (rl_dist(posx, posy, g->u.posx, g->u.posy) >= 12 ||
+      !g->sees_u(posx, posy, linet)) {
+   int intense = disease_intensity(DI_CATCH_UP);
+   if (intense < 10) {
+    say(g, "<keep_up>");
+    add_disease(DI_CATCH_UP, 5, g, 1, 15);
+    return npc_pause;
+   } else if (intense == 10) {
+    say(g, "<im_leaving_you>");
+    add_disease(DI_CATCH_UP, 5, g, 1, 15);
+    return npc_pause;
+   } else
+    return npc_goto_destination;
+  } else
+   return npc_goto_destination;
+ }
  return npc_undecided;
 }
- 
 
 npc_action npc::long_term_goal_action(game *g)
 {
@@ -646,7 +674,7 @@ void npc::use_escape_item(game *g, int index, int target)
 int npc::confident_range(int index)
 {
  
- if (index == -1 || !weapon.is_gun() || weapon.charges <= 0)
+ if (index == -1 && (!weapon.is_gun() || weapon.charges <= 0))
   return 1;
 
  double deviation = 0;
@@ -685,7 +713,7 @@ int npc::confident_range(int index)
    debugmsg("%s has NULL curammo!", name.c_str()); // TODO: investigate this bug
   else {
    deviation += .5 * weapon.curammo->accuracy;
-   max = weapon.curammo->range;
+   max = weapon.range();
   }
   deviation += .5 * firing->accuracy;
   deviation += 3 * recoil;
@@ -718,9 +746,9 @@ int npc::confident_range(int index)
 
 // Using 180 for now for extra-confident NPCs.
  int ret = (max > int(180 / deviation) ? max : int(180 / deviation));
- if (weapon.is_gun() && weapon.charges > 0 && ret > weapon.curammo->range)
+ if (ret > weapon.curammo->range)
   return weapon.curammo->range;
- return (max > int(180 / deviation) ? max : int(180 / deviation));
+ return ret;
 }
 
 // Index defaults to -1, i.e., wielded weapon
@@ -753,12 +781,14 @@ bool npc::wont_hit_friend(game *g, int tarx, int tary, int index)
     }
 */
 // Hit an NPC that's on our team?
+/*
     for (int n = 0; n < g->active_npc.size(); n++) {
      npc* guy = &(g->active_npc[n]);
      if (guy != this && (is_friend() == guy->is_friend()) &&
          guy->posx == x && guy->posy == y)
       return false;
     }
+*/
    }
   }
  }
@@ -828,6 +858,10 @@ bool npc::can_move_to(game *g, int x, int y)
 
 void npc::move_to(game *g, int x, int y)
 {
+ if (has_disease(DI_DOWNED)) {
+  moves -= 100;
+  return;
+ }
  if (recoil > 0) {	// Start by dropping recoil a little
   if (int(str_cur / 2) + sklevel[sk_gun] >= recoil)
    recoil = 0;
@@ -835,6 +869,10 @@ void npc::move_to(game *g, int x, int y)
    recoil -= int(str_cur / 2) + sklevel[sk_gun];
    recoil = int(recoil / 2);
   }
+ }
+ if (has_disease(DI_STUNNED)) {
+  x = rng(posx - 1, posx + 1);
+  y = rng(posy - 1, posy + 1);
  }
  if (rl_dist(posx, posy, x, y) > 1) {
 /*
@@ -853,7 +891,7 @@ void npc::move_to(game *g, int x, int y)
   moves -= 100;
  else if (g->mon_at(x, y) != -1) {	// Shouldn't happen, but it might.
   monster *m = &(g->z[g->mon_at(x, y)]);
-  debugmsg("Bumped into a monster, %d, a %s",g->mon_at(x, y),m->name().c_str());
+  //debugmsg("Bumped into a monster, %d, a %s",g->mon_at(x, y),m->name().c_str());
   melee_monster(g, g->mon_at(x, y));
  } else if (g->u.posx == x && g->u.posy == y) {
   say(g, "<let_me_pass>");
@@ -1317,9 +1355,12 @@ void npc::melee_monster(game *g, int target)
 
 void npc::melee_player(game *g, player &foe)
 {
+ hit_player(g, foe);
+/*
  int dam = 0, cut = 0;
  body_part hit;
- if (hit_player(g, foe, hit, dam, cut)) {
+ 
+ if (hit_player(g, foe)) {
   int side = rng(0, 1);
   g->add_msg("%s hits your %s with %s %s.", name.c_str(),
              body_part_name(hit, side).c_str(), (male ? "his" : "her"),
@@ -1328,10 +1369,16 @@ void npc::melee_player(game *g, player &foe)
  } else
   g->add_msg("%s swings %s %s at you, but misses.", name.c_str(),
              (male ? "his" : "her"), weapname(false).c_str());
+*/
 }
 
 void npc::wield_best_melee(game *g)
 {
+ if (!styles.empty()) { // Always wield a style if we have one
+// TODO: More intelligent style choosing
+  wield(g, 0 - rng(1, styles.size()));
+  return;
+ }
  int best_score = 0, index = -1;
  for (int i = 0; i < inv.size(); i++) {
   int score = inv[i].melee_value(sklevel);
@@ -1419,6 +1466,7 @@ void npc::alt_attack(game *g, int target)
    if (g->u_see(posx, posy, linet))
     g->add_msg("%s throws a %s.", name.c_str(), used->tname().c_str());
    g->throw_item(*this, tarx, tary, *used, trajectory);
+   i_remn(index);
 
   } else if (!wont_hit_friend(g, tarx, tary, index)) {// Danger of friendly fire
 
@@ -1470,6 +1518,7 @@ void npc::alt_attack(game *g, int target)
     if (g->u_see(posx, posy, linet))
      g->add_msg("%s throws a %s.", name.c_str(), used->tname().c_str());
     g->throw_item(*this, tarx, tary, *used, trajectory);
+    i_remn(index);
    }
 
   } else { // Within this block, our chosen target is outside of our range
@@ -1738,6 +1787,7 @@ void npc::mug_player(game *g, player &mark)
     attitude = NPCATT_FLEE;
     if (!one_in(3))
      say(g, "<done_mugging>");
+    moves -= 100;
    } else {
     int t;
     bool u_see_me   = g->u_see(posx, posy, t),
@@ -1819,6 +1869,12 @@ bool npc::has_destination()
  return (goalx >= 0 && goalx < OMAPX && goaly >= 0 && goaly < OMAPY);
 }
 
+void npc::reach_destination(game *g)
+{
+ goalx = -1;
+ goaly = -1;
+}
+
 void npc::set_destination(game *g)
 {
 /* TODO: Make NPCs' movement more intelligent.
@@ -1870,9 +1926,10 @@ void npc::set_destination(game *g)
 void npc::go_to_destination(game *g)
 {
  int sx = (goalx > mapx ? 1 : -1), sy = (goaly > mapy ? 1 : -1);
- if (goalx == mapx && goaly == mapy)	// We're at our desired map square!
+ if (goalx == mapx && goaly == mapy) {	// We're at our desired map square!
   move_pause();
- else {
+  reach_destination(g);
+ } else {
   if (goalx == mapx)
    sx = 0;
   if (goaly == mapy)
