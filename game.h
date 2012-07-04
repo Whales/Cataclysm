@@ -150,6 +150,7 @@ class game
   void update_map(int &x, int &y);  // Called by plmove when the map updates
   void update_overmap_seen(); // Update which overmap tiles we can see
   point om_location(); // levx and levy converted to overmap coordinates
+  point global_location(); // current terrain-grid location on global coordinate system
 
   faction* random_good_faction();
   faction* random_evil_faction();
@@ -207,7 +208,6 @@ class game
   WINDOW *w_messages;
   WINDOW *w_status;
 
- private:
 // Game-start procedures
   bool opening_screen();// Warn about screen size, then present the main menu
   bool load_master();	// Load the master data file, with factions &c
@@ -215,6 +215,7 @@ class game
   void start_game();	// Starts a new game
   void start_special_game(special_game_id gametype); // See gamemode.cpp
 
+ private:
 // Data Initialization
   void init_itypes();       // Initializes item types
   void init_mapitems();     // Initializes item placement
@@ -292,10 +293,12 @@ class game
   void replace_stair_monsters();
   void update_stair_monsters();
   void spawn_mon(int shift, int shifty); // Called by update_map, sometimes
+ public:
   mon_id valid_monster_from(std::vector<mon_id> group);
   int valid_group(mon_id type, int x, int y);// Picks a group from cur_om
   moncat_id mt_to_mc(mon_id type);// Monster type to monster category
   void set_adjacent_overmaps(bool from_scratch = false);
+ private:
 
 // Routine loop functions, approximately in order of execution
   void monmove();          // Monster movement

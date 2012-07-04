@@ -14,13 +14,14 @@ enum special_game_id {
 SGAME_NULL = 0,
 SGAME_TUTORIAL,
 SGAME_DEFENSE,
+SGAME_WEST,
 NUM_SPECIAL_GAMES
 };
 
 std::string special_game_name(special_game_id id);
 special_game* get_special_game(special_game_id id);
 
-struct special_game
+struct special_game 
 {
  virtual special_game_id id() { return SGAME_NULL; };
 // init is run when the game begins
@@ -176,6 +177,16 @@ private:
  bool sleep;		// Do we need to sleep?
 
  bool mercenaries;	// Do caravans offer the option of hiring a mercenary?
+
+};
+
+struct west_game : public special_game {
+  int horde_location;
+  virtual bool init(game *g);
+  virtual void per_turn(game * g);
+  int distance_to_horde(game *g);
+  virtual void pre_action(game *g, action_id &act);
+
 
 };
 
