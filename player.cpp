@@ -1800,16 +1800,14 @@ int player::sight_range(int light_level)
  if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_eye) &&
      !is_wearing(itm_glasses_monocle))
   ret = 4;
- if (ret >= 1 &&
+ if (ret > 1 &&
      (is_wearing(itm_goggles_ski) || is_wearing(itm_goggles_welding)))
   ret -= 1;	// not a big deal at sunny day, but real penalty in the darkness
  if (underwater && !has_bionic(bio_membrane) && !has_trait(PF_MEMBRANE) &&
      !is_wearing(itm_goggles_swim))
   ret = 1;
- if (has_disease(DI_BOOMERED))
-  ret = (ret <= 1) ? 0 : 1;
- if (has_disease(DI_IN_PIT))
-  ret = (ret <= 1) ? 0 : 1;
+ if (has_disease(DI_BOOMERED) || has_disease(DI_IN_PIT))
+  ret = 1;
  if (has_disease(DI_BLIND))
   ret = 0;
 
@@ -3320,9 +3318,9 @@ void player::use_charges(itype_id it, int quantity)
   return;
 
 // Improvised lighters, TODO: announces? chance to accidentally burn yourself?
- } else if ( it == itm_lighter && charges_of(itm_lighter) < quantity ) {
+ } else if ( (it == itm_lighter) && (charges_of(itm_lighter) < quantity) ) {
   if (has_bionic(bio_lighter) && power_level > 0 ) {
-   charge_power(0 - rng(0, 3)); // there is only 1 charge lighter action yet, still overkill?
+   charge_power(0 - rng(0, 3)); // 1 charge lighter actions only, overkill?
    return;
   }
  }
@@ -3464,8 +3462,8 @@ bool player::has_amount(itype_id it, int quantity)
 {
  if (it == itm_toolset)
   return has_bionic(bio_tools);
- if (it == itm_lighter) // Improvised lighters
-  return has_bionic(bio_lighter) && power_level > 0;
+ if ( (it == itm_lighter) && (amount_of(it) < 1) ) // Improvised lighters
+  return has_bionic(bio_lighter);
  return (amount_of(it) >= quantity); 
 }
 
@@ -3490,7 +3488,7 @@ bool player::has_charges(itype_id it, int quantity)
   return true;
  else {
   if (it == itm_lighter) // Improvised lighters
-   return has_bionic(bio_lighter) && power_level > 0;
+   return has_bionic(bio_lighter) && (power_level > 0);
   return false;
  }
 }
