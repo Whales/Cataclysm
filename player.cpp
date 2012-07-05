@@ -9,6 +9,7 @@
 #include "inventory.h"
 #include "artifact.h"
 #include <sstream>
+#include <algorithm>
 #include <stdlib.h>
 
 #if (defined _WIN32 || defined WINDOWS)
@@ -2936,6 +2937,11 @@ void player::add_morale(morale_type type, int bonus, int max_bonus,
  }
 }
  
+bool sort_fn (std::vector<item> i, std::vector<item> j) 
+{ 
+ return i[0].type->id < j[0].type->id; 
+}
+
 void player::sort_inv()
 {
  // guns ammo weaps armor food tools books other
@@ -2962,6 +2968,7 @@ void player::sort_inv()
  }
  inv.clear();
  for (int i = 0; i < 8; i++) {
+  std::stable_sort(types[i].begin(), types[i].end(), sort_fn);
   for (int j = 0; j < types[i].size(); j++)
    inv.push_back(types[i][j]);
  }
