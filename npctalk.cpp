@@ -1896,8 +1896,8 @@ Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n
   }
   g->u.practice(sk_barter, practice / 2);
   p->inv = newinv;
-  g->u.cash += cash;
-  p->cash   -= cash;
+  // g->u.cash += cash;
+  // p->cash   -= cash;
  }
  werase(w_head);
  werase(w_you);

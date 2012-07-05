@@ -847,6 +847,7 @@ void game::cancel_activity_query(const char* message, ...)
     doit = true;
    break;
   case ACT_BUILD:
+  case ACT_VEHICLE:
    if (query_yn("%s Stop construction?", s.c_str()))
     doit = true;
    break;
@@ -1638,7 +1639,7 @@ bool game::load_master()
  return true;
 }
 
-void game::load(std::string name)
+bool game::load(std::string name)
 {
  std::ifstream fin;
  std::stringstream playerfile;
@@ -1647,7 +1648,7 @@ void game::load(std::string name)
 // First, read in basic game state information.
  if (!fin.is_open()) {
   debugmsg("No save game exists!");
-  return;
+  return false;
  }
  u = player();
  u.name = name;
@@ -1728,6 +1729,8 @@ void game::load(std::string name)
  load_master();
  set_adjacent_overmaps(true);
  draw();
+
+ return true;
 }
 
 void game::save()
@@ -6506,6 +6509,14 @@ point game::om_location()
  ret.x = int( (levx + int(MAPSIZE / 2)) / 2);
  ret.y = int( (levy + int(MAPSIZE / 2)) / 2);
  return ret;
+}
+
+point game::global_location()
+{
+  point ret;
+  ret.x = cur_om.posx*OMAPX + om_location().x;
+  ret.y = cur_om.posy*OMAPY + om_location().y;
+  return ret;
 }
 
 void game::replace_stair_monsters()

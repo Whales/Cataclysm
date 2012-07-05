@@ -14,12 +14,14 @@ bool west_game::init (game *g)
     return false;
 
   if (g->load(g->u.name)) {
-    if(g->u.cash == 0)
-      horde_location = g->global_location().x - 10;
-    else
-      horde_location = g->u.cash;
+    if(g->u.scent == 500)
+      horde_location = g->global_location().x - 25;
+    else {
+     horde_location = g->u.scent - 500;
+     g->u.scent = 500;
+    }
 
-    // g->add_msg("The horde is %d map squares away.", distance_to_horde(g));
+    g->add_msg("The horde is %d map squares away.", distance_to_horde(g));
     popup_top("The horde comes.");
     
     return true;
@@ -68,7 +70,7 @@ bool west_game::init (game *g)
   g->u.normalize(g);
   g->u.weapon = item(g->itypes[itm_baton], 0, 'a' + g->u.worn.size());
 
-  horde_location = g->global_location().x - 10;
+  horde_location = g->global_location().x - 25;
 
   return true;
 }
@@ -136,6 +138,6 @@ void west_game::per_turn(game *g)
 void west_game::pre_action(game *g, action_id &act)
 {
  if (act == ACTION_SAVE) {
-   g->u.cash = horde_location;
+   g->u.scent = 500 + horde_location;
   }
 }

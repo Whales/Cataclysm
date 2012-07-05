@@ -1227,13 +1227,13 @@ bool npc::wield(game *g, int index)
    debugmsg("npc::wield(%d) [styles.size() = %d]", index, styles.size());
    return false;
   }
-  weapon.make( g->itypes[styles[index]] );
   if (volume_carried() + weapon.volume() <= volume_capacity()) {
    i_add(remove_weapon());
    moves -= 15;
   } else // No room for weapon, so we drop it
    g->m.add_item(posx, posy, remove_weapon());
   moves -= 15;
+  weapon.make( g->itypes[styles[index]] );
   int linet;
   if (g->u_see(posx, posy, linet))
    g->add_msg("%s assumes a %s stance.", name.c_str(), weapon.tname().c_str());
