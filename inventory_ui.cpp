@@ -45,7 +45,9 @@ void print_inv_statics(game *g, WINDOW* w_inv, std::string title,
   else
    mvwprintz(w_inv, 3, 40, g->u.weapon.color_in_inventory(&(g->u)), "%c - %s",
              g->u.weapon.invlet, g->u.weapname().c_str());
- } else
+ } else if (g->u.weapon.is_style())
+  mvwprintz(w_inv, 3, 40, c_ltgray, "%c - %s", g->u.weapon.invlet, g->u.weapname().c_str());
+ else 
   mvwprintz(w_inv, 3, 42, c_ltgray, g->u.weapname().c_str());
 // Print worn items
  if (g->u.worn.size() > 0)
