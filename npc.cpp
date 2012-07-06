@@ -10,6 +10,11 @@
 #include "output.h"
 #include "line.h"
 
+#if (defined _WIN32 || defined WINDOWS)
+	#define LINES 25
+	#define COLS 80
+#endif
+
 std::vector<item> starting_clothes(npc_class type, bool male, game *g);
 std::vector<item> starting_inv(npc *me, npc_class type, game *g);
 
@@ -1929,10 +1934,19 @@ int npc::speed_estimate(int speed)
  return rng(low, high);
 }
 
-void npc::draw(WINDOW* w, int ux, int uy, bool inv)
+void npc::draw(WINDOW* w, int ux, int uy, bool inv, view_mode vm, int xshift, int yshift)
 {
- int x = SEEX + posx - ux;
- int y = SEEY + posy - uy;
+ int ext_x_offset = 0;
+ int ext_y_offset = 0;
+ if(vm == EXTENDED){
+  ext_x_offset = EXTX;
+ }
+ else if(vm == DEBUG){
+  ext_x_offset = (COLS/2) - SEEX;
+  ext_y_offset = (LINES/2) - SEEY;
+ }
+ int x = SEEX + ext_x_offset + posx - (ux + xshift);
+ int y = SEEY + ext_y_offset + posy - (uy + yshift);
  nc_color col = c_pink;
  if (attitude == NPCATT_KILL)
   col = c_red;

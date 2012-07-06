@@ -10,6 +10,8 @@
 
 #if (defined _WIN32 || defined WINDOWS)
 	#include "catacurse.h"
+	#define LINES 25
+	#define COLS 80
 #else
 	#include <curses.h>
 #endif
@@ -213,10 +215,19 @@ char monster::symbol()
  return type->sym;
 }
 
-void monster::draw(WINDOW *w, int plx, int ply, bool inv)
+void monster::draw(WINDOW *w, int plx, int ply, bool inv, view_mode vm, int xshift, int yshift)
 {
- int x = SEEX + posx - plx;
- int y = SEEY + posy - ply;
+ int ext_x_offset = 0;
+ int ext_y_offset = 0;
+ if(vm == EXTENDED){
+  ext_x_offset = EXTX;
+ }
+ else if(vm == DEBUG){
+  ext_x_offset = (COLS/2) - SEEX;
+  ext_y_offset = (LINES/2) - SEEY;
+ }
+ int x = SEEX + ext_x_offset + posx - (plx + xshift);
+ int y = SEEY + ext_y_offset + posy - (ply + yshift);
  nc_color color = type->color;
  if (friendly != 0 && !inv)
   mvwputch_hi(w, y, x, color, type->sym);

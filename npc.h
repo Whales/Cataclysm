@@ -407,7 +407,8 @@ public:
 
 
 // Display
- void draw(WINDOW* w, int plx, int ply, bool inv);
+ void draw(WINDOW* w, int plx, int ply, bool inv, view_mode vm = NORMAL,
+           int xshift = 0, int yshift = 0);
  void print_info(WINDOW* w);
  std::string short_description();
  std::string opinion_text();

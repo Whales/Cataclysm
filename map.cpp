@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <fstream>
 
+#if (defined _WIN32 || defined WINDOWS)
+	#define LINES 25
+	#define COLS 80
+#endif
+
 #define SGN(a) (((a)<0) ? -1 : 1)
 #define INBOUNDS(x, y) \
  (x >= 0 && x < SEEX * my_MAPSIZE && y >= 0 && y < SEEY * my_MAPSIZE)
@@ -1831,33 +1836,60 @@ void map::debug()
  getch();
 }
 
-void map::draw(game *g, WINDOW* w)
+void map::draw(game *g, WINDOW* w, view_mode vm, int xshift, int yshift)
 {
  int t = 0;
+ int ext_x_offset = 0;
+ int ext_y_offset = 0;
+ int xcoord, ycoord;
+ if(vm == NORMAL){
+  xcoord = g->u.posx;
+  ycoord = g->u.posy;
+ }
+ else {
+  xcoord = g->u.posx + xshift;
+  ycoord = g->u.posy + yshift;
+  if(vm == EXTENDED){
+   ext_x_offset = EXTX;
+  }
+  else if(vm == DEBUG){
+   ext_x_offset = (COLS/2) - SEEX;
+   ext_y_offset = (LINES/2) - SEEY;
+  }
+ }
  int light = g->u.sight_range(g->light_level());
- for  (int realx = g->u.posx - SEEX; realx <= g->u.posx + SEEX; realx++) {
-  for (int realy = g->u.posy - SEEY; realy <= g->u.posy + SEEY; realy++) {
+ for  (int realx = xcoord - SEEX - ext_x_offset; realx <= xcoord + SEEX + ext_x_offset; realx++) {
+  for (int realy = ycoord - SEEY - ext_y_offset; realy <= ycoord + SEEY + ext_y_offset; realy++) {
    int dist = rl_dist(g->u.posx, g->u.posy, realx, realy);
    if (dist > light) {
     if (g->u.has_disease(DI_BOOMERED))
-     mvwputch(w, realx+SEEX - g->u.posx, realy+SEEY - g->u.posy, c_magenta,'#');
+     mvwputch(w, realy+SEEY + ext_y_offset - ycoord, realx+SEEX + ext_x_offset - xcoord, c_magenta,'#');
     else
-     mvwputch(w, realx+SEEX - g->u.posx, realy+SEEY - g->u.posy, c_dkgray, '#');
+     mvwputch(w, realy+SEEY + ext_y_offset - ycoord, realx+SEEX + ext_x_offset - xcoord, c_dkgray, '#');
    } else if (dist <= g->u.clairvoyance() ||
               sees(g->u.posx, g->u.posy, realx, realy, light, t))
-    drawsq(w, g->u, realx, realy, false, true);
+    drawsq(w, g->u, realx, realy, false, true, vm, xshift, yshift);
   }
  }
- mvwputch(w, SEEY, SEEX, g->u.color(), '@');
+ mvwputch(w, g->u.posy + SEEY + ext_y_offset - ycoord, g->u.posx + SEEX + ext_x_offset - xcoord, g->u.color(), '@');
 }
 
 void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
-                 bool show_items)
+                 bool show_items, view_mode vm, int xshift, int yshift)
 {
  if (!INBOUNDS(x, y))
   return;	// Out of bounds
- int k = x + SEEX - u.posx;
- int j = y + SEEY - u.posy;
+ int ext_x_offset = 0;
+ int ext_y_offset = 0;
+ if(vm == EXTENDED){
+  ext_x_offset = EXTX;
+ }
+ else if(vm == DEBUG){
+  ext_x_offset = (COLS/2) - SEEX;
+  ext_y_offset = (LINES/2) - SEEY;
+ }
+ int k = x + SEEX + ext_x_offset - (u.posx + xshift);
+ int j = y + SEEY + ext_y_offset - (u.posy + yshift);
  nc_color tercol;
  long sym = terlist[ter(x, y)].sym;
  bool hi = false;

@@ -69,7 +69,8 @@ class game
   void save();
   bool do_turn();
   void draw();
-  void draw_ter();
+  void draw_ter(WINDOW *w, view_mode vm = NORMAL, int xshift = 0, int yshift = 0);
+  void draw_surroundings(view_mode vm);
   void advance_nextinv();	// Increment the next inventory letter
   void decrease_nextinv();	// Decrement the next inventory letter
   void add_msg(const char* msg, ...);
@@ -81,8 +82,10 @@ class game
 // creates a list of coordinates to draw footsteps
   void add_footstep(int x, int y, int volume, int distance);
   std::vector<point> footsteps;
+  std::vector<point> old_footsteps;
 // visual cue to monsters moving out of the players sight
-  void draw_footsteps();
+  void draw_footsteps(WINDOW *w, view_mode vm = NORMAL, bool hold = false,
+                      int xshift = 0, int yshift = 0);
 // Explosion at (x, y) of intensity (power), with (shrapnel) chunks of shrapnel
   void explosion(int x, int y, int power, int shrapnel, bool fire);
 // Flashback at (x, y)
@@ -331,6 +334,7 @@ class game
 
 // Debug functions
   void debug();           // All-encompassing debug screen.  TODO: This.
+  void debug2();
   void display_scent();   // Displays the scent map
   void mondebug();        // Debug monster behavior directly
   void groupdebug();      // Get into on monster groups

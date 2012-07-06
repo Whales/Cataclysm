@@ -58,7 +58,8 @@ class monster {
  std::string name_with_armor(); // Name, with whatever our armor is called
  void print_info(game *g, WINDOW* w); // Prints information to w.
  char symbol();			// Just our type's symbol; no context
- void draw(WINDOW* w, int plx, int ply, bool inv);
+ void draw(WINDOW* w, int plx, int ply, bool inv, view_mode vm = NORMAL,
+           int xshift = 0, int yshift = 0);
  nc_color color_with_effects();	// Color with fire, beartrapped, etc.
 				// Inverts color if inv==true
  bool has_flag(m_flag f);	// Returns true if f is set (see mtype.h)
