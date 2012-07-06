@@ -913,7 +913,7 @@ void iuse::hammer(game *g, player *p, item *it, bool t)
 void iuse::light_off(game *g, player *p, item *it, bool t)
 {
  if (it->charges == 0)
-  g->add_msg("The flaslight's batteries are dead.");
+  g->add_msg("The flashlight's batteries are dead.");
  else {
   g->add_msg("You turn the flashlight on.");
   it->make(g->itypes[itm_flashlight_on]);

@@ -844,7 +844,7 @@ void npc::update_path(game *g, int x, int y)
  if (last.x == x && last.y == y)
   return; // Our path already leads to that point, no need to recalculate
  path = g->m.route(posx, posy, x, y);
- if (path[0].x == posx && path[0].y == posy)
+ if (!path.empty() && path[0].x == posx && path[0].y == posy)
   path.erase(path.begin());
 }
 

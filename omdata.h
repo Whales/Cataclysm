@@ -425,7 +425,7 @@ const overmap_special overmap_specials[NUM_OMSPECS] = {
 {ot_crater,	   0, 10,  0, -1, mcat_null, 0, 0, 0, 0,
  &omspec_place::land, mfb(OMS_FLAG_BLOB)},
 
-{ot_hive, 	   0, 50, 10, -1, mcat_bee, 20, 60, 2, 4,
+{ot_hive, 	   0, 5, 10, -1, mcat_bee, 20, 60, 2, 4,
  &omspec_place::forest, mfb(OMS_FLAG_3X3)},
 
 {ot_house_north,   0,100,  0, -1, mcat_null, 0, 0, 0, 0,
