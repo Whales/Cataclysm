@@ -2,7 +2,7 @@
 # WARNINGS will spam hundreds of warnings, mostly safe, if turned on
 # DEBUG is best turned on if you plan to debug in gdb -- please do!
 # PROFILE is for use with gprof or a similar program -- don't bother generally
-#WARNINGS = -Wall -Wextra -Wno-switch -Wno-sign-compare -Wno-missing-braces -Wno-unused-parameter -Wno-char-subscripts
+#WARNINGS = -Wall
 #DEBUG = -g
 #PROFILE = -pg
 
@@ -11,12 +11,13 @@ DDIR = .deps
 
 TARGET = cataclysm.exe
 
-CXX = i486-mingw32-g++
+CXX = /usr/local/mingw/bin/i386-mingw32-g++
 
-LINKER = i486-mingw32-ld
+LINKER = /usr/local/mingw/bin/i386-mingw32-ld
 LINKERFLAGS = -Wl,-stack,12000000,-subsystem,windows
 
-CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE)
+CFLAGS = -O1 -std=gnu++0x
+#CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE)
 
 LDFLAGS = -static -lgdi32
 
