@@ -79,40 +79,62 @@ int west_game::distance_to_horde(game *g) {
   return g->global_location().x - horde_location;
 }
 
+void west_game::spam_zombies (game * g, int n, bool fast_only) {
+ if (n <= 0) return;
+ g->cancel_activity();
+ g->u.rem_disease(DI_SLEEP);
+ g->u.rem_disease(DI_LYING_DOWN);
+ int monx, mony;
+ for (int i = 0; i < n; i++) {
+  mon_id type = fast_only ? mon_zombie_fast : g->valid_monster_from(g->moncats[mcat_zombie]);
+  if (type != mon_null) {
+   monx = rng(0, SEEX * MAPSIZE - 1);
+   mony = rng(0, SEEY * MAPSIZE - 1);
+   monster zom = monster(g->mtypes[type]);
+   zom.spawn(monx, mony);
+   zom.wandx = g->u.posx;
+   zom.wandy = g->u.posy;
+   zom.moves = -100;
+   g->z.push_back(zom);
+  }
+ }
+}
+
+
 void west_game::per_turn(game *g)
 {
-  auto spam_zombies = [&] (int n = 200, bool fast_only = false) {
-    if (n <= 0) return;
-    g->cancel_activity();
-    g->u.rem_disease(DI_SLEEP);
-    g->u.rem_disease(DI_LYING_DOWN);
-    int monx, mony;
-    for (int i = 0; i < n; i++) {
-      mon_id type = fast_only ? mon_zombie_fast : g->valid_monster_from(g->moncats[mcat_zombie]);
-      if (type != mon_null) {
-	monx = rng(0, SEEX * MAPSIZE - 1);
-	mony = rng(0, SEEY * MAPSIZE - 1);
-	monster zom = monster(g->mtypes[type]);
-	zom.spawn(monx, mony);
-	zom.wandx = g->u.posx;
-	zom.wandy = g->u.posy;
-	zom.moves = -100;
-	g->z.push_back(zom);
-      }
-    }
-  };
+ //  auto spam_zombies = [&] (int n = 200, bool fast_only = false) {
+ //    if (n <= 0) return;
+ //    g->cancel_activity();
+ //    g->u.rem_disease(DI_SLEEP);
+ //    g->u.rem_disease(DI_LYING_DOWN);
+ //    int monx, mony;
+ //    for (int i = 0; i < n; i++) {
+ //      mon_id type = fast_only ? mon_zombie_fast : g->valid_monster_from(g->moncats[mcat_zombie]);
+ //      if (type != mon_null) {
+	// monx = rng(0, SEEX * MAPSIZE - 1);
+	// mony = rng(0, SEEY * MAPSIZE - 1);
+	// monster zom = monster(g->mtypes[type]);
+	// zom.spawn(monx, mony);
+	// zom.wandx = g->u.posx;
+	// zom.wandy = g->u.posy;
+	// zom.moves = -100;
+	// g->z.push_back(zom);
+ //      }
+ //    }
+ //  };
 
   if (int(g->turn) % 300 == 0) {
     horde_location++;
     int dh = distance_to_horde(g);
     if (dh <= 0) {
       popup("The horde is upon you!!");
-      spam_zombies();
+      spam_zombies(g);
     }
     else if (dh <= 5) {
       popup("The horde is starting to catch up with you!\nThe main body of the horde is only %d map squares away!", dh);
       int badness = 5 - dh;
-      spam_zombies(dice(badness,4), true);
+      spam_zombies(g, dice(badness,4), true);
     }
     else if (dh < 15) {
       popup("The horde comes!  They are only %d map squares away.", dh);

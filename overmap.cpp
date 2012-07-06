@@ -2457,7 +2457,7 @@ void overmap::open(game *g, int x, int y, int z)
     fin.close();
     pointers.push_back(new overmap(g, x, y+i, z));
    } else
-    pointers.push_back(NULL);
+    pointers.push_back((overmap *) NULL);
   }
 // Fetch east and west
   for (int i = -1; i <= 1; i+=2) {
@@ -2468,7 +2468,7 @@ void overmap::open(game *g, int x, int y, int z)
     fin.close();
     pointers.push_back(new overmap(g, x+i, y, z));
    } else
-    pointers.push_back(NULL);
+    pointers.push_back((overmap *) NULL);
   }
 // pointers looks like (north, south, west, east)
   generate(g, pointers[0], pointers[3], pointers[1], pointers[2]);
