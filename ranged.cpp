@@ -845,7 +845,8 @@ void shoot_player(game *g, player &p, player *h, int &dam, double goodhit)
    if (g->active_npc[npcdex].hp_cur[hp_head]  <= 0 ||
        g->active_npc[npcdex].hp_cur[hp_torso] <= 0   ) {
     g->active_npc[npcdex].die(g, !p.is_npc());
-    g->active_npc.erase(g->active_npc.begin() + npcdex);
+    if(g->npc_at(h->posx, h->posy) != -1)
+     g->active_npc.erase(g->active_npc.begin() + npcdex);
    }
   }
  }
