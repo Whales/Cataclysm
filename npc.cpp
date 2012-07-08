@@ -130,6 +130,8 @@ npc& npc::operator= (npc &rhs)
  for (int i = 0; i < rhs.styles.size(); i++)
   styles.push_back(rhs.styles[i]);
 
+ combat_rules = rhs.combat_rules;
+
  marked_for_death = rhs.marked_for_death;
  dead = rhs.dead;
 
@@ -198,6 +200,8 @@ npc& npc::operator= (const npc &rhs)
  for (int i = 0; i < rhs.styles.size(); i++)
   styles.push_back(rhs.styles[i]);
 
+ combat_rules = rhs.combat_rules;
+
  marked_for_death = rhs.marked_for_death;
  dead = rhs.dead;
 
@@ -255,6 +259,8 @@ std::string npc::save_info()
   dump << my_fac->id;
  dump << " " << attitude << " " << " " << op_of_u.save_info() << " " <<
          chatbin.save_info();
+
+ dump << combat_rules.save_info();
  
 // Inventory size, plus armor size, plus 1 for the weapon
  dump << std::endl << inv.num_items() + worn.size() + 1 << std::endl;
@@ -360,6 +366,7 @@ void npc::load_info(game *g, std::string data)
 
  op_of_u.load_info(dump);
  chatbin.load_info(dump);
+ combat_rules.load_info(dump);
 }
 
 void npc::randomize(game *g, npc_class type)

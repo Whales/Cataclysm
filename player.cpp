@@ -137,6 +137,10 @@ player& player::operator= (player rhs)
  style_selected = rhs.style_selected;
  weapon = rhs.weapon;
 
+ active_missions = rhs.active_missions;
+ completed_missions = rhs.completed_missions;
+ failed_missions = rhs.failed_missions;
+
  return (*this);
 }
 
@@ -520,6 +524,25 @@ void player::load_info(game *g, std::string data)
    mortmp.item_type = g->itypes[item_id];
   morale.push_back(mortmp);
  }
+
+ int nummis = 0;
+ int mistmp;
+ dump >> nummis;
+ for (int i = 0; i < nummis; i++) {
+  dump >> mistmp;
+  active_missions.push_back(mistmp);
+ }
+ dump >> nummis;
+ for (int i = 0; i < nummis; i++) {
+  dump >> mistmp;
+  completed_missions.push_back(mistmp);
+ }
+ dump >> nummis;
+ for (int i = 0; i < nummis; i++) {
+  dump >> mistmp;
+  failed_missions.push_back(mistmp);
+ }
+ 
 }
 
 std::string player::save_info()
@@ -575,6 +598,19 @@ std::string player::save_info()
    dump << morale[i].item_type->id;
   dump << " ";
  }
+
+ dump << " " << active_missions.size() << " ";
+ for (int i = 0; i < active_missions.size(); i++)
+  dump << active_missions[i] << " ";
+
+ dump << " " << completed_missions.size() << " ";
+ for (int i = 0; i < completed_missions.size(); i++)
+  dump << completed_missions[i] << " ";
+
+ dump << " " << failed_missions.size() << " ";
+ for (int i = 0; i < failed_missions.size(); i++)
+  dump << failed_missions[i] << " ";
+
  dump << std::endl;
 
  for (int i = 0; i < inv.size(); i++) {
