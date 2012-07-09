@@ -14,6 +14,11 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#if (defined _WIN32 || defined WINDOWS)
+	#define LINES 25
+	#define COLS 80
+#endif
+
 #define MAX_MONSTERS_MOVING 40 // Efficiency!
 
 void intro();
@@ -847,6 +852,7 @@ void game::cancel_activity_query(const char* message, ...)
     doit = true;
    break;
   case ACT_BUILD:
+  case ACT_VEHICLE:
    if (query_yn("%s Stop construction?", s.c_str()))
     doit = true;
    break;
@@ -1250,6 +1256,10 @@ void game::get_input()
    look_around();
    break;
 
+  case ACTION_LOOK_SURROUNDINGS:
+   draw_surroundings(EXTENDED);
+   break;
+
   case ACTION_INVENTORY: {
    bool has = false;
    do {
@@ -1449,7 +1459,7 @@ void game::get_input()
    break;
 
   case ACTION_DISPLAY_SCENT:
-   display_scent();
+   debug2();
    break;
 
   case ACTION_TOGGLE_DEBUGMON:
@@ -1619,14 +1629,18 @@ bool game::load_master()
     getline(fin, itemdata);
     if (item_place == 'I')
      tmpinv.push_back(item(itemdata, this));
-    else if (item_place == 'C' && !tmpinv.empty())
+    else if (item_place == 'C' && !tmpinv.empty()) {
      tmpinv[tmpinv.size() - 1].contents.push_back(item(itemdata, this));
+     j--;
+    }
     else if (item_place == 'W')
      tmp.worn.push_back(item(itemdata, this));
     else if (item_place == 'w')
      tmp.weapon = item(itemdata, this);
-    else if (item_place == 'c')
+    else if (item_place == 'c') {
      tmp.weapon.contents.push_back(item(itemdata, this));
+     j--;
+    }
    }
   }
   active_npc.push_back(tmp);
@@ -1638,7 +1652,7 @@ bool game::load_master()
  return true;
 }
 
-void game::load(std::string name)
+bool game::load(std::string name)
 {
  std::ifstream fin;
  std::stringstream playerfile;
@@ -1647,7 +1661,7 @@ void game::load(std::string name)
 // First, read in basic game state information.
  if (!fin.is_open()) {
   debugmsg("No save game exists!");
-  return;
+  return false;
  }
  u = player();
  u.name = name;
@@ -1728,6 +1742,8 @@ void game::load(std::string name)
  load_master();
  set_adjacent_overmaps(true);
  draw();
+
+ return true;
 }
 
 void game::save()
@@ -2007,6 +2023,25 @@ z.size(), events.size());
     full_screen_popup(data.str().c_str());
    }
   } break;
+ }
+ erase();
+ refresh_all();
+}
+
+void game::debug2()
+{
+ int action = menu("Debug Functions - Using these is CHEATING!",
+                   "Display scent map",       // 1
+                   "Full size extended view", // 2
+                   "Cancel",                  // 3
+                   NULL);
+ switch (action) {
+  case 1:
+   display_scent();
+   break;
+  case 2:
+   draw_surroundings(DEBUG);
+   break;
  }
  erase();
  refresh_all();
@@ -2322,8 +2357,8 @@ void game::draw()
 {
  // Draw map
  werase(w_terrain);
- draw_ter();
- draw_footsteps();
+ draw_ter(w_terrain);
+ draw_footsteps(w_terrain);
  mon_info();
  // Draw Status
  draw_HP();
@@ -2370,52 +2405,172 @@ bool game::isBetween(int test, int down, int up)
 	else return false;
 }
 
-void game::draw_ter()
+void game::draw_ter(WINDOW * w, view_mode vm, int xshift, int yshift)
 {
  int t = 0;
- m.draw(this, w_terrain);
+ int ext_x_offset = 0;
+ int ext_y_offset = 0;
+ if(vm == EXTENDED){
+  ext_x_offset = EXTX;
+ }
+ else if(vm == DEBUG){
+  ext_x_offset = (COLS/2) - SEEX;
+  ext_y_offset = (LINES/2) - SEEY;
+ }
+
+ m.draw(this, w, vm, xshift, yshift);
 
  // Draw monsters
  int distx, disty;
  for (int i = 0; i < z.size(); i++) {
   disty = abs(z[i].posy - u.posy);
   distx = abs(z[i].posx - u.posx);
-  if (distx <= SEEX && disty <= SEEY && u_see(&(z[i]), t))
-   z[i].draw(w_terrain, u.posx, u.posy, false);
-  else if (z[i].has_flag(MF_WARM) && distx <= SEEX && disty <= SEEY &&
+  if (distx <= SEEX + ext_x_offset && disty <= SEEY + ext_y_offset && u_see(&(z[i]), t))
+   z[i].draw(w, u.posx, u.posy, false, vm, xshift, yshift);
+  else if (z[i].has_flag(MF_WARM) && distx <= SEEX + ext_x_offset && disty <= SEEY + ext_y_offset &&
            (u.has_active_bionic(bio_infrared) || u.has_trait(PF_INFRARED)))
-   mvwputch(w_terrain, SEEY + z[i].posy - u.posy, SEEX + z[i].posx - u.posx,
+   mvwputch(w, SEEY + ext_y_offset + z[i].posy - u.posy, SEEX + ext_x_offset + z[i].posx - u.posx,
             c_red, '?');
  }
  // Draw NPCs
  for (int i = 0; i < active_npc.size(); i++) {
   disty = abs(active_npc[i].posy - u.posy);
   distx = abs(active_npc[i].posx - u.posx);
-  if (distx <= SEEX && disty <= SEEY &&
+  if (distx <= SEEX + ext_x_offset && disty <= SEEY + ext_y_offset &&
       u_see(active_npc[i].posx, active_npc[i].posy, t))
-   active_npc[i].draw(w_terrain, u.posx, u.posy, false);
+   active_npc[i].draw(w, u.posx, u.posy, false, vm, xshift, yshift);
  }
  if (u.has_active_bionic(bio_scent_vision)) {
-  for (int realx = u.posx - SEEX; realx <= u.posx + SEEX; realx++) {
-   for (int realy = u.posy - SEEY; realy <= u.posy + SEEY; realy++) {
+  for (int realx = u.posx - SEEX - ext_x_offset; realx <= u.posx + SEEX + ext_x_offset + 1; realx++) {
+   for (int realy = u.posy - SEEY - ext_y_offset; realy <= u.posy + SEEY + ext_y_offset + 1; realy++) {
     if (scent(realx, realy) != 0) {
      int tempx = u.posx - realx, tempy = u.posy - realy;
      if (!(isBetween(tempx, -2, 2) && isBetween(tempy, -2, 2))) {
       if (mon_at(realx, realy) != -1)
-       mvwputch(w_terrain, realy + SEEY - u.posy, realx + SEEX - u.posx,
+       mvwputch(w, realy + SEEY + ext_y_offset - u.posy, realx + SEEX + ext_x_offset - u.posx,
                 c_white, '?');
       else
-       mvwputch(w_terrain, realy + SEEY - u.posy, realx + SEEX - u.posx,
+       mvwputch(w_terrain, realy + SEEY + ext_y_offset - u.posy, realx + SEEX + ext_x_offset - u.posx,
                 c_magenta, '#');
      }
     }
    }
   }
  }
- wrefresh(w_terrain);
+ wrefresh(w);
  if (u.has_disease(DI_VISUALS))
   hallucinate();
 }
+
+ void game::draw_surroundings(view_mode vm)
+ {
+  char ch = 0;
+  int xshift = 0, yshift = 0, idx = 0;
+  action_id act, last_act;
+  WINDOW* w_extmap;
+  if(vm == EXTENDED){
+   w_extmap = newwin(25, 80, 0, 0);
+  }
+  else if(vm == DEBUG){
+   w_extmap = newwin(LINES, COLS, 0, 0);
+  }
+  act = ACTION_PAUSE;
+  last_act = ACTION_NULL;
+  do {
+   if(act != last_act || act == ACTION_LOOK_SURROUNDINGS){
+    wclear(w_extmap);
+    draw_ter(w_extmap, vm, xshift, yshift);
+    draw_footsteps(w_extmap, vm, true, xshift, yshift);
+    wrefresh(w_extmap);
+   }
+   ch = input();
+   if (keymap.find(ch) == keymap.end()) {
+    continue;
+   }
+   last_act = act;
+   act = keymap[ch];
+   if(act != last_act || act == ACTION_LOOK_SURROUNDINGS){
+    switch(act){
+     case ACTION_MOVE_N: //NORTH
+      xshift = 0;
+      yshift = -(SEEY - 1);
+      idx = 0;
+      break;
+     case ACTION_MOVE_S: //SOUTH
+      xshift = 0;
+      yshift = SEEY - 1;
+      idx = 0;
+      break;
+     case ACTION_MOVE_NW: //NORTHWEST
+      xshift = -(SEEX + EXTX - 15);
+      yshift = -(SEEY - 1);
+      idx = 0;
+      break;
+     case ACTION_MOVE_NE: //NORTHEAST
+      xshift = SEEX + EXTX - 15;
+      yshift = -(SEEY - 1);
+      idx = 0;
+      break;
+     case ACTION_MOVE_SW: //SOUTHWEST
+      xshift = -(SEEX + EXTX - 15);
+      yshift = SEEY - 1;
+      idx = 0;
+      break;
+     case ACTION_MOVE_SE: //SOUTHEAST
+      xshift = SEEX + EXTX - 15;
+      yshift = SEEY - 1;
+      idx = 0;
+      break;
+     case ACTION_MOVE_W: //WEST
+      xshift = -(SEEX + EXTX - 15);
+      yshift = 0;
+      idx = 0;
+      break;
+     case ACTION_MOVE_E: //EAST
+      xshift = SEEX + EXTX - 15;
+      yshift = 0;
+      idx = 0;
+      break;
+     case ACTION_PAUSE: //CENTERED
+      xshift = 0;
+      yshift = 0;
+      idx = 0;
+      break;
+     case ACTION_LOOK_SURROUNDINGS:
+      idx = (idx + 1) % 5;
+      switch(idx){
+       case 0: //Centered
+        xshift = 0;
+        yshift = 0;
+        break;
+       case 1: //NORTHWEST
+        xshift = -(SEEX + EXTX - 15);
+        yshift = -(SEEY - 1);
+        break;
+       case 2: //NORTHEAST
+        xshift = SEEX + EXTX - 15;
+        yshift = -(SEEY - 1);
+        break;
+       case 3: //SOUTHEAST
+        xshift = SEEX + EXTX - 15;
+        yshift = SEEY - 1;
+        break;
+       case 4: //SOUTHWEST
+        xshift = -(SEEX + EXTX - 15);
+        yshift = SEEY - 1;
+        break;
+      }
+      break;
+    }
+   }
+  } while (ch != ' ' && ch != KEY_ESCAPE && ch != '\n');
+  werase(w_extmap);
+  wrefresh(w_extmap);
+  delwin(w_extmap);
+  refresh_all();
+ }
+ 
+
 
 void game::refresh_all()
 {
@@ -3243,14 +3398,30 @@ void game::add_footstep(int x, int y, int volume, int distance)
 }
 
 // draws footsteps that have been created by monsters moving about
-void game::draw_footsteps()
+void game::draw_footsteps(WINDOW *w, view_mode vm, bool hold, int xshift, int yshift)
 {
- for (int i = 0; i < footsteps.size(); i++) {
-  mvwputch(w_terrain, SEEY + footsteps[i].y - u.posy, 
-           SEEX + footsteps[i].x - u.posx, c_yellow, '?');
+ std::vector<point> fs;
+ int ext_x_offset = 0;
+ int ext_y_offset = 0;
+ if (vm == EXTENDED){
+  ext_x_offset = EXTX;
+  fs = old_footsteps;
  }
+ else if (vm == DEBUG){
+  ext_x_offset = (COLS/2) - SEEX;
+  ext_y_offset = (LINES/2) - SEEY;
+  fs = old_footsteps;
+ }
+ else
+  fs = footsteps;
+ for (int i = 0; i < fs.size(); i++) {
+  mvwputch(w, SEEY + ext_y_offset + fs[i].y - (u.posy + yshift),
+           SEEX + ext_x_offset + fs[i].x - (u.posx + xshift), c_yellow, '?');
+ }
+ if(!hold)
+  old_footsteps = footsteps;
  footsteps.clear();
- wrefresh(w_terrain);
+ wrefresh(w);
  return;
 }
 
@@ -4360,7 +4531,7 @@ shape, but with long, twisted, distended limbs.");
 
 point game::look_around()
 {
- draw_ter();
+ draw_ter(w_terrain);
  int lx = u.posx, ly = u.posy;
  int mx, my, junk;
  char ch;
@@ -4375,7 +4546,7 @@ point game::look_around()
   ch = input();
   if (!u_see(lx, ly, junk))
    mvwputch(w_terrain, ly - u.posy + SEEY, lx - u.posx + SEEX, c_black, ' ');
-  draw_ter();
+  draw_ter(w_terrain);
   get_direction(this, mx, my, ch);
   if (mx != -2 && my != -2) {	// Directional key pressed
    lx += mx;
@@ -4792,7 +4963,7 @@ bool game::handle_liquid(item &liquid, bool from_ground, bool infinite)
     else if (fuel_amnt == fuel_cap)
      add_msg ("Already full.");
     else {
-     veh.refill (AT_GAS, liquid.charges);
+     veh.refill (AT_GAS, 5*liquid.charges);
      add_msg ("You refill %s with %s%s.", veh.name.c_str(),
               veh.fuel_name(ftype).c_str(),
               veh.fuel_left(ftype) >= fuel_cap? " to its maximum" : "");
@@ -6187,6 +6358,7 @@ void game::vertical_move(int movez, bool force)
 
 // Figure out where we know there are up/down connectors
  std::vector<point> discover;
+ if (!force) discover.push_back(om_location());
  for (int x = 0; x < OMAPX; x++) {
   for (int y = 0; y < OMAPY; y++) {
    if (cur_om.seen(x, y) &&
@@ -6252,7 +6424,7 @@ void game::vertical_move(int movez, bool force)
   }
  }
 
- set_adjacent_overmaps();
+ set_adjacent_overmaps(true);
  refresh_all();
 }
 
@@ -6506,6 +6678,14 @@ point game::om_location()
  ret.x = int( (levx + int(MAPSIZE / 2)) / 2);
  ret.y = int( (levy + int(MAPSIZE / 2)) / 2);
  return ret;
+}
+
+point game::global_location()
+{
+  point ret;
+  ret.x = cur_om.posx*OMAPX + om_location().x;
+  ret.y = cur_om.posy*OMAPY + om_location().y;
+  return ret;
 }
 
 void game::replace_stair_monsters()
@@ -6895,7 +7075,7 @@ nc_color sev(int a)
 void game::display_scent()
 {
  int div = query_int("Sensitivity");
- draw_ter();
+ draw_ter(w_terrain);
  for (int x = u.posx - SEEX; x <= u.posx + SEEX; x++) {
   for (int y = u.posy - SEEY; y <= u.posy + SEEY; y++) {
    int sn = scent(x, y) / (div * 2);

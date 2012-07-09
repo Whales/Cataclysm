@@ -23,10 +23,16 @@ class monster;
 #endif	        // Nuts to 80x24 terms. Mostly exists in graphical clients, and
 	        // those fatcats can resize.
 
+#ifndef EXTX    //Extension of player vision in the X direction to reach 80
+#define EXTX 27 //columns. (2*(SEEX+27) + 1 = 79)
+#endif
+
 // mfb(t_flag) converts a flag to a bit for insertion into a bitfield
 #ifndef mfb
 #define mfb(n) long(1 << (n))
 #endif
+
+
 
 enum t_flag {
  transparent = 0,// Player & monsters can see through/past it

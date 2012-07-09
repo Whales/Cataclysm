@@ -3695,15 +3695,49 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
   }
   int num_spiral = rng(1, 4);
   for (int i = 0; i < num_spiral; i++) {
-   int orx = rng(SEEX - 4, SEEX), ory = rng(SEEY - 4, SEEY);
-   line(this, t_rock, orx    , ory    , orx + 5, ory    );
-   line(this, t_rock, orx + 5, ory    , orx + 5, ory + 5);
-   line(this, t_rock, orx + 1, ory + 5, orx + 5, ory + 5);
-   line(this, t_rock, orx + 1, ory + 2, orx + 1, ory + 4);
-   line(this, t_rock, orx + 1, ory + 2, orx + 3, ory + 2);
-   ter(orx + 3, ory + 3) = t_rock;
-   ter(orx + 2, ory + 3) = t_rock_floor;
-   place_items(mi_spiral, 60, orx + 2, ory + 3, orx + 2, ory + 3, false, 0);
+   int orx = rng(0, SEEX * 2 - 6), ory = rng(0, SEEY * 2 - 6);
+   switch (rng(0, 3)) {
+   case 0:
+    line(this, t_rock, orx    , ory    , orx + 5, ory    );
+    line(this, t_rock, orx + 5, ory    , orx + 5, ory + 5);
+    line(this, t_rock, orx + 1, ory + 5, orx + 5, ory + 5);
+    line(this, t_rock, orx + 1, ory + 2, orx + 1, ory + 4);
+    line(this, t_rock, orx + 1, ory + 2, orx + 3, ory + 2);
+    ter(orx + 3, ory + 3) = t_rock;
+    ter(orx + 2, ory + 3) = t_rock_floor;
+    place_items(mi_spiral, 60, orx + 2, ory + 3, orx + 2, ory + 3, false, 0);
+    break;
+   case 1:
+    line(this, t_rock, orx + 5, ory    , orx + 5, ory + 5);
+    line(this, t_rock, orx + 5, ory + 5, orx    , ory + 5);
+    line(this, t_rock, orx    , ory + 5, orx    , ory + 1);
+    line(this, t_rock, orx    , ory + 1, orx + 3, ory + 1);
+    line(this, t_rock, orx + 3, ory + 1, orx + 3, ory + 3);
+    ter(orx + 2, ory + 3) = t_rock;
+    ter(orx + 2, ory + 2) = t_rock_floor;
+    place_items(mi_spiral, 60, orx + 2, ory + 2, orx + 2, ory + 2, false, 0);
+    break;
+   case 2:
+    line(this, t_rock, orx + 5, ory + 5, orx    , ory + 5);
+    line(this, t_rock, orx    , ory + 5, orx    , ory    );
+    line(this, t_rock, orx    , ory    , orx + 4, ory    );
+    line(this, t_rock, orx + 4, ory    , orx + 4, ory + 3);
+    line(this, t_rock, orx + 4, ory + 3, orx + 2, ory + 3);
+    ter(orx + 2, ory + 2) = t_rock;
+    ter(orx + 3, ory + 2) = t_rock_floor;
+    place_items(mi_spiral, 60, orx + 3, ory + 2, orx + 3, ory + 2, false, 0);
+    break;
+   case 3:
+    line(this, t_rock, orx    , ory + 5, orx    , ory    );
+    line(this, t_rock, orx    , ory    , orx + 5, ory    );
+    line(this, t_rock, orx + 5, ory    , orx + 5, ory + 4);
+    line(this, t_rock, orx + 5, ory + 4, orx + 2, ory + 4);
+    line(this, t_rock, orx + 2, ory + 4, orx + 2, ory + 2);
+    ter(orx + 3, ory + 2) = t_rock;
+    ter(orx + 3, ory + 3) = t_rock_floor;
+    place_items(mi_spiral, 60, orx + 3, ory + 3, orx + 3, ory + 3, false, 0);
+    break;
+   }
   }
  } break;
 
@@ -6975,9 +7009,9 @@ void science_room(map *m, int x1, int y1, int x2, int y2, int rotate)
 
     int compx = int((x1 + x2) / 2), compy = int((y1 + y2) / 2);
     m->ter(compx, compy) = t_console;
-    computer* tmpcomp = m->add_computer(compx, compy, "Bionic access", 4);
+    computer* tmpcomp = m->add_computer(compx, compy, "Bionic access", 2);
     tmpcomp->add_option("Manifest", COMPACT_LIST_BIONICS, 0);
-    tmpcomp->add_option("Open Chambers", COMPACT_RELEASE, 2);
+    tmpcomp->add_option("Open Chambers", COMPACT_RELEASE, 3);
     tmpcomp->add_failure(COMPFAIL_MANHACKS);
     tmpcomp->add_failure(COMPFAIL_SECUBOTS);
    }

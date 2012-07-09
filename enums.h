@@ -5,6 +5,12 @@
 #define sgn(x) (((x) < 0) ? -1 : 1)
 #endif
 
+enum view_mode {
+ NORMAL,
+ EXTENDED,
+ DEBUG
+};
+
 enum material {
 MNULL = 0,
 //Food Materials

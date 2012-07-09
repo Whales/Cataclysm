@@ -69,7 +69,8 @@ class game
   void save();
   bool do_turn();
   void draw();
-  void draw_ter();
+  void draw_ter(WINDOW *w, view_mode vm = NORMAL, int xshift = 0, int yshift = 0);
+  void draw_surroundings(view_mode vm);
   void advance_nextinv();	// Increment the next inventory letter
   void decrease_nextinv();	// Decrement the next inventory letter
   void add_msg(const char* msg, ...);
@@ -81,8 +82,10 @@ class game
 // creates a list of coordinates to draw footsteps
   void add_footstep(int x, int y, int volume, int distance);
   std::vector<point> footsteps;
+  std::vector<point> old_footsteps;
 // visual cue to monsters moving out of the players sight
-  void draw_footsteps();
+  void draw_footsteps(WINDOW *w, view_mode vm = NORMAL, bool hold = false,
+                      int xshift = 0, int yshift = 0);
 // Explosion at (x, y) of intensity (power), with (shrapnel) chunks of shrapnel
   void explosion(int x, int y, int power, int shrapnel, bool fire);
 // Flashback at (x, y)
@@ -150,6 +153,7 @@ class game
   void update_map(int &x, int &y);  // Called by plmove when the map updates
   void update_overmap_seen(); // Update which overmap tiles we can see
   point om_location(); // levx and levy converted to overmap coordinates
+  point global_location(); // current terrain-grid location on global coordinate system
 
   faction* random_good_faction();
   faction* random_evil_faction();
@@ -207,14 +211,14 @@ class game
   WINDOW *w_messages;
   WINDOW *w_status;
 
- private:
 // Game-start procedures
   bool opening_screen();// Warn about screen size, then present the main menu
   bool load_master();	// Load the master data file, with factions &c
-  void load(std::string name);	// Load a player-specific save file
+  bool load(std::string name);	// Load a player-specific save file
   void start_game();	// Starts a new game
   void start_special_game(special_game_id gametype); // See gamemode.cpp
 
+ private:
 // Data Initialization
   void init_itypes();       // Initializes item types
   void init_mapitems();     // Initializes item placement
@@ -292,10 +296,12 @@ class game
   void replace_stair_monsters();
   void update_stair_monsters();
   void spawn_mon(int shift, int shifty); // Called by update_map, sometimes
+ public:
   mon_id valid_monster_from(std::vector<mon_id> group);
   int valid_group(mon_id type, int x, int y);// Picks a group from cur_om
   moncat_id mt_to_mc(mon_id type);// Monster type to monster category
   void set_adjacent_overmaps(bool from_scratch = false);
+ private:
 
 // Routine loop functions, approximately in order of execution
   void monmove();          // Monster movement
@@ -328,6 +334,7 @@ class game
 
 // Debug functions
   void debug();           // All-encompassing debug screen.  TODO: This.
+  void debug2();
   void display_scent();   // Displays the scent map
   void mondebug();        // Debug monster behavior directly
   void groupdebug();      // Get into on monster groups

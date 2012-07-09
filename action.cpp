@@ -89,6 +89,8 @@ action_id look_up_action(std::string ident)
   return ACTION_CHAT;
  if (ident == "look")
   return ACTION_LOOK;
+ if (ident == "look_surroundings")
+  return ACTION_LOOK_SURROUNDINGS;
  if (ident == "inventory")
   return ACTION_INVENTORY;
  if (ident == "organize")

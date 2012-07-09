@@ -273,7 +273,7 @@ void veh_interact::do_repair(int reason)
         wrefresh (w_parts);
         werase (w_msg);
         bool has_comps = true;
-        int dif = veh->part_info(sel_part).difficulty + (veh->parts[sel_part].hp <= 0? 0 : 2);
+        int dif = veh->part_info(sel_part).difficulty + (veh->parts[sel_part].hp <= 0? 0 : 1);
         bool has_skill = dif <= g->u.sklevel[sk_mechanics];
         mvwprintz(w_msg, 0, 1, c_ltgray, "You need level %d skill in mechanics.", dif);
         mvwprintz(w_msg, 0, 16, has_skill? c_ltgreen : c_red, "%d", dif);
@@ -644,7 +644,7 @@ void complete_vehicle (game *g)
         consume_tools(g, tools);
         g->add_msg ("You install %s into %s.", 
                    vpart_list[part].name, veh.name.c_str());
-        g->u.practice (sk_mechanics, vpart_list[part].difficulty * 5 + 20);
+        g->u.practice (sk_mechanics, vpart_list[part].difficulty * 5);
         break;
     case 'r':
         if (veh.parts[part].hp <= 0)
@@ -663,7 +663,7 @@ void complete_vehicle (game *g)
         veh.parts[part].hp = veh.part_info(part).durability;
         g->add_msg ("You repair %s's %s.", 
                     veh.name.c_str(), veh.part_info(part).name);
-        g->u.practice (sk_mechanics, (vpart_list[part].difficulty + dd) * 5 + 20);
+        g->u.practice (sk_mechanics, (vpart_list[part].difficulty + dd) * 5);
         break;
     case 'f':
         if (!g->pl_refill_vehicle(veh, part, true))
@@ -689,7 +689,7 @@ void complete_vehicle (game *g)
         }
         if (!broken)
             g->m.add_item (g->u.posx, g->u.posy, g->itypes[itm], g->turn);
-        g->u.practice (sk_mechanics, 2 * 5 + 20);
+        g->u.practice (sk_mechanics, 2 * 5);
         break;
     default:;
         

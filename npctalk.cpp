@@ -293,7 +293,7 @@ std::string dynamic_line(talk_topic topic, game *g, npc *p)
   case ENGAGE_NONE:  status << "not engaging enemies.";         break;
   case ENGAGE_CLOSE: status << "engaging nearby enemies.";      break;
   case ENGAGE_WEAK:  status << "engaging weak enemies.";        break;
-  case ENGAGE_HIT:   status << "engaging enenmies you attack."; break;
+  case ENGAGE_HIT:   status << "engaging enemies you attack."; break;
   case ENGAGE_ALL:   status << "engaging all enemies.";         break;
   }
   status << " " << (p->male ? "He" : "She") << " will " <<
@@ -737,7 +737,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   int shift = p->chatbin.tempvalue;
   bool more = trainable.size() + styles.size() - shift > 9;
   for (int i = shift; i < trainable.size() && printed < 9; i++) {
-   shift--;
+   // shift--;
    printed++;
    std::stringstream skilltext;
    skill trained = trainable[i];
@@ -750,7 +750,7 @@ std::vector<talk_response> gen_responses(talk_topic topic, game *g, npc *p)
   }
   if (shift < 0)
    shift = 0;
-  for (int i = shift; i < styles.size() && printed < 9; i++) {
+  for (int i = 0; i < styles.size() && printed < 9; i++) {
    printed++;
    SELECT_TEMP( g->itypes[styles[i]]->name + " (cost 800)",
                 0 - styles[i] );
@@ -1761,12 +1761,12 @@ Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n
    if (them_off + 17 < theirs.size())
     mvwprintw(w_them, 19, 9, "More >");
 // Draw your list of items, starting from you_off
-   for (int i = you_off; i < yours.size() && i < 17; i++)
+   for (int i = you_off; i < yours.size() && i < you_off + 17; i++)
     mvwprintz(w_you, i - you_off + 1, 1,
               (getting_yours[i] ? c_white : c_ltgray), "%c %c %s - $%d",
               char(i + 'a'), (getting_yours[i] ? '+' : '-'),
-              g->u.inv[yours[i + you_off]].tname().substr( 0,25).c_str(),
-              your_price[i + you_off]);
+              g->u.inv[yours[i]].tname().substr( 0,25).c_str(),
+              your_price[i]);
    if (you_off > 0)
     mvwprintw(w_you, 19, 1, "< Back");
    if (you_off + 17 < yours.size())
@@ -1896,8 +1896,8 @@ Tab key to switch lists, letters to pick items, Enter to finalize, Esc to quit\n
   }
   g->u.practice(sk_barter, practice / 2);
   p->inv = newinv;
-  g->u.cash += cash;
-  p->cash   -= cash;
+  // g->u.cash += cash;
+  // p->cash   -= cash;
  }
  werase(w_head);
  werase(w_you);

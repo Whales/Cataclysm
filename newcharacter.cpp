@@ -220,7 +220,7 @@ End of cheatery */
  }
  ret_null = item(g->itypes[0], 0);
  if (!styles.empty())
-  weapon = item(g->itypes[ styles[0] ], 0);
+  weapon = item(g->itypes[ styles[0] ], 0, ':');
  else
   weapon   = item(g->itypes[0], 0);
 // Nice to start out less than naked.

@@ -1813,15 +1813,15 @@ void overmap::polish(oter_id min, oter_id max)
      good_road(ot_ants_ns, x, y);
     else if (ter(x, y) >= ot_river_center && ter(x, y) < ot_river_nw)
      good_river(x, y);
-   }
 // Sometimes a bridge will start at the edge of a river, and this looks ugly
 // So, fix it by making that square normal road; bit of a kludge but it works
-   else if (ter(x, y) == ot_bridge_ns &&
-            (!is_river(ter(x - 1, y)) || !is_river(ter(x + 1, y))))
-    ter(x, y) = ot_road_ns;
-   else if (ter(x, y) == ot_bridge_ew &&
-            (!is_river(ter(x, y - 1)) || !is_river(ter(x, y + 1))))
-    ter(x, y) = ot_road_ew;
+    else if (ter(x, y) == ot_bridge_ns &&
+             (!is_river(ter(x - 1, y)) || !is_river(ter(x + 1, y))))
+     ter(x, y) = ot_road_ns;
+    else if (ter(x, y) == ot_bridge_ew &&
+             (!is_river(ter(x, y - 1)) || !is_river(ter(x, y + 1))))
+     ter(x, y) = ot_road_ew;
+   }
   }
  }
 // Fixes stretches of parallel roads--turns them into two-lane highways
@@ -2457,7 +2457,7 @@ void overmap::open(game *g, int x, int y, int z)
     fin.close();
     pointers.push_back(new overmap(g, x, y+i, z));
    } else
-    pointers.push_back(NULL);
+    pointers.push_back((overmap *) NULL);
   }
 // Fetch east and west
   for (int i = -1; i <= 1; i+=2) {
@@ -2468,7 +2468,7 @@ void overmap::open(game *g, int x, int y, int z)
     fin.close();
     pointers.push_back(new overmap(g, x+i, y, z));
    } else
-    pointers.push_back(NULL);
+    pointers.push_back((overmap *) NULL);
   }
 // pointers looks like (north, south, west, east)
   generate(g, pointers[0], pointers[3], pointers[1], pointers[2]);

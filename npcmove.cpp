@@ -469,7 +469,7 @@ npc_action npc::method_of_attack(game *g, int target, int danger)
            enough_time_to_reload(g, target, inv[i])) {
    has_empty_gun = true;
    empty_guns.push_back(i);
-  } else if (inv[i].melee_value(sklevel) > weapon.melee_value(sklevel) * 1.1)
+  } else if (inv[i].melee_value(sklevel) > weapon.melee_value(sklevel) * 1.1 && !weapon.is_style())
    has_better_melee = true;
  }
 
@@ -844,7 +844,7 @@ void npc::update_path(game *g, int x, int y)
  if (last.x == x && last.y == y)
   return; // Our path already leads to that point, no need to recalculate
  path = g->m.route(posx, posy, x, y);
- if (path[0].x == posx && path[0].y == posy)
+ if (!path.empty() && path[0].x == posx && path[0].y == posy)
   path.erase(path.begin());
 }
 
@@ -1663,6 +1663,7 @@ void npc::heal_self(game *g)
  if (g->u_see(posx, posy, t))
   g->add_msg("%s heals %sself.", name.c_str(), (male ? "him" : "her"));
  heal(worst, amount_healed);
+ moves -= 250;
 }
 
 void npc::use_painkiller(game *g)
