@@ -1629,14 +1629,18 @@ bool game::load_master()
     getline(fin, itemdata);
     if (item_place == 'I')
      tmpinv.push_back(item(itemdata, this));
-    else if (item_place == 'C' && !tmpinv.empty())
+    else if (item_place == 'C' && !tmpinv.empty()) {
      tmpinv[tmpinv.size() - 1].contents.push_back(item(itemdata, this));
+     j--;
+    }
     else if (item_place == 'W')
      tmp.worn.push_back(item(itemdata, this));
     else if (item_place == 'w')
      tmp.weapon = item(itemdata, this);
-    else if (item_place == 'c')
+    else if (item_place == 'c') {
      tmp.weapon.contents.push_back(item(itemdata, this));
+     j--;
+    }
    }
   }
   active_npc.push_back(tmp);
