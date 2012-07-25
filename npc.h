@@ -262,6 +262,20 @@ struct npc_combat_rules
   use_guns = true;
   use_grenades = true;
  };
+
+ std::string save_info()
+ {
+  std::stringstream dump;
+  dump << engagement << " " << use_guns << " " << use_grenades << " ";
+  return dump.str();
+ }
+
+ void load_info(std::istream &data)
+ {
+  int tmpen;
+  data >> tmpen >> use_guns >> use_grenades;
+  engagement = combat_engagement(tmpen);
+ }
 };
 
 enum talk_topic {
