@@ -1651,25 +1651,35 @@ void player::power_bionics(game *g)
  werase(wBio);
  std::vector <bionic> passive;
  std::vector <bionic> active;
- mvwprintz(wBio, 0, 0, c_blue, "BIONICS");
- mvwputch(wBio,  0, 8, c_ltgray, LINE_XOXO);
+ mvwprintz(wBio, 0, 0, c_ltblue, "BIONICS");
+ mvwputch(wBio,  0, 8, c_white, '-');
  mvwprintz(wBio, 0,10, c_white,
            "Activating.  Press '!' to examine your implants.");
- mvwputch(wBio,  0,59, c_ltgray, LINE_XOXO);
- mvwprintz(wBio, 0,61, c_yellow, "Power level: %d", power_level);
- for (int i = 0; i < 59; i++) {
-  mvwputch(wBio,  1, i, c_ltgray, LINE_OXOX);
- }
- mvwputch(wBio,  1, 8, c_ltgray, LINE_XXOX);
- mvwputch(wBio,  1,59, c_ltgray, LINE_XOXX);
- mvwprintz(wBio, 1,63, c_yellow, "Max power: %d", max_power_level);
- mvwputch(wBio,  2,59, c_ltgray, LINE_XXOO);
- for (int i = 60; i < 80; i++) {
-  mvwputch(wBio, 2, i, c_ltgray, LINE_OXOX);
- }
+//Upper and lower full horizontal lines
  for (int i = 0; i < 80; i++) {
+  mvwputch(wBio,  1, i, c_ltgray, LINE_OXOX);
   mvwputch(wBio, 21, i, c_ltgray, LINE_OXOX);
  }
+
+ nc_color type; //temp color
+// Power display
+ mvwputch(wBio,  0,59, c_ltgray, LINE_XOXO);
+ mvwputch(wBio,  1,59, c_ltgray, LINE_XXOX);
+ mvwprintz(wBio, 0,61, c_yellow, "Power:");
+ if (max_power_level == 0)
+  mvwprintz(wBio, 0, 68, c_red, "--/--");
+ else {
+  if (power_level == max_power_level)
+   type = c_blue;
+  else if (power_level >= max_power_level * .5)
+   type = c_ltblue;
+  else if (power_level > 0)
+   type = c_yellow;
+  else
+   type = c_red;
+  mvwprintz(wBio, 0, 68, type, "%d / %d", power_level, max_power_level);
+ }
+//Bionics list
  for (int i = 0; i < my_bionics.size(); i++) {
   if ( bionics[my_bionics[i].id].power_source ||
       !bionics[my_bionics[i].id].activated      )
@@ -1677,7 +1687,6 @@ void player::power_bionics(game *g)
   else
    active.push_back(my_bionics[i]);
  }
- nc_color type;
  if (passive.size() > 0) {
   mvwprintz(wBio, 2, 0, c_ltblue, "Passive:");
   for (int i = 0; i < passive.size(); i++) {

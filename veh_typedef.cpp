@@ -140,12 +140,81 @@ void game::init_vehicles()
     PART (-3, 1,     vp_door);
     PART (-3, 2,     vp_wheel);
 
-    
+    //        name
+    VEHICLE ("ambulance");
+    //   o--o
+    //   |""|
+    //   +##+
+    //   |"-|
+    //   |H#+
+    //   |HH|
+    //   o++o
+
+    //   dx, dy,    part_id
+    PART (0, 0,     vp_frame_v2);
+    PART (0, 0,     vp_seat);
+    PART (0, 0,     vp_seatbelt);
+    PART (0, 0,     vp_controls);
+    PART (0, 0,     vp_roof);
+    PART (0, 1,     vp_frame_v2);
+    PART (0, 1,     vp_seat);
+    PART (0, 1,     vp_seatbelt);
+    PART (0, 1,     vp_roof);
+    PART (0, -1,    vp_door);
+    PART (0, 2,     vp_door);
+
+    //ambulance front
+    PART (1, 0,     vp_frame_v2);
+    PART (1, 0,     vp_window);
+    PART (1, 1,     vp_frame_v2);
+    PART (1, 1,     vp_window);
+    PART (1, -1,    vp_frame_v);
+    PART (1, 2,     vp_frame_v);
+
+    PART (2, 0,     vp_frame_h);
+    PART (2, 0,     vp_engine_gas_med);
+    PART (2, 1,     vp_frame_h);
+    PART (2, -1,    vp_wheel);
+    PART (2, 2,     vp_wheel);
+
+    //ambulance back
+    PART (-1, 0,     vp_frame_v2);
+    PART (-1, 0,     vp_window);
+    PART (-1, 0,     vp_roof);
+    PART (-1, 1,     vp_board_h);
+    PART (-1, 1,     vp_roof);
+    PART (-1, -1,    vp_board_v);
+    PART (-1, 2,     vp_board_v);
+
+    PART (-2, 0,     vp_frame_v2);
+    PART (-2, 0,     vp_cargo_trunk);
+    PART (-2, 0,     vp_roof);
+    PART (-2, 1,     vp_frame_v2);
+    PART (-2, 1,     vp_seat);
+    PART (-2, 1,     vp_seatbelt);
+    PART (-2, 1,     vp_roof);
+    PART (-2, 2,     vp_door);
+    PART (-2, -1,    vp_board_v);
+    PART (-2, -1,    vp_fuel_tank_gas);
+
+    PART (-3, 0,     vp_frame_v2);
+    PART (-3, 0,     vp_muffler);
+    PART (-3, 0,     vp_roof);
+    PART (-3, 1,     vp_frame_v2);
+    PART (-3, 1,     vp_roof);
+    PART (-3, 2,     vp_board_v);
+    PART (-3, -1,    vp_board_v);
+
+    PART (-4, -1,    vp_wheel);
+    PART (-4, 0,     vp_door);
+    PART (-4, 1,     vp_door);
+    PART (-4, 2,     vp_wheel);
+
     //        name
     VEHICLE ("truck");
     // 0-^-0
     // |"""|
-    // +###+
+    // +#o#+
     // |---|
     // |HHH|
     // 0HHH0
@@ -157,14 +226,14 @@ void game::init_vehicles()
     PART (0, -1,    vp_frame_v2);
     PART (0, -1,    vp_seat);
     PART (0, -1,    vp_seatbelt);
-    PART (0, -1,     vp_roof);
+    PART (0, -1,    vp_controls);
+    PART (0, -1,    vp_roof);
     PART (0, 1,     vp_frame_v2);
     PART (0, 1,     vp_seat);
     PART (0, 1,     vp_seatbelt);
     PART (0, 1,     vp_roof);
     PART (0, -2,    vp_door);
     PART (0, 2,     vp_door);
-    PART (0, -1,     vp_controls);
 
     PART (1, 0,     vp_frame_h);
     PART (1, 0,     vp_window);

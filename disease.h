@@ -1052,11 +1052,11 @@ Range of Sight: 1;     All sight is tinted magenta";
 Dexterity - 3;   Speed - 25";
 
  case DI_SPORES:	return "\
-Speed -40%\
+Speed -15%\
 You can feel the tiny spores sinking directly into your flesh.";
 
  case DI_SLIMED:	return "\
-Speed -40%;     Dexterity - 2";
+Speed -25%;     Dexterity - 2";
 
  case DI_DEAF:		return "\
 Sounds will not be reported.  You cannot talk with NPCs.";
@@ -1092,7 +1092,7 @@ You stop to scratch yourself frequently; high intelligence helps you resist\n\
 this urge.";
 
  case DI_WEBBED:	return "\
-Strength - 1;     Dexterity - 4;    Speed - 25";
+Strength - 2;     Dexterity - 4;    Speed - 25";
 
  case DI_RAT:
   intpen = int(dis.duration / 20);

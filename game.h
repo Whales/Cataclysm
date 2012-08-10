@@ -252,6 +252,7 @@ class game
   void construction_menu();                   // See construction.cpp
   bool player_can_build(player &p, inventory inv, constructable* con,
                         int level = -1, bool cont = false);
+//                        int level = 0, bool specific = false);
   void place_construction(constructable *con); // See construction.cpp
   void complete_construction();               // See construction.cpp
   bool pl_choose_vehicle (int &x, int &y);

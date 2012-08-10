@@ -258,6 +258,7 @@ enum vhtype_id
     veh_motorcycle,
     veh_sandbike,
     veh_car,
+    veh_ambulance,
     veh_truck,
 
     num_vehicles

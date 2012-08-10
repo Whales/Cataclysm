@@ -618,7 +618,7 @@ The skin on your hands is a mucous membrane and produces a thick, acrid\n\
 slime.  Attacks using your hand will cause minor acid damage."},
 {"Compound Eyes", 2, 9, 5, "\
 Your eyes are compound, like those of an insect.  This increases your\n\
-perception by 2 so long as you aren't wearing eyewear."},
+perception by 1 so long as you aren't wearing eyewear."},
 {"Padded Feet", 1, 1, 0, "\
 The bottoms of your feet are strongly padded.  You receive no movement\n\
 penalty for not wearing shoes, and even receive a 10%% bonus when running\n\
@@ -674,7 +674,7 @@ your balance at all, but alows for a powerful bashing attack."},
 You recover from pain slightly faster than normal."},
 {"Quick Pain Recovery", 5, 0, 0, "\
 You recover from pain faster than normal."},
-{"Very Quick Pain Reovery", 8, 0, 0, "\
+{"Very Quick Pain Recovery", 8, 0, 0, "\
 You recover from pain much faster than normal."},
 {"Bird Wings", 2, 4, 2, "\
 You have a pair of large, feathered wings.  Your body is too heavy to be able\n\

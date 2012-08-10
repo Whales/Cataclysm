@@ -540,7 +540,7 @@ H=          Highway - Like roads, but lined with guard rails.");
    mvprintz( 6, 0, c_blue,    "\
 R           River - Most creatures can not swim across them, but you may.");
    mvprintz( 7, 0, c_dkgray,  "\
-O           Parking lot - Empty lot, few items.  Mostly useless.");
+O           Parking lot - Vehicles may be found here.");
    mvprintz( 8, 0, c_ltgreen, "\
 ^>v<        House - Filled with a variety of items.  Good place to sleep.");
    mvprintz( 9, 0, c_ltblue,  "\

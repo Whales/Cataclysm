@@ -198,7 +198,7 @@ energy banks, they will flit about your body, repairing any damage."},
 {"Thermal Dissapation", false, true, 1, 6, "\
 Powerful heatsinks supermaterials are woven into your flesh.  While powered,\n\
 this system will prevent heat damage up to 2000 degrees fahrenheit.  Note\n\
-that this does not affect your internal temperature."},
+that this does not affect your internal temperature, nor protects from smoke."},
 {"Sonic Resonator", false, true, 4, 0, "\
 Your entire body may resonate at very high power, creating a short-range\n\
 shockwave.  While it will not to much damage to flexible creatures, stiff\n\

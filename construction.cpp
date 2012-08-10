@@ -74,22 +74,29 @@ void game::init_construction()
    TOOL(itm_hammer, itm_rock, itm_hatchet, NULL);
    TOOL(itm_screwdriver, itm_knife_butter, itm_toolset, NULL);
 
- CONSTRUCT("Repair Door", 1, &construct::able_door_broken,
+ CONSTRUCT("Repair Door", 1, &construct::able_door_broken, //able_door_broken used only here
                              &construct::done_nothing);
   STAGE(t_door_c, 10);
    TOOL(itm_hammer, itm_hatchet, itm_nailgun, NULL);
    COMP(itm_2x4, 3, NULL);
    COMP(itm_nail, 12, NULL);
-
- CONSTRUCT("Board Up Door", 0, &construct::able_door, &construct::done_nothing);
+/*
+ CONSTRUCT("Board Up Door", 0, &construct::able_door, &construct::done_nothing); //able_door used only here
   STAGE(t_door_boarded, 8);
    TOOL(itm_hammer, itm_hatchet, itm_nailgun, NULL);
    COMP(itm_2x4, 4, NULL);
    COMP(itm_nail, 8, NULL);
 
- CONSTRUCT("Board Up Window", 0, &construct::able_window,
+ CONSTRUCT("Board Up Window", 0, &construct::able_window, //able_window used only here
                                  &construct::done_nothing);
   STAGE(t_window_boarded, 5);
+   TOOL(itm_hammer, itm_hatchet, itm_nailgun, NULL);
+   COMP(itm_2x4, 4, NULL);
+   COMP(itm_nail, 8, NULL);
+*/
+ CONSTRUCT("Board up door or window", 0, &construct::able_boardup,
+                                         &construct::done_boardup);
+  STAGE(t_null, 6);
    TOOL(itm_hammer, itm_hatchet, itm_nailgun, NULL);
    COMP(itm_2x4, 4, NULL);
    COMP(itm_nail, 8, NULL);
@@ -146,10 +153,16 @@ void game::init_construction()
 
 void game::construction_menu()
 {
+ if (u.morale_level() < MIN_MORALE_CRAFT) {	// See morale.h
+  add_msg("Your morale is too low to construct...");
+  return;
+ }
  WINDOW *w_con = newwin(25, 80, 0, 0);
  wborder(w_con, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                 LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- mvwprintz(w_con, 0, 1, c_red, "Construction");
+ mvwprintz(w_con, 0, 1, c_yellow, "Construction");
+ mvwprintz(w_con, 0, 31, c_white, "Your carpentry skill: %d",
+            u.sklevel[sk_carpentry]);
  mvwputch(w_con,  0, 30, c_white, LINE_OXXX);
  mvwputch(w_con, 24, 30, c_white, LINE_XXOX);
  for (int i = 1; i < 24; i++)
@@ -180,12 +193,19 @@ void game::construction_menu()
   }
 // Determine where in the master list to start printing
   int offset = select - 11;
-  if (offset > constructions.size() - 22)
-   offset = constructions.size() - 22;
-  if (offset < 0)
+//  if (offset > constructions.size() - 22) // acts weird with this
+//   offset = constructions.size() - 22;
+  if (offset <= 0) {
    offset = 0;
+   mvwputch(w_con, 1, 0, c_dkgray, LINE_XOXO);
+  } else
+   mvwputch(w_con, 1, 0, h_white, '^');
+  if (constructions.size() - offset > 23)
+   mvwputch(w_con, 23, 0, h_white, 'v');
+  else
+   mvwputch(w_con, 23, 0, c_dkgray, LINE_XOXO);
 // Print the constructions between offset and max (or how many will fit)
-  for (int i = 0; i < 22 && i + offset < constructions.size(); i++) {
+  for (int i = 0; i < 23 && i + offset < constructions.size(); i++) {
    int current = i + offset;
    nc_color col = (player_can_build(u, total_inv, constructions[current], 0) ?
                    c_white : c_dkgray);
@@ -210,11 +230,17 @@ void game::construction_menu()
 // Print stages and their requirements
    int posx = 33, posy = 2;
    for (int n = 0; n < current_con->stages.size(); n++) {
+    posy++;
     nc_color color_stage = (player_can_build(u, total_inv, current_con, n) ?
                             c_white : c_dkgray);
+// Print stage number and resulting terrain type
+    posy++;
     mvwprintz(w_con, posy, 31, color_stage, "Stage %d: %s", n + 1,
               current_con->stages[n].terrain == t_null? "" : terlist[current_con->stages[n].terrain].name.c_str());
+// Print time (in minutes)
     posy++;
+    mvwprintz(w_con, posy, 31, color_stage, "Time to complete: %d minutes",
+               current_con->stages[n].time);
 // Print tools
     construction_stage stage = current_con->stages[n];
     bool has_tool[3] = {stage.tools[0].empty(),
@@ -223,6 +249,7 @@ void game::construction_menu()
     for (int i = 0; i < 3 && !has_tool[i]; i++) {
      posy++;
      posx = 33;
+     mvwputch(w_con, posy, posx - 2, color_stage, '>');
      for (int j = 0; j < stage.tools[i].size(); j++) {
       itype_id tool = stage.tools[i][j];
       nc_color col = c_red;
@@ -248,8 +275,6 @@ void game::construction_menu()
      }
     }
 // Print components
-    posy++;
-    posx = 33;
     bool has_component[3] = {stage.components[0].empty(),
                              stage.components[1].empty(),
                              stage.components[2].empty()};
@@ -272,9 +297,11 @@ void game::construction_menu()
        posy++;
        posx = 33;
       }
-      mvwprintz(w_con, posy, posx, col, "%s x%d",
-                itypes[comp.type]->name.c_str(), comp.count);
-      posx += length + 3; // + 2 for " x", + 1 for an empty space
+      posy++;
+      mvwputch(w_con, posy, posx - 2, color_stage, '>');
+      mvwprintz(w_con, posy, posx, col, "%dx %s",
+                comp.count, itypes[comp.type]->name.c_str());
+      posx += length + 3; // + 2 for "x ", + 1 for an empty space
 // Add more space for the length of the count
       if (comp.count < 10)
        posx++;
@@ -292,7 +319,6 @@ void game::construction_menu()
        posx += 3;
       }
      }
-     posy++;
     }
    }
    wrefresh(w_con);
@@ -302,16 +328,14 @@ void game::construction_menu()
   switch (ch) {
    case 'j':
     update_info = true;
-    if (select < constructions.size() - 1)
-     select++;
-    else
+    select++;
+    if (select >= constructions.size())
      select = 0;
     break;
    case 'k':
     update_info = true;
-    if (select > 0)
-     select--;
-    else
+    select--;
+    if (select < 0)
      select = constructions.size() - 1;
     break;
    case '\n':
@@ -405,7 +429,7 @@ void game::place_construction(constructable *con)
 
     if (max_stage >= starting_stage) {
      valid.push_back(point(x, y));
-     m.drawsq(w_terrain, u, x, y, true, false);
+     m.drawsq(this, w_terrain, x, y, true, false);
      wrefresh(w_terrain);
     }
    }
@@ -499,13 +523,26 @@ bool construct::able_log(game *g, point p)
  return (g->m.ter(p.x, p.y) == t_log);
 }
 
+bool construct::able_boardup(game *g, point p)
+{
+ return (g->m.ter(p.x, p.y) == t_door_c ||
+         g->m.ter(p.x, p.y) == t_door_b ||
+         g->m.ter(p.x, p.y) == t_door_o ||
+         g->m.ter(p.x, p.y) == t_door_locked ||
+         g->m.ter(p.x, p.y) == t_door_frame ||
+         g->m.ter(p.x, p.y) == t_window ||
+         g->m.ter(p.x, p.y) == t_window_empty ||
+         g->m.ter(p.x, p.y) == t_window_frame);
+
+}
+/* unused
 bool construct::able_window(game *g, point p)
 {
  return (g->m.ter(p.x, p.y) == t_window_frame ||
          g->m.ter(p.x, p.y) == t_window_empty ||
          g->m.ter(p.x, p.y) == t_window);
 }
-
+*/
 bool construct::able_window_pane(game *g, point p)
 {
  return (g->m.ter(p.x, p.y) == t_window);
@@ -515,7 +552,7 @@ bool construct::able_broken_window(game *g, point p)
 {
  return (g->m.ter(p.x, p.y) == t_window_frame);
 }
-
+/* unused
 bool construct::able_door(game *g, point p)
 {
  return (g->m.ter(p.x, p.y) == t_door_c ||
@@ -523,7 +560,7 @@ bool construct::able_door(game *g, point p)
          g->m.ter(p.x, p.y) == t_door_o ||
          g->m.ter(p.x, p.y) == t_door_locked);
 }
-
+*/
 bool construct::able_door_broken(game *g, point p)
 {
  return (g->m.ter(p.x, p.y) == t_door_b);
@@ -553,12 +590,15 @@ bool construct::able_between_walls(game *g, point p)
 
 bool construct::able_dig(game *g, point p)
 {
- return (g->m.has_flag(diggable, p.x, p.y));
+ return (g->m.has_flag(diggable, p.x, p.y) &&
+         g->m.tr_at(p.x, p.y) == tr_null); // g->traps[g->m.tr_at(p.x, p.y)]
 }
 
 bool construct::able_pit(game *g, point p)
 {
- return (g->m.ter(p.x, p.y) == t_pit);//|| g->m.ter(p.x, p.y) == t_pit_shallow);
+ return (g->m.ter(p.x, p.y) == t_pit ||
+//         g->m.ter(p.x, p.y) == t_pit_shallow ||
+         g->m.ter(p.x, p.y) == t_pit_spiked);
 }
 
 bool will_flood_stop(map *m, bool fill[SEEX * MAPSIZE][SEEY * MAPSIZE],
@@ -582,6 +622,35 @@ bool will_flood_stop(map *m, bool fill[SEEX * MAPSIZE][SEEY * MAPSIZE],
 void construct::done_window_pane(game *g, point p)
 {
  g->m.add_item(g->u.posx, g->u.posy, g->itypes[itm_glass_sheet], 0);
+}
+
+void construct::done_boardup(game *g, point p)
+{
+ switch (g->m.ter(p.x, p.y)) {
+ case t_door_o:          //opened wood door
+ case t_door_c:          //closed wood door
+  g->m.ter(p.x, p.y) = t_door_boarded;
+  break;
+ case t_door_b:          //damaged wood door
+  g->m.ter(p.x, p.y) = t_door_b_boarded;
+  break;
+ case t_door_locked:	//closed wood door
+  g->m.ter(p.x, p.y) = t_door_locked_boarded;
+  break;
+ case t_door_frame:      // empty door frame
+  g->m.ter(p.x, p.y) = t_door_frame_boarded;
+  break;
+ case t_window:          //window
+  g->m.ter(p.x, p.y) = t_window_boarded;
+  break;
+ case t_window_empty:    //empty window
+  g->m.ter(p.x, p.y) = t_window_empty_boarded;
+  break;
+ case t_window_frame:    //window frame (sharp)
+  g->m.ter(p.x, p.y) = t_window_frame_boarded;
+  break;
+ }
+
 }
 
 void construct::done_tree(game *g, point p)

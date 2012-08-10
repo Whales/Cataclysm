@@ -2348,8 +2348,8 @@ void game::draw()
  oter_id cur_ter = cur_om.ter((levx + int(MAPSIZE / 2)) / 2,
                               (levy + int(MAPSIZE / 2)) / 2);
  std::string tername = oterlist[cur_ter].name;
- if (tername.length() > 14)
-  tername = tername.substr(0, 14);
+ if (tername.length() > 16)
+  tername = tername.substr(0, 16);
  mvwprintz(w_status, 0,  0, oterlist[cur_ter].color, tername.c_str());
  if (levz < 0)
   mvwprintz(w_status, 0, 18, c_ltgray, "Underground");
@@ -2388,41 +2388,51 @@ void game::draw_ter()
  int t = 0;
  m.draw(this, w_terrain);
 
+ // Draw scent cloud over non-visible squares
+ if (u.has_active_bionic(bio_scent_vision)) {
+  for (int realx = u.posx - SEEX; realx <= u.posx + SEEX; realx++) {
+   for (int realy = u.posy - SEEY; realy <= u.posy + SEEY; realy++) {
+    if (scent(realx, realy) != 0 &&
+        !(u_see(realx, realy, t) || (realx == u.posx && realy == u.posy)))
+     mvwputch(w_terrain, realy + SEEY - u.posy, realx + SEEX - u.posx,
+               i_magenta, ' ');
+   }
+  }
+ }
  // Draw monsters
  int distx, disty;
  for (int i = 0; i < z.size(); i++) {
   disty = abs(z[i].posy - u.posy);
   distx = abs(z[i].posx - u.posx);
-  if (distx <= SEEX && disty <= SEEY && u_see(&(z[i]), t))
-   z[i].draw(w_terrain, u.posx, u.posy, false);
-  else if (z[i].has_flag(MF_WARM) && distx <= SEEX && disty <= SEEY &&
-           (u.has_active_bionic(bio_infrared) || u.has_trait(PF_INFRARED)))
-   mvwputch(w_terrain, SEEY + z[i].posy - u.posy, SEEX + z[i].posx - u.posx,
-            c_red, '?');
+  if (distx <= SEEX && disty <= SEEY) {
+   if (u_see(&(z[i]), t))
+    z[i].draw(w_terrain, u.posx, u.posy, false);
+   else if (z[i].has_flag(MF_WARM) &&
+            (u.has_active_bionic(bio_infrared) || u.has_trait(PF_INFRARED)))
+    mvwputch(w_terrain, SEEY + z[i].posy - u.posy, SEEX + z[i].posx - u.posx,
+             c_red, '?');
+   else if (scent(z[i].posx, z[i].posy) != 0 &&
+            u.has_active_bionic(bio_scent_vision))
+    mvwputch(w_terrain, SEEY + z[i].posy - u.posy, SEEX + z[i].posx - u.posx,
+             c_white, '?');
+  }
  }
  // Draw NPCs
  for (int i = 0; i < active_npc.size(); i++) {
   disty = abs(active_npc[i].posy - u.posy);
   distx = abs(active_npc[i].posx - u.posx);
-  if (distx <= SEEX && disty <= SEEY &&
-      u_see(active_npc[i].posx, active_npc[i].posy, t))
-   active_npc[i].draw(w_terrain, u.posx, u.posy, false);
- }
- if (u.has_active_bionic(bio_scent_vision)) {
-  for (int realx = u.posx - SEEX; realx <= u.posx + SEEX; realx++) {
-   for (int realy = u.posy - SEEY; realy <= u.posy + SEEY; realy++) {
-    if (scent(realx, realy) != 0) {
-     int tempx = u.posx - realx, tempy = u.posy - realy;
-     if (!(isBetween(tempx, -2, 2) && isBetween(tempy, -2, 2))) {
-      if (mon_at(realx, realy) != -1)
-       mvwputch(w_terrain, realy + SEEY - u.posy, realx + SEEX - u.posx,
-                c_white, '?');
-      else
-       mvwputch(w_terrain, realy + SEEY - u.posy, realx + SEEX - u.posx,
-                c_magenta, '#');
-     }
-    }
-   }
+  if (distx <= SEEX && disty <= SEEY) {
+   if (u_see(active_npc[i].posx, active_npc[i].posy, t))
+    active_npc[i].draw(w_terrain, u.posx, u.posy, false);
+// Implying all NPCs are warmblood
+   else if (u.has_active_bionic(bio_infrared) || u.has_trait(PF_INFRARED))
+    mvwputch(w_terrain, SEEY + active_npc[i].posy - u.posy,
+             SEEX + active_npc[i].posx - u.posx, c_red, '?');
+// Implying all NPCs have scent
+   else if (scent(active_npc[i].posx, active_npc[i].posy) != 0 &&
+            u.has_active_bionic(bio_scent_vision))
+    mvwputch(w_terrain, SEEY + active_npc[i].posy - u.posy,
+             SEEX + active_npc[i].posx - u.posx, c_white, '?');
   }
  }
  wrefresh(w_terrain);
@@ -2458,25 +2468,25 @@ void game::draw_HP()
   else
    col = c_red;
   if (u.has_trait(PF_HPIGNORANT)) {
-   mvwprintz(w_HP, i * 2 + 1, 0, col, " ***  ");
+   mvwprintz(w_HP, i * 2 + 1, 0, col, " ***   ");
   } else {
    if (curhp >= 100)
-    mvwprintz(w_HP, i * 2 + 1, 0, col, "%d     ", curhp);
+    mvwprintz(w_HP, i * 2 + 1, 0, col, " %d   ", curhp);
    else if (curhp >= 10)
-    mvwprintz(w_HP, i * 2 + 1, 0, col, " %d    ", curhp);
+    mvwprintz(w_HP, i * 2 + 1, 0, col, "  %d   ", curhp);
    else
-    mvwprintz(w_HP, i * 2 + 1, 0, col, "  %d    ", curhp);
+    mvwprintz(w_HP, i * 2 + 1, 0, col, "   %d   ", curhp);
   }
  }
  mvwprintz(w_HP,  0, 0, c_ltgray, "HEAD:  ");
  mvwprintz(w_HP,  2, 0, c_ltgray, "TORSO: ");
- mvwprintz(w_HP,  4, 0, c_ltgray, "L. ARM:");
- mvwprintz(w_HP,  6, 0, c_ltgray, "R. ARM:");
- mvwprintz(w_HP,  8, 0, c_ltgray, "L. LEG:");
- mvwprintz(w_HP, 10, 0, c_ltgray, "R. LEG:");
- mvwprintz(w_HP, 12, 0, c_ltgray, "POW:   ");
+ mvwprintz(w_HP,  4, 0, c_ltgray, "L ARM: ");
+ mvwprintz(w_HP,  6, 0, c_ltgray, "R ARM: ");
+ mvwprintz(w_HP,  8, 0, c_ltgray, "L LEG: ");
+ mvwprintz(w_HP, 10, 0, c_ltgray, "R LEG: ");
+ mvwprintz(w_HP, 12, 0, c_ltgray, "POWER: ");
  if (u.max_power_level == 0)
-  mvwprintz(w_HP, 13, 0, c_ltgray, " --   ");
+  mvwprintz(w_HP, 13, 0, c_ltgray, "  --   ");
  else {
   if (u.power_level == u.max_power_level)
    col = c_blue;
@@ -2487,11 +2497,11 @@ void game::draw_HP()
   else
    col = c_red;
   if (u.power_level >= 100)
-   mvwprintz(w_HP, 13, 0, col, "%d     ", u.power_level);
-  else if (u.power_level >= 10)
    mvwprintz(w_HP, 13, 0, col, " %d    ", u.power_level);
-  else
+  else if (u.power_level >= 10)
    mvwprintz(w_HP, 13, 0, col, "  %d    ", u.power_level);
+  else
+   mvwprintz(w_HP, 13, 0, col, "   %d    ", u.power_level);
  }
  wrefresh(w_HP);
 }
@@ -3368,7 +3378,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
   dam = rng(20, 60);
   for (int j = 0; j < traj.size(); j++) {
    if (j > 0 && u_see(traj[j - 1].x, traj[j - 1].y, ijunk))
-    m.drawsq(w_terrain, u, traj[j - 1].x, traj[j - 1].y, false, true);
+    m.drawsq(this, w_terrain, traj[j - 1].x, traj[j - 1].y, false, true);
    if (u_see(traj[j].x, traj[j].y, ijunk)) {
     mvwputch(w_terrain, traj[j].y + SEEY - u.posy,
                         traj[j].x + SEEX - u.posx, c_red, '`');
@@ -3407,6 +3417,7 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
 
 void game::flashbang(int x, int y)
 {
+ sound(x, y, 12, "a huge boom!");
  int dist = rl_dist(u.posx, u.posy, x, y), t;
  if (dist <= 8) {
   if (!u.has_bionic(bio_ears))
@@ -3425,7 +3436,6 @@ void game::flashbang(int x, int y)
     z[i].add_effect(ME_DEAF, 60 - dist * 4);
   }
  }
- sound(x, y, 12, "a huge boom!");
 // TODO: Blind/deafen NPC
 }
 
@@ -3890,7 +3900,7 @@ int junk;
   for (int k = y - SEEY; k <= y + SEEY; k++) {
    if (u_see(j, k, junk)) {
     if (k >= y0 && k <= y1 && j >= x0 && j <= x1)
-     m.drawsq(w_terrain, u, j, k, false, true);
+     m.drawsq(this, w_terrain, j, k, false, true);
     else
      mvwputch(w_terrain, k + SEEY - y, j + SEEX - x, c_dkgray, '#');
    }
@@ -4059,16 +4069,15 @@ void game::exam_vehicle(vehicle &veh, int examx, int examy, int cx, int cy)
 void game::examine()
 {
  if (u.in_vehicle) {
-  int vpart;
+  int vpart = 0;
   vehicle *veh = m.veh_at(u.posx, u.posy, vpart);
-  bool qexv = (veh && (veh->velocity != 0 ?
-                       query_yn("Really exit moving vehicle?") :
-                       query_yn("Exit vehicle?")));
-  if (qexv) {
+  if (veh && query_yn("Exit vehicle?") &&
+      (veh->velocity != 0 ? query_yn("Really exit moving vehicle?") : true)) {
+// free unboard action, because we do not leave seat yet...
    m.unboard_vehicle (this, u.posx, u.posy);
-   u.moves -= 200;
-   if (veh->velocity) {      // TODO: move player out of harms way
-    int dsgn = veh->parts[vpart].mount_dx > 0? 1 : -1;
+   if (veh->velocity != 0) { // TODO: move player out of harms way
+    int dsgn = veh->parts[vpart].mount_dx > 0 ? 1 : -1;
+    u.moves -= 200; // and now we leave it!
     fling_player_or_monster (&u, 0, veh->face.dir() + 90 * dsgn, 35);
    }
    return;
@@ -4090,18 +4099,18 @@ void game::examine()
  examy += u.posy;
  add_msg("That is a %s.", m.tername(examx, examy).c_str());
 
- int veh_part = 0;
- vehicle *veh = m.veh_at (examx, examy, veh_part);
- if (veh) {
-  int vpcargo = veh->part_with_feature(veh_part, vpf_cargo, false);
+ int vpart = 0;
+ vehicle *veh = m.veh_at(examx, examy, vpart);
+ if (veh && u.in_vehicle) {
+  int vpcargo = veh->part_with_feature(vpart, vpf_cargo, false);
   if (vpcargo >= 0 && veh->parts[vpcargo].items.size() > 0)
-   pickup(examx, examy, 0);
-  else if (u.in_vehicle)
-   add_msg ("You can't do that while onboard.");
-  else if (abs(veh->velocity) > 0)
-   add_msg ("You can't do that on moving vehicle.");
+   pickup(examx, examy, 0); // picking only from vehicle's trunk or box
   else
-   exam_vehicle (*veh, examx, examy);
+   add_msg ("You should unboard before.");
+// actual vehicle examining goes in the end,
+// because it blocks items and query isn't very handy here
+
+// Container-tiles & item pickup
  } else if (m.has_flag(sealed, examx, examy)) {
   if (m.trans(examx, examy)) {
    std::string buff;
@@ -4119,10 +4128,9 @@ void game::examine()
     buff = "It contains many items,";
    buff += " but is firmly sealed.";
    add_msg(buff.c_str());
-  } else {
+  } else
    add_msg("There's something in there, but you can't see what it is, and the\
  %s is firmly sealed.", m.tername(examx, examy).c_str());
-  }
  } else {
   if (m.i_at(examx, examy).size() == 0 && m.has_flag(container, examx, examy) &&
       !(m.has_flag(swimmable, examx, examy) || m.ter(examx, examy) == t_toilet))
@@ -4130,10 +4138,14 @@ void game::examine()
   else
    pickup(examx, examy, 0);
  }
+
+// Console
  if (m.has_flag(console, examx, examy)) {
   use_computer(examx, examy);
   return;
  }
+// Interactive tile-types
+// Cardreaders
  if (m.ter(examx, examy) == t_card_science ||
      m.ter(examx, examy) == t_card_military  ) {
   itype_id card_type = (m.ter(examx, examy) == t_card_science ? itm_id_science :
@@ -4198,6 +4210,8 @@ void game::examine()
     }
    }
   }
+// end of cardreaders
+// elevator
  } else if (m.ter(examx, examy) == t_elevator_control &&
             query_yn("Activate elevator?")) {
   int movez = (levz < 0 ? 2 : -2);
@@ -4217,6 +4231,8 @@ void game::examine()
    }
   }
   refresh_all();
+// end of elevator
+// gas pump
  } else if (m.ter(examx, examy) == t_gas_pump && query_yn("Pump gas?")) {
   item gas(itypes[itm_gasoline], turn);
   if (one_in(u.dex_cur)) {
@@ -4226,6 +4242,8 @@ void game::examine()
    u.moves -= 300;
    handle_liquid(gas, false, true);
   }
+// end of gas pump
+// slot machine
  } else if (m.ter(examx, examy) == t_slot_machine) {
   if (u.cash < 10)
    add_msg("You need $10 to play.");
@@ -4248,6 +4266,8 @@ void game::examine()
     }
    } while (u.cash >= 10 && query_yn("Play again?"));
   }
+// end of slot machine
+// bulletin board
  } else if (m.ter(examx, examy) == t_bulletin) {
 // TODO: Bulletin Boards
   switch (menu("Bulletin Board", "Check jobs", "Check events",
@@ -4261,16 +4281,19 @@ void game::examine()
    case 4:
     break;
   }
+// fault line
  } else if (m.ter(examx, examy) == t_fault) {
   popup("\
 This wall is perfectly vertical.  Odd, twisted holes are set in it, leading\n\
 as far back into the solid rock as you can see.  The holes are humanoid in\n\
 shape, but with long, twisted, distended limbs.");
+// pedestal WITH petrified eye
  } else if (m.ter(examx, examy) == t_pedestal_wyrm &&
             m.i_at(examx, examy).empty()) {
   add_msg("The pedestal sinks into the ground...");
   m.ter(examx, examy) = t_rock_floor;
   add_event(EVENT_SPAWN_WYRMS, int(turn) + rng(5, 10));
+// pedestal FOR petrified eye
  } else if (m.ter(examx, examy) == t_pedestal_temple) {
   if (m.i_at(examx, examy).size() == 1 &&
       m.i_at(examx, examy)[0].type->id == itm_petrified_eye) {
@@ -4287,6 +4310,7 @@ shape, but with long, twisted, distended limbs.");
   } else
    add_msg("This pedestal is engraved in eye-shaped diagrams, and has a large\
  semi-spherical indentation at the top.");
+// temple switches
  } else if (m.ter(examx, examy) >= t_switch_rg &&
             m.ter(examx, examy) <= t_switch_even &&
             query_yn("Flip the %s?", m.tername(examx, examy).c_str())) {
@@ -4346,13 +4370,27 @@ shape, but with long, twisted, distended limbs.");
   add_msg("You hear the rumble of rock shifting.");
   add_event(EVENT_TEMPLE_SPAWN, turn + 3);
  }
-
+// end of interative tiles
+// Traps
  if (m.tr_at(examx, examy) != tr_null &&
       traps[m.tr_at(examx, examy)]->difficulty < 99 &&
      u.per_cur-u.encumb(bp_eyes) >= traps[m.tr_at(examx, examy)]->visibility &&
      query_yn("There is a %s there.  Disarm?",
               traps[m.tr_at(examx, examy)]->name.c_str()))
   m.disarm_trap(this, examx, examy);
+
+// Vehicle, again
+ if (veh && !(u.in_vehicle)) {
+// reboarding while still at the seat square
+  if (veh->part_with_feature (vpart, vpf_seat) >= 0 &&
+      examx == u.posx && examy == u.posy && query_yn("Board vehicle?"))
+   m.board_vehicle (this, examx, examy, &u);
+// examining
+  else if (veh->velocity != 0)
+   add_msg ("The vehicle should be stopped before.");
+  else
+   exam_vehicle (*veh, examx, examy);
+ }
 }
 
 point game::look_around()
@@ -4364,9 +4402,9 @@ point game::look_around()
  WINDOW* w_look = newwin(13, 48, 12, SEEX * 2 + 8);
  wborder(w_look, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
                  LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- mvwprintz(w_look, 1, 1, c_white, "Looking Around");
- mvwprintz(w_look, 2, 1, c_white, "Use directional keys to move the cursor");
- mvwprintz(w_look, 3, 1, c_white, "to a nearby square.");
+ mvwprintz(w_look, 0, 1, c_white, "Looking Around");
+ mvwprintz(w_look, 1, 1, c_white, "Use directional keys to move");
+ mvwprintz(w_look, 2, 1, c_white, "the cursor to a nearby square.");
  wrefresh(w_look);
  do {
   ch = input();
@@ -4386,29 +4424,35 @@ point game::look_around()
    if (ly > u.posy + SEEY)
     ly = u.posy + SEEY;
   }
-  for (int i = 1; i < 12; i++) {
-   for (int j = 1; j < 47; j++)
-    mvwputch(w_look, i, j, c_white, ' ');
+  for (int i = 1; i < 47; i++) {
+   mvwputch(w_look, 0, i, c_dkgray, LINE_OXOX);
+   for (int j = 1; j < 12; j++)
+    mvwputch(w_look, j, i, c_white, ' ');
   }
-  int veh_part = 0;
-  vehicle *veh = m.veh_at(lx, ly, veh_part);
-  if (u_see(lx, ly, junk)) {
+// ...and here goes actual info about tile
+  if (u_see(lx, ly, junk) || (lx == u.posx && ly == u.posy)) {
    if (m.move_cost(lx, ly) == 0)
-    mvwprintw(w_look, 1, 1, "%s; Impassable", m.tername(lx, ly).c_str());
+    mvwprintz(w_look, 0, 1, c_ltgray, "%s, impassable",
+              m.tername(lx, ly).c_str());
    else
-    mvwprintw(w_look, 1, 1, "%s; Movement cost %d", m.tername(lx, ly).c_str(),
-                                                    m.move_cost(lx, ly) * 50);
-   mvwprintw(w_look, 2, 1, "%s", m.features(lx, ly).c_str());
+    mvwprintz(w_look, 0, 1, c_ltgray, "%s, movement cost %d",
+              m.tername(lx, ly).c_str(), m.move_cost(lx, ly) * 50);
+   mvwprintw(w_look, 1, 1, "%s", m.features(lx, ly).c_str());
+// trap + field at 2 line
+// implying there is no names larger than 23 (the largest are 21 currently)
    field tmpfield = m.field_at(lx, ly);
    if (tmpfield.type != fd_null)
-    mvwprintz(w_look, 4, 1, fieldlist[tmpfield.type].color[tmpfield.density-1],
+    mvwprintz(w_look, 2, 25, fieldlist[tmpfield.type].color[tmpfield.density-1],
               "%s", fieldlist[tmpfield.type].name[tmpfield.density-1].c_str());
    if (m.tr_at(lx, ly) != tr_null &&
        u.per_cur - u.encumb(bp_eyes) >= traps[m.tr_at(lx, ly)]->visibility)
-    mvwprintz(w_look, 5, 1, traps[m.tr_at(lx, ly)]->color, "%s",
+    mvwprintz(w_look, 2, 1, traps[m.tr_at(lx, ly)]->color, "%s",
               traps[m.tr_at(lx, ly)]->name.c_str());
 
    int dex = mon_at(lx, ly);
+   int veh_part = 0;
+   vehicle *veh = m.veh_at(lx, ly, veh_part);
+// Visible monster
    if (dex != -1 && u_see(&(z[dex]), junk)) {
     z[mon_at(lx, ly)].draw(w_terrain, u.posx, u.posy, true);
     z[mon_at(lx, ly)].print_info(this, w_look);
@@ -4416,6 +4460,10 @@ point game::look_around()
      mvwprintw(w_look, 3, 1, "There are several items there.");
     else if (m.i_at(lx, ly).size() == 1)
      mvwprintw(w_look, 3, 1, "There is an item there.");
+    if (veh)
+     mvwprintz(w_look, 4, 1, c_ltgray, "There is a %s there.",
+               veh->name.c_str());
+// NPC
    } else if (npc_at(lx, ly) != -1) {
     active_npc[npc_at(lx, ly)].draw(w_terrain, u.posx, u.posy, true);
     active_npc[npc_at(lx, ly)].print_info(w_look);
@@ -4423,28 +4471,30 @@ point game::look_around()
      mvwprintw(w_look, 3, 1, "There are several items there.");
     else if (m.i_at(lx, ly).size() == 1)
      mvwprintw(w_look, 3, 1, "There is an item there.");
-   } else if (veh) {
-     mvwprintw(w_look, 3, 1, "There is a %s there. Parts:", veh->name.c_str());
-     veh->print_part_desc(w_look, 4, 48, veh_part);
-     m.drawsq(w_terrain, u, lx, ly, true, true);
-   } else if (m.i_at(lx, ly).size() > 0) {
-    mvwprintw(w_look, 3, 1, "There is a %s there.",
-              m.i_at(lx, ly)[0].tname(this).c_str());
+    if (veh)
+     mvwprintz(w_look, 4, 1, c_ltgray, "There is a %s there.",
+               veh->name.c_str());
+
+// There is no monster or NPC,
+// therefore enough place for items and full list of vehicle parts
+   } else {
+    m.drawsq(this, w_terrain, lx, ly, true, true);
+    if (m.i_at(lx, ly).size() > 0)
+     mvwprintw(w_look, 3, 1, "There is a %s there.",
+               m.i_at(lx, ly)[0].tname(this).c_str());
     if (m.i_at(lx, ly).size() > 1)
      mvwprintw(w_look, 4, 1, "There are other items there as well.");
-    m.drawsq(w_terrain, u, lx, ly, true, true);
-   } else
-    m.drawsq(w_terrain, u, lx, ly, true, true);
-
-  } else if (lx == u.posx && ly == u.posy) {
-   mvwputch_inv(w_terrain, SEEX, SEEY, u.color(), '@');
-   mvwprintw(w_look, 1, 1, "You (%s)", u.name.c_str());
-   if (veh) {
-    mvwprintw(w_look, 3, 1, "There is a %s there. Parts:", veh->name.c_str());
-    veh->print_part_desc(w_look, 4, 48, veh_part);
-    m.drawsq(w_terrain, u, lx, ly, true, true);
+    if (veh) {
+     mvwprintz(w_look, 6, 1, c_ltgray, "There is a %s there. Parts:",
+               veh->name.c_str());
+     veh->print_part_desc(w_look, 7, 48, veh_part);
+    }
    }
-
+// "You" are at 5 line, it's free
+   if (lx == u.posx && ly == u.posy) {
+    mvwputch_inv(w_terrain, SEEX, SEEY, u.color(), '@');
+    mvwprintz(w_look, 5, 1, c_white, "You, %s.", u.name.c_str());
+   }
   } else {
    mvwputch(w_terrain, ly - u.posy + SEEY, lx - u.posx + SEEX, c_white, 'x');
    mvwprintw(w_look, 1, 1, "Unseen.");
@@ -4476,8 +4526,8 @@ void game::pickup(int posx, int posy, int min)
  if (veh) {
   veh_part = veh->part_with_feature(veh_part, vpf_cargo, false);
   from_veh = veh && veh_part >= 0 &&
-             veh->parts[veh_part].items.size() > 0 &&
-             query_yn("Get items from %s?", veh->part_info(veh_part).name);
+             veh->parts[veh_part].items.size() > 0 && ((u.in_vehicle) ? :
+             query_yn("Get items from %s?", veh->part_info(veh_part).name));
  }
 // Picking up water?
  if ((!from_veh) && m.i_at(posx, posy).size() == 0) {
@@ -5111,7 +5161,7 @@ void game::plthrow()
   for (int k = u.posy - SEEY; k <= u.posy + SEEY; k++) {
    if (u_see(j, k, junk)) {
     if (k >= y0 && k <= y1 && j >= x0 && j <= x1)
-     m.drawsq(w_terrain, u, j, k, false, true);
+     m.drawsq(this, w_terrain, j, k, false, true);
     else
      mvwputch(w_terrain, k + SEEY - u.posy, j + SEEX - u.posx, c_dkgray, '#');
    }
@@ -5194,7 +5244,7 @@ void game::plfire(bool burst)
   for (int k = y - SEEY; k <= y + SEEY; k++) {
    if (u_see(j, k, junk)) {
     if (k >= y0 && k <= y1 && j >= x0 && j <= x1)
-     m.drawsq(w_terrain, u, j, k, false, true);
+     m.drawsq(this, w_terrain, j, k, false, true);
     else
      mvwputch(w_terrain, k + SEEY - y, j + SEEX - x, c_dkgray, '#');
    }
@@ -5901,7 +5951,9 @@ void game::plmove(int x, int y)
    }
    buff += ".";
    add_msg(buff.c_str());
-  } else if (m.i_at(x, y).size() != 0)
+  } else if (u.has_disease(DI_BLIND) && m.i_at(x, y).size() != 0)
+   add_msg("You step on something.");
+  else if (m.i_at(x, y).size() != 0)
    add_msg("There are many items here.");
 
  } else if (veh_closed_door) { // move_cost <= 0
