@@ -6,28 +6,29 @@ struct construct;
 
 struct construction_stage
 {
+ int difficulty; // Carpentry skill level required
  ter_id terrain;
  int time; // In minutes, i.e. 10 turns
  std::vector<itype_id> tools[3];
  std::vector<component> components[3];
 
- construction_stage(ter_id Terrain, int Time) :
-    terrain (Terrain), time (Time) { };
+ construction_stage(int Diff, ter_id Terrain, int Time) :
+    difficulty (Diff), terrain (Terrain), time (Time) { };
 };
 
 struct constructable
 {
  int id;
  std::string name; // Name as displayed
- int difficulty; // Carpentry skill level required
+
  std::vector<construction_stage> stages;
  bool (construct::*able)  (game *, point);
  void (construct::*done)  (game *, point);
 
- constructable(int Id, std::string Name, int Diff,
+ constructable(int Id, std::string Name,
                bool (construct::*Able) (game *, point),
                void (construct::*Done) (game *, point)) :
-  id (Id), name (Name), difficulty (Diff), able (Able), done (Done) {};
+  id (Id), name (Name), able (Able), done (Done) {};
 };
 
 struct construct // Construction functions.
@@ -44,7 +45,7 @@ struct construct // Construction functions.
  bool able_broken_window(game *, point); // Able if tile is broken window
 
 // bool able_door(game *, point); // Any door tile
- bool able_door_broken(game *, point); // Broken door
+// bool able_door_broken(game *, point); // Broken door
 
  bool able_wall  (game *, point); // Able if tile is wall
  bool able_wall_wood(game *g, point); // Only player-built walls

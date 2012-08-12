@@ -209,6 +209,7 @@ class game
   int weight_dragged; // Computed once, when you start dragging
   bool debugmon; 
   bool no_npc;
+  bool show24hours;
 // Display data... TODO: Make this more portable?
   WINDOW *w_terrain;
   WINDOW *w_minimap;
@@ -264,8 +265,7 @@ class game
                     std::vector<bool> &available, craft_cat tab);// crafting.cpp
   void construction_menu();                   // See construction.cpp
   bool player_can_build(player &p, inventory inv, constructable* con,
-                        int level = -1, bool cont = false);
-//                        int level = 0, bool specific = false);
+                        int level = 0, bool specific = false);
   void place_construction(constructable *con); // See construction.cpp
   void complete_construction();               // See construction.cpp
   bool pl_choose_vehicle (int &x, int &y);

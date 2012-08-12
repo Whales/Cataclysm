@@ -472,7 +472,9 @@ int player::dodge(game *g)
  if (has_trait(PF_TAIL_FLUFFY))
   ret += 8;
  if (has_trait(PF_WHISKERS))
-  ret += 1;
+  ret++;
+ if (has_trait(PF_COMPOUND_EYES))
+  ret += 2;
  if (has_trait(PF_WINGS_BAT))
   ret -= 3;
  if (str_max >= 16)
@@ -1586,6 +1588,9 @@ void melee_practice(player &u, bool hit, bool unarmed, bool bashing,
 int attack_speed(player &u, bool missed)
 {
  int move_cost = u.weapon.attack_time() + 20 * u.encumb(bp_torso);
+
+ if (u.has_trait(PF_COMPOUND_EYES))
+  move_cost *= .9;
  if (u.has_trait(PF_LIGHT_BONES))
   move_cost *= .9;
  if (u.has_trait(PF_HOLLOW_BONES))

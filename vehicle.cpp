@@ -41,12 +41,12 @@ vehicle::~vehicle()
 {
 }
 
-bool vehicle::player_in_control (player *p)
+bool vehicle::player_in_control(player *p)
 {
     if (type == veh_null)
         return false;
     int veh_part;
-    vehicle *veh = g->m.veh_at (p->posx, p->posy, veh_part);
+    vehicle *veh = g->m.veh_at(p->posx, p->posy, veh_part);
     if (veh && veh != this)
         return false;
     return part_with_feature(veh_part, vpf_controls, false) >= 0 && p->in_vehicle;
@@ -264,7 +264,7 @@ bool vehicle::can_unmount (int p)
             return false; // unmounting 0, 0 part anly allowed as last part
     }
 
-    if (!part_flag (p, vpf_mount_point))
+    if (!part_flag(p, vpf_mount_point))
         return true;
     for (int i = 0; i < 4; i++)
     {
@@ -350,7 +350,7 @@ int vehicle::part_with_feature (int p, unsigned int f, bool unbroken)
     return -1;
 }
 
-bool vehicle::part_flag (int p, unsigned int f)
+bool vehicle::part_flag(int p, unsigned int f)
 {
     if (p < 0 || p >= parts.size())
         return false;
@@ -376,7 +376,7 @@ char vehicle::part_sym (int p)
     std::vector<int> ph = internal_parts (p);
     int po = part_with_feature(p, vpf_over, false);
     int pd = po < 0? p : po;
-    if (part_flag (pd, vpf_openable) && parts[pd].open)
+    if (part_flag(pd, vpf_openable) && parts[pd].open)
         return '\''; // open door
     return parts[pd].hp <= 0? part_info(pd).sym_broken : part_info(pd).sym;
 }
@@ -500,7 +500,7 @@ std::vector<int> vehicle::boarded_parts()
 {
     std::vector<int> res;
     for (int p = 0; p < parts.size(); p++)
-        if (part_flag (p, vpf_seat) && parts[p].passenger)
+        if (part_flag(p, vpf_seat) && parts[p].passenger)
             res.push_back (p);
     return res;
 }
@@ -1010,13 +1010,13 @@ void vehicle::stop ()
 
 int vehicle::part_collision (int vx, int vy, int part, int x, int y)
 {
-    bool pl_ctrl = player_in_control (&g->u);
+    bool pl_ctrl = player_in_control(&g->u);
     int mondex = g->mon_at(x, y);
     int npcind = g->npc_at(x, y);
     bool u_here = x == g->u.posx && y == g->u.posy && !g->u.in_vehicle;
     monster *z = mondex >= 0? &g->z[mondex] : 0;
     player *ph = (npcind >= 0? &g->active_npc[npcind] : (u_here? &g->u : 0));
-    vehicle *oveh = g->m.veh_at (x, y);
+    vehicle *oveh = g->m.veh_at(x, y);
     bool veh_collision = oveh && (oveh->posx != posx || oveh->posy != posy);
     bool body_collision = (g->u.posx == x && g->u.posy == y && !g->u.in_vehicle) ||
                            mondex >= 0 || npcind >= 0;
@@ -1550,8 +1550,8 @@ int vehicle::damage (int p, int dmg, int type, bool aimed)
     {
         bool found_obs = false;
         for (int i = 0; i < pl.size(); i++)
-            if (part_flag (pl[i], vpf_obstacle) &&
-                (!part_flag (pl[i], vpf_openable) || !parts[pl[i]].open))
+            if (part_flag(pl[i], vpf_obstacle) &&
+                (!part_flag(pl[i], vpf_openable) || !parts[pl[i]].open))
             {
                 found_obs = true;
                 break;
@@ -1666,7 +1666,7 @@ void vehicle::leak_fuel (int p)
 
 void vehicle::fire_turret (int p, bool burst)
 {
-    if (!part_flag (p, vpf_turret))
+    if (!part_flag(p, vpf_turret))
         return;
     it_gun *gun = dynamic_cast<it_gun*> (g->itypes[part_info(p).item]);
     if (!gun)

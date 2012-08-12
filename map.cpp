@@ -692,7 +692,7 @@ bool map::is_outside(int x, int y)
          ter(x + 1, y + 1) != t_floor_wax   );
  if (out) {
   int vpart;
-  vehicle *veh = veh_at (x, y, vpart);
+  vehicle *veh = veh_at(x, y, vpart);
   if (veh && veh->is_inside(vpart))
    out = false;
  }

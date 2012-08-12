@@ -241,7 +241,8 @@ enum pl_flag {
  PF_DISIMMUNE,
  PF_POISONOUS,//
  PF_SLIME_HANDS,
- PF_COMPOUND_EYES,//
+ PF_COMPOUND_EYES,    // -2 to perception, -10 to attack moves, +2 to dodge
+ PF_SPIDER_EYES_MAIN, // +1 to perception when not wearing glasses
  PF_PADDED_FEET,//
  PF_HOOVES,//
  PF_SAPROVORE,//
@@ -274,6 +275,7 @@ enum pl_flag {
  PF_SLIT_NOSTRILS,//
  PF_FORKED_TONGUE,//
  PF_EYEBULGE,//
+ PF_SPIDER_EYES_SECONDARY, // Bash&cut damage to head is increased on one third
  PF_MOUTH_FLAPS,//
  PF_WINGS_STUB,//
  PF_WINGS_BAT,//
@@ -617,8 +619,12 @@ have a chance to poison your target."},
 The skin on your hands is a mucous membrane and produces a thick, acrid\n\
 slime.  Attacks using your hand will cause minor acid damage."},
 {"Compound Eyes", 2, 9, 5, "\
-Your eyes are compound, like those of an insect.  This increases your\n\
-perception by 1 so long as you aren't wearing eyewear."},
+Your eyes are big and compound, like those of an insect. Perception is\n\
+decreased by 2, because sight is not so precisious now, but reaction speed is\n\
+increased and you can dodge better and attack faster."},
+{"Spider Eyes", 2, 9, 6, "\
+You have two pairs of big black eyes on your face, like those of a spider.\n\
+This increases your perception by 1 so long as you aren't wearing eyewear."},
 {"Padded Feet", 1, 1, 0, "\
 The bottoms of your feet are strongly padded.  You receive no movement\n\
 penalty for not wearing shoes, and even receive a 10%% bonus when running\n\
@@ -719,6 +725,9 @@ Your tongue is forked, like that of a reptile.  This has no effect."},
 {"Bulging Eyes", 0, 8, 4, "\
 Your eyes bulge out several inches from your skull.  This does not affect\n\
 your vision in any way."},
+{"Secondary Spider Eyes", -2, 2, 2, "\
+You have six pairs of small eyes all over your head, like a spider. They are\n\
+kinda useless, though still very sensitive. Damage to head is increased."},
 {"Mouth Flaps", -1, 7, 6, "\
 Skin tabs and odd flaps of skin surround your mouth.  They don't affect your\n\
 eating, but are unpleasant to look at."},

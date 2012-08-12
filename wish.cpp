@@ -138,8 +138,12 @@ void game::wish()
   tmp.bday = turn;
   if (tmp.is_tool())
    tmp.charges = dynamic_cast<it_tool*>(tmp.type)->max_charges;
+  else if (tmp.is_gun())
+   tmp.charges = 0;
   else if (tmp.is_ammo())
    tmp.charges = 100;
+  else if (tmp.is_food())
+   tmp.charges = dynamic_cast<it_comest*>(tmp.type)->charges;
   else
    tmp.charges = -1;
   info = tmp.info(true);

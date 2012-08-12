@@ -69,12 +69,17 @@ game::game()
  curmes = 0;		// We haven't read any messages yet
  uquit = QUIT_NO;	// We haven't quit the game
  debugmon = false;	// We're not printing debug messages
- no_npc = false;		// We're not suppressing NPC spawns
+ no_npc = false;	// We're not suppressing NPC spawns
 
 // ... Unless data/no_npc.txt exists.
  std::ifstream ifile("data/no_npc.txt");
  if (ifile)
   no_npc = true;
+
+ show24hours = false; // We're not showing time in 24 hour format
+ std::ifstream ifile2("data/24hours.txt");
+ if (ifile2)
+  show24hours = true;
 
  weather = WEATHER_CLEAR; // Start with some nice weather...
  nextweather = MINUTES(STARTING_MINUTES + 30); // Weather shift in 30
@@ -551,10 +556,10 @@ bool game::do_turn()
  if (turn % 50 == 0) {	// Hunger, thirst, & fatigue up every 5 minutes
   if ((!u.has_trait(PF_LIGHTEATER) || !one_in(3)) &&
       (!u.has_bionic(bio_recycler) || turn % 300 == 0))
-   u.has_trait(PF_HUNGER) && one_in(2) ? u.hunger += 2 : u.hunger++;
+   (u.has_trait(PF_HUNGER) && one_in(2)) ? u.hunger += 2 : u.hunger++;
   if ((!u.has_bionic(bio_recycler) || turn % 100 == 0) &&
       (!u.has_trait(PF_PLANTSKIN) || !one_in(5)))
-   u.has_trait(PF_THIRST) && one_in(2) ? u.thirst += 2 : u.thirst++;
+   (u.has_trait(PF_THIRST) && one_in(2)) ? u.thirst += 2 : u.thirst++;
   u.fatigue++;
   if (u.fatigue == 192 && !u.has_disease(DI_LYING_DOWN) &&
       !u.has_disease(DI_SLEEP)) {
@@ -1145,7 +1150,7 @@ void game::get_input()
 
  int veh_part;
  vehicle *veh = m.veh_at(u.posx, u.posy, veh_part);
- bool veh_ctrl = veh && veh->player_in_control (&u);
+ bool veh_ctrl = veh && veh->player_in_control(&u);
 
  switch (act) {
 
@@ -2354,22 +2359,15 @@ void game::draw()
  draw_HP();
  werase(w_status);
  u.disp_status(w_status, this);
-// TODO: Allow for a 24-hour option--already supported by calendar turn
- mvwprintz(w_status, 1, 41, c_white, turn.print_time().c_str());
-
- oter_id cur_ter = cur_om.ter((levx + int(MAPSIZE / 2)) / 2,
-                              (levy + int(MAPSIZE / 2)) / 2);
- std::string tername = oterlist[cur_ter].name;
- if (tername.length() > 16)
-  tername = tername.substr(0, 16);
- mvwprintz(w_status, 0,  0, oterlist[cur_ter].color, tername.c_str());
+ // Weather
  if (levz < 0)
   mvwprintz(w_status, 0, 18, c_ltgray, "Underground");
  else
   mvwprintz(w_status, 0, 18, weather_data[weather].color,
                              weather_data[weather].name.c_str());
+ // Temperature
  nc_color col_temp = c_blue;
- if (temperature >= 90)
+      if (temperature >= 90)
   col_temp = c_red;
  else if (temperature >= 75)
   col_temp = c_yellow;
@@ -2380,10 +2378,13 @@ void game::draw()
  else if (temperature >  32)
   col_temp = c_ltblue;
  wprintz(w_status, col_temp, " %dF", temperature);
+ // Date
  mvwprintz(w_status, 0, 41, c_white, "%s, day %d",
            season_name[turn.season].c_str(), turn.day + 1);
+
  if (run_mode != 0)
-  mvwprintz(w_status, 2, 51, c_red, "SAFE");
+  mvwprintz(w_status, 1, 50, c_red, "SAFE");
+
  wrefresh(w_status);
  // Draw messages
  write_msg();
@@ -4132,7 +4133,7 @@ bool game::pl_refill_vehicle (vehicle &veh, int part, bool test)
 
 void game::handbrake ()
 {
- vehicle *veh = m.veh_at (u.posx, u.posy);
+ vehicle *veh = m.veh_at(u.posx, u.posy);
  if (!veh)
   return;
  add_msg ("You pull a handbrake.");
@@ -4210,17 +4211,20 @@ void game::examine()
 
  int vpart = 0;
  vehicle *veh = m.veh_at(examx, examy, vpart);
- if (veh && u.in_vehicle) {
+ if (veh && veh->player_in_control(&u)) { // it's our car part
   int vpcargo = veh->part_with_feature(vpart, vpf_cargo, false);
+// with non-empty trunk
   if (vpcargo >= 0 && veh->parts[vpcargo].items.size() > 0)
-   pickup(examx, examy, 0); // picking only from vehicle's trunk or box
-  else
+   pickup(examx, examy, 0);
+  else // our car part without trunk
    add_msg ("You should unboard before.");
-// actual vehicle examining goes in the end,
-// because it blocks items and query isn't very handy here
+ } else if (veh && u.in_vehicle)// not our car part
+  add_msg ("You should unboard before.");
+// actual vehicle examination goes in the end of function,
+// because it blocks items at this place and additional query isn't very handy
 
 // Container-tiles & item pickup
- } else if (m.has_flag(sealed, examx, examy)) {
+ else if (m.has_flag(sealed, examx, examy)) {
   if (m.trans(examx, examy)) {
    std::string buff;
    if (m.i_at(examx, examy).size() <= 3 && m.i_at(examx, examy).size() != 0) {
@@ -4631,7 +4635,7 @@ void game::pickup(int posx, int posy, int min)
  bool volume_is_okay = (u.volume_carried() <= u.volume_capacity() -  2);
  bool from_veh = false;
  int veh_part = 0;
- vehicle *veh = m.veh_at (posx, posy, veh_part);
+ vehicle *veh = m.veh_at(posx, posy, veh_part);
  if (veh) {
   veh_part = veh->part_with_feature(veh_part, vpf_cargo, false);
   from_veh = veh && veh_part >= 0 &&
@@ -4962,7 +4966,7 @@ bool game::handle_liquid(item &liquid, bool from_ground, bool infinite)
      query_yn ("Refill vehicle?")) {
   int vx = u.posx, vy = u.posy;
   if (pl_choose_vehicle(vx, vy)) {
-   vehicle *veh = m.veh_at (vx, vy);
+   vehicle *veh = m.veh_at(vx, vy);
    if (veh) {
     int ftype = AT_GAS;
     int fuel_cap = veh->fuel_capacity(ftype);
@@ -5817,7 +5821,7 @@ void game::pldrive(int x, int y)
   return;
  }
  int part = -1;
- vehicle *veh = m.veh_at (u.posx, u.posy, part);
+ vehicle *veh = m.veh_at(u.posx, u.posy, part);
  if (!veh) {
   debugmsg ("game::pldrive error: can't find vehicle! Drive mode is now off.");
   u.in_vehicle = false;
