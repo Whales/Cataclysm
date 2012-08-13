@@ -588,13 +588,15 @@ std::string map::features(int x, int y)
 // to take up one line.  So, make sure it does that.
  std::string ret;
  if (has_flag(bashable, x, y))
-  ret += "Smashable. ";	// 11 chars (running total)
+  ret += "Smashable. "; // 11 chars (running total)
  if (has_flag(diggable, x, y))
-  ret += "Diggable. ";	// 21 chars
+  ret += "Diggable. ";  // 21 chars
  if (has_flag(rough, x, y))
-  ret += "Rough. ";	// 28 chars
+  ret += "Rough. ";     // 28 chars
  if (has_flag(sharp, x, y))
-  ret += "Sharp. ";	// 35 chars
+  ret += "Sharp. ";     // 35 chars
+ if (!is_outside(x, y))
+  ret += "Inside. ";    // 43 chars
  return ret;
 }
 
@@ -1882,10 +1884,8 @@ void map::draw(game *g, WINDOW* w)
   for (int realy = g->u.posy - SEEY; realy <= g->u.posy + SEEY; realy++) {
    int dist = rl_dist(g->u.posx, g->u.posy, realx, realy);
    if (dist > light) {
-    if (g->u.has_disease(DI_BOOMERED))
-     mvwputch(w, realx+SEEX - g->u.posx, realy+SEEY - g->u.posy, c_magenta,'#');
-    else
-     mvwputch(w, realx+SEEX - g->u.posx, realy+SEEY - g->u.posy, c_dkgray, '#');
+    mvwputch(w, realx + SEEX - g->u.posx, realy + SEEY - g->u.posy,
+             (g->u.has_disease(DI_BOOMERED) ? c_magenta : c_dkgray), '#');
    } else if (dist <= g->u.clairvoyance() ||
               sees(g->u.posx, g->u.posy, realx, realy, light, t))
     drawsq(g, w, realx, realy, false, true);

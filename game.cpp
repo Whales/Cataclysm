@@ -2933,7 +2933,7 @@ void game::mon_info()
  mvwprintz(w_moninfo,  2, 15, (unique_types[4].empty() ?
            c_dkgray : (dangerous[4] ? c_ltred : c_ltgray)), "South:");
  mvwprintz(w_moninfo,  2, 33, (unique_types[3].empty() ?
-           c_dkgray : (dangerous[3] ? c_ltred : c_ltgray)), "SW:");
+           c_dkgray : (dangerous[3] ? c_ltred : c_ltgray)), "SE:");
 
  for (int i = 0; i < 8; i++) {
 
@@ -4006,16 +4006,6 @@ int junk;
  int y0 = y - range;
  int x1 = x + range;
  int y1 = y + range;
- for (int j = x - SEEX; j <= x + SEEX; j++) {
-  for (int k = y - SEEY; k <= y + SEEY; k++) {
-   if (u_see(j, k, junk)) {
-    if (k >= y0 && k <= y1 && j >= x0 && j <= x1)
-     m.drawsq(this, w_terrain, j, k, false, true);
-    else
-     mvwputch(w_terrain, k + SEEY - y, j + SEEX - x, c_dkgray, '#');
-   }
-  }
- }
 
  // target() sets x and y, and returns an empty vector if we canceled (Esc)
  std::vector <point> trajectory =
@@ -4508,6 +4498,7 @@ shape, but with long, twisted, distended limbs.");
 
 point game::look_around()
 {
+ werase(w_terrain);
  draw_ter();
  int lx = u.posx, ly = u.posy;
  int mx, my, junk;
@@ -4521,7 +4512,7 @@ point game::look_around()
  wrefresh(w_look);
  do {
   ch = input();
-  if (!u_see(lx, ly, junk))
+  if (!u_see(lx, ly, junk)) // clear previous cursor mark
    mvwputch(w_terrain, ly - u.posy + SEEY, lx - u.posx + SEEX, c_black, ' ');
   draw_ter();
   get_direction(this, mx, my, ch);
@@ -4550,25 +4541,26 @@ point game::look_around()
    else
     mvwprintz(w_look, 0, 1, c_ltgray, "%s, movement cost %d",
               m.tername(lx, ly).c_str(), m.move_cost(lx, ly) * 50);
-   mvwprintw(w_look, 1, 1, "%s", m.features(lx, ly).c_str());
+   mvwprintw(w_look, 1, 1, m.features(lx, ly).c_str());
 // trap + field at 2 line
 // implying there is no names larger than 23 (the largest are 21 currently)
    field tmpfield = m.field_at(lx, ly);
    if (tmpfield.type != fd_null)
     mvwprintz(w_look, 2, 25, fieldlist[tmpfield.type].color[tmpfield.density-1],
-              "%s", fieldlist[tmpfield.type].name[tmpfield.density-1].c_str());
+              fieldlist[tmpfield.type].name[tmpfield.density-1].c_str());
    if (m.tr_at(lx, ly) != tr_null &&
        u.per_cur - u.encumb(bp_eyes) >= traps[m.tr_at(lx, ly)]->visibility)
-    mvwprintz(w_look, 2, 1, traps[m.tr_at(lx, ly)]->color, "%s",
+    mvwprintz(w_look, 2, 1, traps[m.tr_at(lx, ly)]->color,
               traps[m.tr_at(lx, ly)]->name.c_str());
 
-   int dex = mon_at(lx, ly);
+   int mon = mon_at(lx, ly);
+   int smb = npc_at(lx, ly);
    int veh_part = 0;
    vehicle *veh = m.veh_at(lx, ly, veh_part);
 // Visible monster
-   if (dex != -1 && u_see(&(z[dex]), junk)) {
-    z[mon_at(lx, ly)].draw(w_terrain, u.posx, u.posy, true);
-    z[mon_at(lx, ly)].print_info(this, w_look);
+   if (mon != -1 && u_see(&(z[mon]), junk)) {
+    z[mon].draw(w_terrain, u.posx, u.posy, true);
+    z[mon].print_info(this, w_look);
     if (m.i_at(lx, ly).size() > 1)
      mvwprintw(w_look, 3, 1, "There are several items there.");
     else if (m.i_at(lx, ly).size() == 1)
@@ -4577,9 +4569,9 @@ point game::look_around()
      mvwprintz(w_look, 4, 1, c_ltgray, "There is a %s there.",
                veh->name.c_str());
 // NPC
-   } else if (npc_at(lx, ly) != -1) {
-    active_npc[npc_at(lx, ly)].draw(w_terrain, u.posx, u.posy, true);
-    active_npc[npc_at(lx, ly)].print_info(w_look);
+   } else if (smb != -1) {
+    active_npc[smb].draw(w_terrain, u.posx, u.posy, true);
+    active_npc[smb].print_info(w_look);
     if (m.i_at(lx, ly).size() > 1)
      mvwprintw(w_look, 3, 1, "There are several items there.");
     else if (m.i_at(lx, ly).size() == 1)
@@ -5290,29 +5282,18 @@ void game::plthrow()
  int x1 = x + range;
  int y1 = y + range;
  int junk;
-
- for (int j = u.posx - SEEX; j <= u.posx + SEEX; j++) {
-  for (int k = u.posy - SEEY; k <= u.posy + SEEY; k++) {
-   if (u_see(j, k, junk)) {
-    if (k >= y0 && k <= y1 && j >= x0 && j <= x1)
-     m.drawsq(this, w_terrain, j, k, false, true);
-    else
-     mvwputch(w_terrain, k + SEEY - u.posy, j + SEEX - u.posx, c_dkgray, '#');
-   }
-  }
- }
-
+// Populate a list of targets with the monsters in range and visible
  std::vector <monster> mon_targets;
  std::vector <int> targetindices;
  int passtarget = -1;
  for (int i = 0; i < z.size(); i++) {
-  if (u_see(&(z[i]), junk) && z[i].posx >= x0 && z[i].posx <= x1 &&
-                              z[i].posy >= y0 && z[i].posy <= y1) {
+  if (u_see(&(z[i]), junk) && z[i].friendly == 0 &&
+      z[i].posx >= x0 && z[i].posx <= x1 &&
+      z[i].posy >= y0 && z[i].posy <= y1) {
    mon_targets.push_back(z[i]);
    targetindices.push_back(i);
    if (i == last_target)
     passtarget = mon_targets.size() - 1;
-   z[i].draw(w_terrain, u.posx, u.posy, true);
   }
  }
 
@@ -5384,29 +5365,18 @@ void game::plfire(bool burst)
  int y0 = y - range;
  int x1 = x + range;
  int y1 = y + range;
- for (int j = x - SEEX; j <= x + SEEX; j++) {
-  for (int k = y - SEEY; k <= y + SEEY; k++) {
-   if (u_see(j, k, junk)) {
-    if (k >= y0 && k <= y1 && j >= x0 && j <= x1)
-     m.drawsq(this, w_terrain, j, k, false, true);
-    else
-     mvwputch(w_terrain, k + SEEY - y, j + SEEX - x, c_dkgray, '#');
-   }
-  }
- }
 // Populate a list of targets with the zombies in range and visible
  std::vector <monster> mon_targets;
  std::vector <int> targetindices;
  int passtarget = -1;
  for (int i = 0; i < z.size(); i++) {
-  if (z[i].posx >= x0 && z[i].posx <= x1 &&
-      z[i].posy >= y0 && z[i].posy <= y1 &&
-      z[i].friendly == 0 && u_see(&(z[i]), junk)) {
+  if (u_see(&(z[i]), junk) && z[i].friendly == 0 &&
+      z[i].posx >= x0 && z[i].posx <= x1 &&
+      z[i].posy >= y0 && z[i].posy <= y1) {
    mon_targets.push_back(z[i]);
    targetindices.push_back(i);
    if (i == last_target)
     passtarget = mon_targets.size() - 1;
-   z[i].draw(w_terrain, u.posx, u.posy, true);
   }
  }
 

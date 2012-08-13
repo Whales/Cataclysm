@@ -331,28 +331,50 @@ int calendar::sunlight()
   return DAYLIGHT_LEVEL;
 }
 
-std::string calendar::print_time(bool twentyfour)
+std::string calendar::print_time(bool exact, bool twentyfour)
 {
  std::stringstream ret;
- if (twentyfour) {
-  ret << hour << ":";
-  if (minute < 10)
-   ret << "0";
-  ret << minute;
+ if (exact){
+  if (twentyfour) {
+   ret << hour << ":";
+   if (minute < 10)
+    ret << "0";
+   ret << minute;
+  } else {
+   int hours = hour % 12;
+   if (hours == 0)
+    hours = 12;
+   ret << hours << ":";
+   if (minute < 10)
+    ret << "0";
+   ret << minute;
+   if (hour < 12)
+    ret << " AM";
+   else
+    ret << " PM";
+  }
  } else {
-  int hours = hour % 12;
-  if (hours == 0)
-   hours = 12;
-  ret << hours << ":";
-  if (minute < 10)
-   ret << "0";
-  ret << minute;
-  if (hour < 12)
-   ret << " AM";
-  else
-   ret << " PM";
- }
+  calendar sunrise_time = sunrise(), sunset_time = sunset();
 
+  int mins         = minutes_past_midnight(),
+      sunrise_mins = sunrise_time.minutes_past_midnight(),
+      sunset_mins  = sunset_time.minutes_past_midnight(),
+      noon_mins    = sunrise_mins + int((sunset_mins - sunrise_mins)/2);
+
+  if (mins > sunset_mins + TWILIGHT_MINUTES || mins < sunrise_mins)
+   ret << "Night";
+  else if (mins >= sunrise_mins && mins <= sunrise_mins + TWILIGHT_MINUTES)
+   ret << "Dawn";
+  else if (mins >  sunrise_mins && mins <  noon_mins - TWILIGHT_MINUTES)
+   ret << "Morning";
+  else if (mins >= noon_mins - TWILIGHT_MINUTES &&
+           mins <= noon_mins + TWILIGHT_MINUTES)
+   ret << "Noon";
+  else if (mins >= sunset_mins && mins <= sunset_mins + TWILIGHT_MINUTES)
+   ret << "Evening";
+  else
+   ret << "Day"; // actually "Afternoon", but it's too long.
+ }
  return ret.str();
 }
 

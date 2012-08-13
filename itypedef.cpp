@@ -1546,6 +1546,11 @@ ARMOR("silver necklace",14, 500,C_DECOR,	SILVER,		MNULL,
 A nice silver necklace.  You can wear it if you like, but it won't provide\n\
 any effects.");
 
+ARMOR("watch",40, 40,C_DECOR,	STEEL,		GLASS,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,	0,	"\
+A self-winding wristwatch, simple, reliable and probably waterproof. You can\n\
+wear it if you like, but it only shows time.");
+
 // AMMUNITION
 // Material should be the wrapper--even though shot is made of iron, because
 //   it can survive a dip in water and be okay, its material here is PLASTIC.

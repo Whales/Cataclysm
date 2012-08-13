@@ -482,70 +482,65 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
  char ch;
 // The main loop.
  do {
-// Clear the target window.
+  werase(w_terrain);
+  draw_ter();
+// Clear the target window (partially).
   for (int i = 4; i < 12; i++) {
    for (int j = 1; j < 46; j++)
     mvwputch(w_target, i, j, c_white, ' ');
   }
+// ...drawing trajectory and target info
   if (x != u.posx || y != u.posy) {
-// Calculate the return vector (and draw it too)
-   for (int i = 0; i < ret.size(); i++)
-    m.drawsq(this, w_terrain, ret[i].x, ret[i].y, false, true);
-// Draw the player
-   mvwputch(w_terrain, SEEX, SEEY, u.color(), '@');
-// Draw the Monsters
-   for (int i = 0; i < z.size(); i++) {
-    if (u_see(&(z[i]), tart) && z[i].posx >= lowx && z[i].posy >= lowy &&
-                                z[i].posx <=  hix && z[i].posy <=  hiy)
-     z[i].draw(w_terrain, u.posx, u.posy, false);
-   }
-// Draw the NPCs
-   for (int i = 0; i < active_npc.size(); i++) {
-    if (u_see(active_npc[i].posx, active_npc[i].posy, tart))
-     active_npc[i].draw(w_terrain, u.posx, u.posy, false);
-   }
    if (m.sees(u.posx, u.posy, x, y, -1, tart)) {// Selects a valid line-of-sight
     ret = line_to(u.posx, u.posy, x, y, tart); // Sets the vector to that LOS
-    for (int i = 0; i < ret.size(); i++) {
+    for (int i = 0; i < ret.size(); i++) {    // Hilights vector's squares
      if (abs(ret[i].x - u.posx) <= sight_dist &&
          abs(ret[i].y - u.posy) <= sight_dist   ) {
-      if (mon_at(ret[i].x, ret[i].y) != -1 &&
-          u_see(&(z[mon_at(ret[i].x, ret[i].y)]), tart))
-       z[mon_at(ret[i].x, ret[i].y)].draw(w_terrain, u.posx, u.posy, true);
-      else if (npc_at(ret[i].x, ret[i].y) != -1)
-       active_npc[npc_at(ret[i].x, ret[i].y)].draw(w_terrain, u.posx, u.posy,
-                                                   true);
+      int mon = mon_at(ret[i].x, ret[i].y);
+      int smb = npc_at(ret[i].x, ret[i].y);
+      if (mon != -1 && u_see(&(z[mon]), tart))
+       z[mon].draw(w_terrain, u.posx, u.posy, true);
+      else if (smb != -1)
+       active_npc[smb].draw(w_terrain, u.posx, u.posy, true);
       else
        m.drawsq(this, w_terrain, ret[i].x, ret[i].y, true, true);
      }
     }
    }
-
-   if (!relevent) { // currently targetting vehicle to refill with fuel
-    vehicle *veh = m.veh_at(x, y);
-    if (veh)
-     mvwprintw(w_target, 5, 1, "There is a %s", veh->name.c_str());
+   int veh_part = 0;
+   vehicle *veh = m.veh_at(x, y);
+   if (!relevent && veh) { // currently targetting vehicle to refill with fuel
+    mvwprintw(w_target, 5, 1, "There is a %s", veh->name.c_str());
    } else
     mvwprintw(w_target, 5, 1, "Range: %d", rl_dist(u.posx, u.posy, x, y));
 
-   if (mon_at(x, y) == -1) {
+   int mon = mon_at(x, y);
+   int smb = npc_at(x, y);
+   if (mon != -1 && u_see(&(z[mon]), tart)) // Visible monster
+    z[mon].print_info(this, w_target);
+   else if (smb != -1)                      // NPC
+    active_npc[smb].print_info(w_target);
+   else if (veh) {                          // Vehicle
+     mvwprintz(w_target, 6, 1, c_ltgray, "There is a %s there. Parts:",
+               veh->name.c_str());
+     veh->print_part_desc(w_target, 7, 48, veh_part);
+   } else
     mvwputch(w_terrain, y + SEEY - u.posy, x + SEEX - u.posx, c_red, '*');
-    mvwprintw(w_status, 0, 9, "                             ");
-   } else if (u_see(&(z[mon_at(x, y)]), tart))
-    z[mon_at(x, y)].print_info(this, w_target);
-   wrefresh(w_target);
-  }
+  } // else "you aimed yourself"?
+// rangebox
+  for (int j = u.posx - SEEX; j <= u.posx + SEEX; j++)
+   for (int k = u.posy - SEEY; k <= u.posy + SEEY; k++)
+    if (u_see(j, k, junk) && (k < lowy || k > hiy || j < lowx || j > hix))
+      mvwputch(w_terrain, k + SEEY - u.posy, j + SEEX - u.posx, c_dkgray, '#');
 
+  wrefresh(w_target);
   wrefresh(w_terrain);
-  wrefresh(w_status);
-  refresh();
+
   ch = input();
   get_direction(this, tarx, tary, ch);
-  if (tarx != -2 && tary != -2 && ch != '.') {	// Direction character pressed
-   if (m.sees(u.posx, u.posy, x, y, -1, junk))
-    m.drawsq(this, w_terrain, x, y, false, true);
-   else
-    mvwputch(w_terrain, y + SEEY - u.posy, x + SEEX - u.posx, c_black, 'X');
+  if (tarx != -2 && tary != -2) {	// Direction character pressed
+   if (!u_see(x, y, junk)) // clear previous cursor mark
+    mvwputch(w_terrain, y - u.posy + SEEY, x - u.posx + SEEX, c_black, ' ');
    x += tarx;
    y += tary;
    if (x < lowx)

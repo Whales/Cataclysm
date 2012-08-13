@@ -1446,7 +1446,10 @@ void player::disp_status(WINDOW *w, game *g)
   mvwprintz(w, 1, 33, temp_col, "Recoil");
  }
 // Time.
- mvwprintz(w, 1, 41, c_white, g->turn.print_time(g->show24hours).c_str());
+ bool has_watch = (is_wearing(itm_watch) || has_amount(itm_watch, 1));
+ if (g->levz >= 0 || has_watch)
+  mvwprintz(w, 1, 41, c_white,
+            g->turn.print_time(has_watch, g->show24hours).c_str());
 
       if (hunger > 2800)
   mvwprintz(w, 2, 0, c_red,    "Starving!");
