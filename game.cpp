@@ -3414,12 +3414,12 @@ void game::explosion(int x, int y, int power, int shrapnel, bool fire)
      explode_mon(mon_hit); // Explode them if it was big overkill
     else
      kill_mon(mon_hit); // TODO: player's fault?
-
-    int vpart;
-    vehicle *veh = m.veh_at(i, j, vpart);
-    if (veh)
-     veh->damage (vpart, dam, false);
    }
+
+   int vpart;
+   vehicle *veh = m.veh_at(i, j, vpart);
+   if (veh)
+    veh->damage (vpart, dam, false);
 
    if (npc_hit != -1) {
     active_npc[npc_hit].hit(this, bp_torso, 0, rng(dam / 2, dam * 1.5), 0);
@@ -3589,10 +3589,14 @@ void game::resonance_cascade(int x, int y)
       field_id type;
       switch (rng(1, 7)) {
        case 1: type = fd_blood;
+        break;
        case 2: type = fd_bile;
+        break;
        case 3:
        case 4: type = fd_slime;
+        break;
        case 5: type = fd_fire;
+        break;
        case 6:
        case 7: type = fd_nuke_gas;
       }
