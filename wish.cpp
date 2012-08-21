@@ -154,15 +154,15 @@ void game::wish()
    ch = getch();
   else
    ch = input();
- } while (ch != '\n');
- clear();
- mvprintw(0, 0, "\nWish granted - %d (%d).", tmp.type->id, itm_antibiotics);
- tmp.invlet = nextinv;
- u.i_add(tmp);
- advance_nextinv();
- getch();
+ } while (ch != '\n' && ch != KEY_ESCAPE);
  delwin(w_info);
  delwin(w_list);
+ if (ch == '\n') {
+  popup("Wish granted - %d (%d).", tmp.type->id, itm_antibiotics);
+  tmp.invlet = nextinv;
+  u.i_add(tmp);
+  advance_nextinv();
+ }
 }
 
 void game::monster_wish()
@@ -300,17 +300,17 @@ void game::monster_wish()
    ch = getch();
   else
    ch = input();
- } while (ch != '\n');
- clear();
+ } while (ch != '\n' && ch != KEY_ESCAPE);
  delwin(w_info);
  delwin(w_list);
  refresh_all();
- wrefresh(w_terrain);
- point spawn = look_around();
- if (spawn.x == -1)
-  return;
- tmp.spawn(spawn.x, spawn.y);
- z.push_back(tmp);
+ if (ch == '\n') {
+  point spawn = look_around();
+  if (spawn.x == -1)
+   return;
+  tmp.spawn(spawn.x, spawn.y);
+  z.push_back(tmp);
+ }
 }
 
 void game::mutation_wish()
@@ -467,12 +467,12 @@ void game::mutation_wish()
    ch = getch();
   else
    ch = input();
- } while (ch != '\n');
- clear();
- if (a+shift == 0)
-  u.mutate(this);
- else
-  u.mutate_towards(this, pl_flag(a + shift));
+ } while (ch != '\n' && ch != KEY_ESCAPE);
  delwin(w_info);
  delwin(w_list);
+ if (ch == '\n')
+  if (a+shift == 0)
+   u.mutate(this);
+  else
+   u.mutate_towards(this, pl_flag(a + shift));
 }

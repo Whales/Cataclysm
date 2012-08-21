@@ -1144,9 +1144,9 @@ You can't trust everything that you see.";
  case DI_ADRENALINE:
   if (dis.duration > 150)
    return "\
-Speed +80;   Strength + 5;   Dexterity + 3;   Intelligence - 8;   Perception + 1";
+Speed +40;  Strength + 5;  Dexterity + 3;  Intelligence - 8;  Perception + 1";
   return "\
-Strength - 2;     Dexterity - 1;     Intelligence - 1;     Perception - 1";
+Speed -10;  Strength - 2;  Dexterity - 1;  Intelligence - 1;  Perception - 1";
 
  case DI_ASTHMA:
   stream<< "Speed - " << int(dis.duration / 5) << "%;     Strength - 2;     " <<
@@ -1158,7 +1158,7 @@ Strength - 2;     Dexterity - 1;     Intelligence - 1;     Perception - 1";
    return "\
 Speed +50;  Strength + 2;  Dexterity + 2;  Intelligence + 3;  Perception + 3";
    return "\
-Speed -40;   Strength - 3;   Dexterity - 2;   Intelligence - 2";
+Speed -40;  Strength - 3;  Dexterity - 2;  Intelligence - 1";
 
  case DI_IN_PIT:
   return "\

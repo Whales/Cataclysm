@@ -300,21 +300,24 @@ bool query_yn(const char *mes, ...)
  char buff[1024];
  vsprintf(buff, mes, ap);
  va_end(ap);
- int win_width = strlen(buff) + 26;
- WINDOW* w = newwin(3, win_width, 11, 0);
+ int win_width = strlen(buff) + 2;
+ if (win_width < 24)
+  win_width = 24;
+ WINDOW* w = newwin(4, win_width, 11, 0);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- mvwprintz(w, 1, 1, c_ltred, "%s (Y/N - case sensitive)", buff);
+ mvwprintz(w, 1, int((win_width - strlen(buff)) / 2), c_ltred, buff);
+ mvwprintz(w, 2, int((win_width - 22) / 2), c_ltred, "(Y/N - case sensitive)");
  wrefresh(w);
  char ch;
  do
   ch = getch();
- while (ch != 'Y' && ch != 'N');
+ while (ch != 'Y' && ch != '\n' && ch != 'N' && ch != KEY_ESCAPE);
  werase(w);
  wrefresh(w);
  delwin(w);
  refresh();
- if (ch == 'Y')
+ if (ch == 'Y' || ch == '\n')
   return true;
  return false;
 }

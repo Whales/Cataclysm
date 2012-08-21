@@ -4178,7 +4178,7 @@ void game::examine()
   if (veh && query_yn("Exit vehicle?") &&
       (veh->velocity != 0 ? query_yn("Really exit moving vehicle?") : true)) {
 // free unboard action, because we do not leave seat yet...
-   m.unboard_vehicle (this, u.posx, u.posy);
+   m.unboard_vehicle(this, u.posx, u.posy);
    if (veh->velocity != 0) { // TODO: move player out of harms way
     int dsgn = veh->parts[vpart].mount_dx > 0 ? 1 : -1;
     u.moves -= 200; // and now we leave it!
@@ -6999,17 +6999,13 @@ void game::write_msg()
 void game::msg_buffer()
 {
  WINDOW *w = newwin(25, 80, 0, 0);
- wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
-            LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- mvwprintz(w, 24, 32, c_red, "Press q to return");
-
  int offset = 0;
  char ch;
  do {
   werase(w);
   wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
              LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
-  mvwprintz(w, 24, 32, c_red, "Press q to return");
+  mvwprintz(w, 24, 28, c_red, "Press ESC or q to return");
 
   int line = 1;
   int lasttime = -1;
@@ -7053,21 +7049,35 @@ void game::msg_buffer()
    } // if (line <= 23)
   } //for (i = 1; i <= 10 && line <= 23 && offset + i <= messages.size(); i++)
   if (offset > 0)
-   mvwprintz(w, 24, 27, c_magenta, "^^^");
+   mvwprintz(w,  0, 2, h_white, " ^^^ ");
   if (offset + i < messages.size())
-   mvwprintz(w, 24, 51, c_magenta, "vvv");
+   mvwprintz(w, 24, 2, h_white, " vvv ");
   wrefresh(w);
 
   ch = input();
   int dirx = 0, diry = 0;
 
   get_direction(this, dirx, diry, ch);
-  if (diry == -1 && offset > 0)
-   offset--;
-  if (diry == 1 && offset < messages.size())
-   offset++;
-
- } while (ch != 'q' && ch != 'Q' && ch != ' ');
+  if (diry == -1 && offset > 0) {
+   if (dirx == 1) {
+    offset -= 10;
+    if (offset < 0)
+     offset = 0;
+   } else if (dirx == -1)
+    offset = 0;
+   else
+    offset--;
+  } else if (diry == 1 && offset < messages.size() - 12) {
+   if (dirx == 1) {
+    offset += 10;
+    if (offset > messages.size() - 12)
+     offset = messages.size() - 12;
+   } else if (dirx == -1)
+    offset = messages.size() - 12;
+   else
+    offset++;
+  }
+ } while (ch != 'q' && ch != 'Q' && ch != ' ' && ch != KEY_ESCAPE);
 
  werase(w);
  delwin(w);
@@ -7081,6 +7091,7 @@ void game::teleport(player *p)
  int newx, newy, t, tries = 0;
  bool is_u = (p == &u);
  p->add_disease(DI_TELEGLOW, 300, this);
+ m.unboard_vehicle(this, p->posx, p->posy);
  do {
   newx = p->posx + rng(0, SEEX * 2) - SEEX;
   newy = p->posy + rng(0, SEEY * 2) - SEEY;

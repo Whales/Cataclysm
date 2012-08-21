@@ -393,8 +393,8 @@ bool player::install_bionics(game *g, it_bionic* type)
  int skdec = int((pl_skill * 10) / 4) % 10;
 
 // Header text
- mvwprintz(w, 0,  0, c_white, "Installing bionics:");
- mvwprintz(w, 0, 20, type->color, bio_name.c_str());
+ mvwprintz(w, 0,  0, c_white, "Installing bionics: ");
+ wprintz(w, type->color, bio_name.c_str());
 
 // Dividing bars
  for (int i = 0; i < 80; i++) {
@@ -441,7 +441,7 @@ bool player::install_bionics(game *g, it_bionic* type)
  wrefresh(w);
 
  if (type->id == itm_bionics_battery) {	// No selection list; just confirm
-  mvwprintz(w,  2, 0, h_ltblue, "Battery Level +%d", BATTERY_AMOUNT);
+  mvwprintz(w,  2, 0, h_white, "Battery Level +%d", BATTERY_AMOUNT);
   mvwprintz(w, 22, 0, c_ltblue, "\
 Installing this bionic will increase your total battery capacity by 10.\n\
 Batteries are necessary for most bionics to function.  They also require a\n\
@@ -478,14 +478,15 @@ charge mechanism, which must be installed from another CBM.");
  do {
 
   bionic_id id = type->options[selection];
-  mvwprintz(w, 2 + selection, 0, (has_bionic(id) ? h_ltred : h_ltblue),
+  mvwprintz(w, 2 + selection, 0, (has_bionic(id) ? h_ltred : h_white),
             bionics[id].name.c_str());
 
 // Clear the bottom three lines...
-  mvwprintz(w, 22, 0, c_ltgray, "\
-                                                                             \n\
-                                                                             \n\
-                                                                             ");
+  for (int i = 0; i < 80; i++) {
+   mvwputch(w, 22, i, c_ltgray, ' ');
+   mvwputch(w, 23, i, c_ltgray, ' ');
+   mvwputch(w, 24, i, c_ltgray, ' ');
+  }
 // ...and then fill them with the description of the selected bionic
   mvwprintz(w, 22, 0, c_ltblue, bionics[id].description.c_str());
 
