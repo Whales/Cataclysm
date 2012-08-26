@@ -56,6 +56,7 @@ enum room_type {
 };
 
 bool connects_to(oter_id there, int dir_from_here);
+void shop_parking(map *m, int tw);
 void house_room(map *m, room_type type, int x1, int y1, int x2, int y2);
 void science_room(map *m, int x1, int y1, int x2, int y2, int rotate);
 void set_science_room(map *m, int x1, int y1, bool faces_right, int turn);
@@ -617,193 +618,137 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
 
  case ot_road_ns:
  case ot_road_ew:
-  if ((t_west  >= ot_house_north && t_west  <= ot_mansion) ||
-      (t_east  >= ot_house_north && t_east  <= ot_mansion) ||
-      (t_north >= ot_house_north && t_north <= ot_mansion) ||
-      (t_south >= ot_house_north && t_south <= ot_mansion)   )
-   rn = 1;	// rn = 1 if this road has sidewalks
-  else
-   rn = 0;
-  for (int i = 0; i < SEEX * 2; i++) {
-   for (int j = 0; j < SEEY * 2; j++) {
-    if (i < 4 || i >= SEEX * 2 - 4) {
-     if (rn == 1)
-      ter(i, j) = t_sidewalk;
-     else
-      ter(i, j) = grass_or_dirt();
-    } else {
-     if ((i == SEEX - 1 || i == SEEX) && j % 4 != 0)
-      ter(i, j) = t_pavement_y;
-     else
-      ter(i, j) = t_pavement;
-    }
-   }
-  }
-  if (terrain_type == ot_road_ew)
-   rotate(1);
-  place_items(mi_road, 5, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, false, turn);
-  break;
 
  case ot_road_ne:
  case ot_road_es:
  case ot_road_sw:
  case ot_road_wn:
-  if ((t_west  >= ot_house_north && t_west  <= ot_mansion) ||
-      (t_east  >= ot_house_north && t_east  <= ot_mansion) ||
-      (t_north >= ot_house_north && t_north <= ot_mansion) ||
-      (t_south >= ot_house_north && t_south <= ot_mansion)   )
-   rn = 1;	// rn = 1 if this road has sidewalks
-  else
-   rn = 0;
-  for (int i = 0; i < SEEX * 2; i++) {
-   for (int j = 0; j < SEEY * 2; j++) {
-    if ((i >= SEEX * 2 - 4 && j < 4) || i < 4 || j >= SEEY * 2 - 4) {
-     if (rn == 1)
-      ter(i, j) = t_sidewalk;
-     else
-      ter(i, j) = grass_or_dirt();
-    } else {
-     if (((i == SEEX - 1 || i == SEEX) && j % 4 != 0 && j < SEEY - 1) ||
-         ((j == SEEY - 1 || j == SEEY) && i % 4 != 0 && i > SEEX))
-      ter(i, j) = t_pavement_y;
-     else
-      ter(i, j) = t_pavement;
-    }
-   }
-  }
-  if (terrain_type == ot_road_es)
-   rotate(1);
-  if (terrain_type == ot_road_sw)
-   rotate(2);
-  if (terrain_type == ot_road_wn)
-   rotate(3);
-  place_items(mi_road, 5, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, false, turn);
-  break;
 
  case ot_road_nes:
  case ot_road_new:
  case ot_road_nsw:
  case ot_road_esw:
+
+ case ot_road_nesw:
+ case ot_road_nesw_manhole: {
+// sidewalks?
   if ((t_west  >= ot_house_north && t_west  <= ot_mansion) ||
       (t_east  >= ot_house_north && t_east  <= ot_mansion) ||
       (t_north >= ot_house_north && t_north <= ot_mansion) ||
-      (t_south >= ot_house_north && t_south <= ot_mansion)   )
-   rn = 1;	// rn = 1 if this road has sidewalks
+      (t_south >= ot_house_north && t_south <= ot_mansion) ||
+      (terrain_type == ot_road_nesw) || (terrain_type == ot_road_nesw_manhole) )
+   rn = 1;
   else
    rn = 0;
+// available directions?
+  tw = (((t_north >= ot_road_null && t_north <= ot_bridge_ns) ||
+         t_north == ot_hiway_ns) ? 1 : 0 );
+  bw = (((t_south >= ot_road_null && t_south <= ot_bridge_ns) ||
+         t_south == ot_hiway_ns) ? 1 : 0 );
+  lw = (((t_west  >= ot_hiway_ew && t_west  <= ot_road_nesw_manhole) ||
+         t_west == ot_bridge_ew) ? 1 : 0 );
+  rw = (((t_east  >= ot_hiway_ew && t_east  <= ot_road_nesw_manhole) ||
+         t_east == ot_bridge_ew) ? 1 : 0 );
+// draw road
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
-    if (i < 4 || (i >= SEEX * 2 - 4 && (j < 4 || j >= SEEY * 2 - 4))) {
-     if (rn == 1)
-      ter(i, j) = t_sidewalk;
+ // Upper-left corner
+    if (i < 4 && j < 4)
+     ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+ // Upper middle
+    else if (i > 3 && i < SEEX * 2 - 4 && j < 4)
+    {
+     if (tw == 1) {
+      if ((i == SEEX - 1 || i == SEEX) && j % 4 != 0)
+       ter(i, j) = t_pavement_y;
+      else
+       ter(i, j) = t_pavement;
+     }
      else
-      ter(i, j) = grass_or_dirt();
-    } else {
-     if (((i == SEEX - 1 || i == SEEX) && j % 4 != 0) ||
-         ((j == SEEY - 1 || j == SEEY) && i % 4 != 0 && i > SEEX))
+      ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+    }
+ // Upper-right corner
+    else if (i > SEEX * 2 - 5 && j < 4)
+     ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+ // Left middle
+    else if (i < 4 && j > 3 && j < SEEY * 2 - 4)
+    {
+     if (lw == 1) {
+      if ((j == SEEX - 1 || j == SEEX) && i % 4 != 0)
+       ter(i, j) = t_pavement_y;
+      else
+       ter(i, j) = t_pavement;
+     }
+     else
+      ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+    }
+ // Right middle
+    else if (i > SEEX * 2 - 5 && j > 3 && j < SEEY * 2 - 4)
+    {
+     if (rw == 1) {
+      if ((j == SEEX - 1 || j == SEEX) && i % 4 != 0)
+       ter(i, j) = t_pavement_y;
+      else
+       ter(i, j) = t_pavement;
+     }
+     else
+      ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+    }
+ // Lower-left corner
+    else if (i < 4 && j > SEEY * 2 - 5)
+     ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+ // Lower middle
+    else if (i > 3 && i < SEEX * 2 - 4 && j > SEEY * 2 - 5)
+    {
+     if (bw == 1) {
+      if ((i == SEEX - 1 || i == SEEX) && j % 4 != 0)
+       ter(i, j) = t_pavement_y;
+      else
+       ter(i, j) = t_pavement;
+     }
+     else
+      ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+    }
+ // Lower-right corner
+    else if (i > SEEX * 2 - 5 && j > SEEY * 2 - 5)
+     ter(i, j) = ((rn == 1) ? t_sidewalk : grass_or_dirt());
+ // Center
+    else {
+          // to north
+     if ( (tw == 1 && (i == SEEX - 1 || i == SEEX) && j % 4 != 0 && j < SEEY) ||
+          // to south
+          (bw == 1 && (i == SEEX - 1 || i == SEEX) &&
+           j % 4 != 0 && j > SEEY - 1) ||
+          // to west
+          (lw == 1 && (j == SEEY - 1 || j == SEEY) && i % 4 != 0 && i < SEEX) ||
+          // to east
+          (rw == 1 && (j == SEEY - 1 || j == SEEY) &&
+           i % 4 != 0 && i > SEEX - 1) )
       ter(i, j) = t_pavement_y;
      else
       ter(i, j) = t_pavement;
     }
    }
-  }
-  if (terrain_type == ot_road_esw)
-   rotate(1);
-  if (terrain_type == ot_road_nsw)
-   rotate(2);
-  if (terrain_type == ot_road_new)
-   rotate(3);
-  place_items(mi_road, 5, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, false, turn);
-  break;
-
- case ot_road_nesw:
- case ot_road_nesw_manhole:
-  if ((t_west  == ot_road_nesw || t_west  == ot_road_nesw_manhole) &&
-      (t_east  == ot_road_nesw || t_east  == ot_road_nesw_manhole) &&
-      (t_north == ot_road_nesw || t_north == ot_road_nesw_manhole) &&
-      (t_south == ot_road_nesw || t_south == ot_road_nesw_manhole)   )
-   rn = 2;	// rn = 2 if this is actually a plaza
-  else
-   rn = 1;	// rn = 1 if this road has sidewalks
-  for (int i = 0; i < SEEX * 2; i++) {
-   for (int j = 0; j < SEEY * 2; j++) {
-    if (rn == 2)
-     ter(i, j) = t_sidewalk;
-    else if ((i < 4 || i >= SEEX * 2 - 4) && (j < 4 || j >= SEEY * 2 - 4)) {
-     if (rn == 1)
-      ter(i, j) = t_sidewalk;
-     else
-      ter(i, j) = grass_or_dirt();
-    } else {
-     if (((i == SEEX - 1 || i == SEEX) && j % 4 != 0) ||
-         ((j == SEEY - 1 || j == SEEY) && i % 4 != 0))
-      ter(i, j) = t_pavement_y;
-     else
-      ter(i, j) = t_pavement;
-    }
-   }
-  }
-  if (rn == 2) {	// Special embellishments for a plaza
-   if (one_in(10)) {	// Fountain
-    for (int i = SEEX - 2; i <= SEEX + 2; i++) {
-     ter(i, i) = t_water_sh;
-     ter(i, SEEX * 2 - i) = t_water_sh;
-    }
-   }
-   if (one_in(10)) {	// Small trees in center
-    ter(SEEX - 1, SEEY - 2) = t_tree_young;
-    ter(SEEX    , SEEY - 2) = t_tree_young;
-    ter(SEEX - 1, SEEY + 2) = t_tree_young;
-    ter(SEEX    , SEEY + 2) = t_tree_young;
-    ter(SEEX - 2, SEEY - 1) = t_tree_young;
-    ter(SEEX - 2, SEEY    ) = t_tree_young;
-    ter(SEEX + 2, SEEY - 1) = t_tree_young;
-    ter(SEEX + 2, SEEY    ) = t_tree_young;
-   }
-   if (one_in(14)) {	// Rows of small trees
-    int gap = rng(2, 4);
-    int start = rng(0, 4);
-    for (int i = 2; i < SEEX * 2 - start; i += gap) {
-     ter(i               , start) = t_tree_young;
-     ter(SEEX * 2 - 1 - i, start) = t_tree_young;
-     ter(start, i               ) = t_tree_young;
-     ter(start, SEEY * 2 - 1 - i) = t_tree_young;
-    }
-   }
-   place_items(mi_trash, 5, 0, 0, SEEX * 2 -1, SEEX * 2 - 1, true, 0);
-  } else
-   place_items(mi_road,  5, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, false, turn);
+  } // end of drawing
+ // Finalizing
   if (terrain_type == ot_road_nesw_manhole)
    ter(rng(6, SEEX * 2 - 6), rng(6, SEEX * 2 - 6)) = t_manhole_cover;
-  break;
+  place_items(mi_road,  5, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, false, turn);
+ } break;
 
  case ot_bridge_ns:
  case ot_bridge_ew:
-  for (int i = 0; i < SEEX * 2; i++) {
-   for (int j = 0; j < SEEY * 2; j++) {
-    if (i < 4 || i >= SEEX * 2 - 4)
-     ter(i, j) = t_water_dp;
-    else if (i == 4 || i == SEEX * 2 - 5)
-     ter(i, j) = t_railing_v;
-    else {
-     if ((i == SEEX - 1 || i == SEEX) && j % 4 != 0)
-      ter(i, j) = t_pavement_y;
-     else
-      ter(i, j) = t_pavement;
-    }
-   }
-  }
-  if (terrain_type == ot_bridge_ew)
-   rotate(1);
-  place_items(mi_road, 5, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, false, turn);
-  break;
  
  case ot_hiway_ns:
- case ot_hiway_ew:
+ case ot_hiway_ew: {
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
-    if (i < 3 || i >= SEEX * 2 - 3)
-     ter(i, j) = grass_or_dirt();
+    if (i < 3 || i >= SEEX * 2 - 3) {
+     if (terrain_type == ot_bridge_ns || terrain_type == ot_bridge_ew)
+      ter(i, j) = t_water_dp;
+     else
+      ter(i, j) = grass_or_dirt();
+    }
     else if (i == 3 || i == SEEX * 2 - 4)
      ter(i, j) = t_railing_v;
     else {
@@ -814,10 +759,10 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
     }
    }
   }
-  if (terrain_type == ot_hiway_ew)
+  if (terrain_type == ot_bridge_ew || terrain_type == ot_hiway_ew)
    rotate(1);
   place_items(mi_road, 8, 0, 0, SEEX * 2 - 1, SEEX * 2 - 1, false, turn);
-  break;
+ } break;
 
  case ot_river_center:
   for (int i = 0; i < SEEX * 2; i++) {
@@ -1189,21 +1134,41 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    rotate(3);
   break;
 
- case ot_s_lot:
+ case ot_s_lot: {
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEY * 2; j++) {
-    if ((j == 5 || j == 9 || j == 13 || j == 17 || j == 21) &&
-        ((i > 1 && i < 8) || (i > 14 && i < SEEX * 2 - 2)))
+    if ((j == 6 || j == 11 || j == 16 || j == 21) &&
+        ((i > 1 && i < 9) || (i > 14 && i < SEEX * 2 - 2)))
      ter(i, j) = t_pavement_y;
-    else if ((j < 2 && i > 7 && i < 17) ||
-             (j >= 2 && j < SEEY * 2 - 2 && i > 1 && i < SEEX * 2 - 2))
+    else if (j >= 2 && j < SEEY * 2 - 2 && i > 1 && i < SEEX * 2 - 2)
      ter(i, j) = t_pavement;
     else
      ter(i, j) = grass_or_dirt();
    }
   }
-  if (one_in(3))
-  {
+  bool road_at_n = ((t_north >= ot_road_null && t_north <= ot_bridge_ns) ||
+                    t_north == ot_hiway_ns);
+  bool road_at_s = ((t_south >= ot_road_null && t_south <= ot_bridge_ns) ||
+                    t_south == ot_hiway_ns);
+  bool road_at_w = ((t_west >= ot_hiway_ew && t_west <= ot_road_nesw_manhole) ||
+                    t_south == ot_bridge_ew);
+  bool road_at_e = ((t_east >= ot_hiway_ew && t_east <= ot_road_nesw_manhole) ||
+                    t_south == ot_bridge_ew);
+
+  if (road_at_w || road_at_e) {
+   rotate(1);
+   if (road_at_w)
+    square(this, t_pavement,            0, 8,            1, 15);
+   if (road_at_e)
+    square(this, t_pavement, SEEX * 2 - 2, 8, SEEX * 2 - 1, 15);
+  } else {
+   if (road_at_n)
+    square(this, t_pavement, 8,            0, 15,            1);
+   if (road_at_s)
+    square(this, t_pavement, 8, SEEY * 2 - 2, 15, SEEY * 2 - 1);
+  }
+
+  if (one_in(3)) {
       int vx = rng (0, 3) * 4 + 5;
       int vy = 4;
       vhtype_id vt = (one_in(10)? veh_sandbike :
@@ -1212,13 +1177,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
       add_vehicle (g, vt, vx, vy, one_in(2)? 90 : 270);
   }
   place_items(mi_road, 8, 0, 0, SEEX * 2 - 1, SEEY * 2 - 1, false, turn);
-  if (t_east  >= ot_road_null && t_east  <= ot_road_nesw_manhole)
-   rotate(1);
-  if (t_south >= ot_road_null && t_south <= ot_road_nesw_manhole)
-   rotate(2);
-  if (t_west  >= ot_road_null && t_west  <= ot_road_nesw_manhole)
-   rotate(3);
-  break;
+  } break;
 
  case ot_park: {
   if (one_in(3)) { // Playground
@@ -1297,10 +1256,10 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
   lw = rng(0, 3);
   rw = SEEX * 2 - rng(1, 4);
   cw = rng(lw + 4, rw - 5);
-  rn = rng(3, 6);	// Frequency of gas pumps
+  rn = rng(6, 8);	// Frequency of gas pumps
   for (int i = 0; i < SEEX * 2; i++) {
    for (int j = 0; j < SEEX * 2; j++) {
-    if (j < tw && (tw - j) % 4 == 0 && i > lw && i < rw &&
+    if (j < tw && (tw - j) % 5 == 0 && i > lw && i < rw &&
         (i - (1 + lw)) % rn == 0)
      ter(i, j) = t_gas_pump;
     else if ((j < 2 && i > 7 && i < 16) || (j < tw && i > lw && i < rw))
@@ -1704,15 +1663,12 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      ter(i, j) = t_counter;
     else if (j > tw && j < bw && i > lw && i < rw)
      ter(i, j) = t_floor;
-    else if (tw >= 6 && j >= tw - 6 && j < tw && i >= lw && i <= rw) {
-     if ((i - lw) % 4 == 0)
-      ter(i, j) = t_pavement_y;
-     else
-      ter(i, j) = t_pavement;
-    } else
+    else
      ter(i, j) = grass_or_dirt();
    }
   }
+  if (tw >= 6) // Big enough for its own parking lot
+   shop_parking(this, tw);
   rn = rng(tw + 2, cw - 6);
   for (int i = lw + 3; i <= rw - 5; i += 4) {
    if (cw - 6 > tw + 1) {
@@ -1836,15 +1792,11 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
      ter(i, j) = t_rack;
     else if (i > 2 && i < SEEX * 2 - 3 && j > 6 && j < SEEY * 2 - 1)
      ter(i, j) = t_floor;
-    else if ((j > 0 && j < 6 &&
-             (i == 2 || i == 6 || i == 10 || i == 17 || i == SEEX * 2 - 3)))
-     ter(i, j) = t_pavement_y;
-    else if (j < 6 && i > 1 && i < SEEX * 2 - 2)
-     ter(i, j) = t_pavement;
     else
      ter(i, j) = grass_or_dirt();
    }
   }
+  shop_parking(this, 6);
   ter(rng(11, 14), 6) = t_door_c;
   ter(rng(5, 14), 14) = t_door_c;
   place_items(mi_pistols,	70, 12,  9, 13, 11, false, 0);
@@ -4373,11 +4325,8 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
   bw = SEEY * 2 - rng(1, 2) - rng(0, 1) * rng(0, 1);
   lw = rng(0, 4);
   rw = SEEX * 2 - rng(1, 5);
-  if (tw >= 6) { // Big enough for its own parking lot
-   square(this, t_pavement, 0, 0, SEEX * 2 - 1, tw - 1);
-   for (int i = rng(0, 1); i < SEEX * 2; i += 4)
-    line(this, t_pavement_y, i, 1, i, tw - 1);
-  }
+  if (tw >= 6) // Big enough for its own parking lot
+   shop_parking(this, tw);
 // Floor and walls
   square(this, t_floor, lw, tw, rw, bw);
   line(this, t_wall_h, lw, tw, rw, tw);
@@ -4543,8 +4492,7 @@ void map::draw_map(oter_id terrain_type, oter_id t_north, oter_id t_east,
    if (ter(x, y) == t_floor)
     add_spawn(mon_zombie, 1, x, y);
   }
-// Finally, figure out where the road is; contruct our entrance facing that.
-  std::vector<direction> faces_road;
+
   if (t_east >= ot_road_null && t_east <= ot_bridge_ew)
    rotate(1);
   if (t_south >= ot_road_null && t_south <= ot_bridge_ew)
@@ -6911,6 +6859,13 @@ bool connects_to(oter_id there, int dir)
   debugmsg("Connects_to with dir of %d", dir);
   return false;
  }
+}
+
+void shop_parking(map *m, int tw)
+{
+ square(m, t_pavement, 0, 0, SEEX * 2 - 1, tw - 1);
+ for (int i = 4; i < SEEX * 2; i += 5)
+  line(m, t_pavement_y, i, 1, i, tw - 1);
 }
 
 void house_room(map *m, room_type type, int x1, int y1, int x2, int y2)

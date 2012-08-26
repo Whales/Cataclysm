@@ -1808,6 +1808,8 @@ void iuse::pheromone(game *g, player *p, item *it, bool t)
   else
    g->add_msg("...and several nearby zombies turn friendly!");
  }
+ if (it->charges == 1)
+  it->invlet = 0;
 }
  
 

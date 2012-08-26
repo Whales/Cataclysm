@@ -1956,10 +1956,13 @@ void game::debug()
    popup_top("\
 Location %d:%d in %d:%d:%d, %s\n\
 Current turn: %d; Next spawn %d.\n\
+NPCs are %s spawn.\n\
 %d monsters exist.\n\
 %d events planned.", u.posx, u.posy, levx, levy, levz,
 oterlist[cur_om.ter(levx / 2, levy / 2)].name.c_str(),
-int(turn), int(nextspawn), z.size(), events.size());
+int(turn), int(nextspawn),
+(OPTIONS[OPT_RANDOM_NPCS] ? "going to" : "NOT going to"),
+z.size(), events.size());
 
    if (!active_npc.empty())
     popup_top("%s: %d:%d (you: %d:%d)", active_npc[0].name.c_str(),
@@ -3081,7 +3084,7 @@ void game::monmove()
  for (int i = 0; i < z.size(); i++) {
   if (i < 0 || i > z.size())
    debugmsg("Moving out of bounds monster! i %d, z.size() %d", i, z.size());
-  while (!z[i].can_move_to(m, z[i].posx, z[i].posy) && !z[i].dead) {
+  while (!z[i].dead && !z[i].can_move_to(m, z[i].posx, z[i].posy)) {
 // If we can't move to our current position, assign us to a new one
    if (debugmon)
     debugmsg("%s can't move to its location! (%d:%d), %s", z[i].name().c_str(),
@@ -5360,6 +5363,12 @@ void game::plfire(bool burst)
    return;
   }
  }
+ if (u.weapon.has_flag(IF_RELOAD_AND_SHOOT)) {
+  u.weapon.reload(u, reload_index);
+  u.moves -= u.weapon.reload_time(u);
+  refresh_all();
+ }
+
  if (u.weapon.charges == 0 && !u.weapon.has_flag(IF_RELOAD_AND_SHOOT)) {
   add_msg("You need to reload!");
   return;
@@ -5397,12 +5406,6 @@ void game::plfire(bool burst)
    if (i == last_target)
     passtarget = mon_targets.size() - 1;
   }
- }
-
- if (u.weapon.has_flag(IF_RELOAD_AND_SHOOT)) {
-  u.weapon.reload(u, reload_index);
-  u.moves -= u.weapon.reload_time(u);
-  refresh_all();
  }
 
  // target() sets x and y, and returns an empty vector if we canceled (Esc)
@@ -7110,7 +7113,8 @@ void game::teleport(player *p)
  int newx, newy, t, tries = 0;
  bool is_u = (p == &u);
  p->add_disease(DI_TELEGLOW, 300, this);
- m.unboard_vehicle(this, p->posx, p->posy);
+ if (u.in_vehicle)
+  m.unboard_vehicle(this, p->posx, p->posy);
  do {
   newx = p->posx + rng(0, SEEX * 2) - SEEX;
   newy = p->posy + rng(0, SEEY * 2) - SEEY;
