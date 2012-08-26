@@ -194,7 +194,7 @@ void monster::print_info(game *g, WINDOW* w)
   damage_info = "It is severly injured";
   col = c_ltred;
  } else {
-  damage_info = "it is nearly dead";
+  damage_info = "It is nearly dead";
   col = c_red;
  }
  mvwprintz(w, 7, 1, col, damage_info.c_str());

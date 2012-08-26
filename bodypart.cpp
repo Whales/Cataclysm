@@ -52,7 +52,7 @@ std::string encumb_text(body_part bp)
   case bp_hands: return "Manual tasks are slowed.";
   case bp_legs:  return "Running and swimming are slowed.";
   case bp_feet:  return "Running is slowed.";
-  default: return "It's inflammed.";
+  default: return "It's inflamed.";
  }
 }
 

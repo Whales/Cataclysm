@@ -242,7 +242,8 @@ enum pl_flag {
  PF_DISIMMUNE,
  PF_POISONOUS,//
  PF_SLIME_HANDS,
- PF_COMPOUND_EYES,//
+ PF_COMPOUND_EYES,    // -2 to perception, -10 to attack moves, +2 to dodge
+ PF_SPIDER_EYES_MAIN, // +1 to perception when not wearing glasses
  PF_PADDED_FEET,//
  PF_HOOVES,//
  PF_SAPROVORE,//
@@ -275,6 +276,7 @@ enum pl_flag {
  PF_SLIT_NOSTRILS,//
  PF_FORKED_TONGUE,//
  PF_EYEBULGE,//
+ PF_SPIDER_EYES_SECONDARY, // Bash&cut damage to head is increased on one third
  PF_MOUTH_FLAPS,//
  PF_WINGS_STUB,//
  PF_WINGS_BAT,//
@@ -618,8 +620,12 @@ have a chance to poison your target."},
 The skin on your hands is a mucous membrane and produces a thick, acrid\n\
 slime.  Attacks using your hand will cause minor acid damage."},
 {"Compound Eyes", 2, 9, 5, "\
-Your eyes are compound, like those of an insect.  This increases your\n\
-perception by 2 so long as you aren't wearing eyewear."},
+Your eyes are big and compound, like those of an insect. Perception is\n\
+decreased by 2, because sight is not so precisious now, but reaction speed is\n\
+increased and you can dodge better and attack faster."},
+{"Spider Eyes", 2, 9, 6, "\
+You have two pairs of big black eyes on your face, like those of a spider.\n\
+This increases your perception by 1 so long as you aren't wearing eyewear."},
 {"Padded Feet", 1, 1, 0, "\
 The bottoms of your feet are strongly padded.  You receive no movement\n\
 penalty for not wearing shoes, and even receive a 10%% bonus when running\n\
@@ -675,7 +681,7 @@ your balance at all, but alows for a powerful bashing attack."},
 You recover from pain slightly faster than normal."},
 {"Quick Pain Recovery", 5, 0, 0, "\
 You recover from pain faster than normal."},
-{"Very Quick Pain Reovery", 8, 0, 0, "\
+{"Very Quick Pain Recovery", 8, 0, 0, "\
 You recover from pain much faster than normal."},
 {"Bird Wings", 2, 4, 2, "\
 You have a pair of large, feathered wings.  Your body is too heavy to be able\n\
@@ -720,6 +726,9 @@ Your tongue is forked, like that of a reptile.  This has no effect."},
 {"Bulging Eyes", 0, 8, 4, "\
 Your eyes bulge out several inches from your skull.  This does not affect\n\
 your vision in any way."},
+{"Secondary Spider Eyes", -2, 2, 2, "\
+You have six pairs of small eyes all over your head, like a spider. They are\n\
+kinda useless, though still very sensitive. Damage to head is increased."},
 {"Mouth Flaps", -1, 7, 6, "\
 Skin tabs and odd flaps of skin surround your mouth.  They don't affect your\n\
 eating, but are unpleasant to look at."},
@@ -858,9 +867,9 @@ You have grown a thick shell over your torso, providing excellent armor.  You\n\
 find you can use the empty space as 16 storage space, but cannot wear\n\
 anything on your torso."},
 {"Leg Tentacles", -3, 8, 4, "\
-Your legs have transformed into six tentacles.  This decreases your speed on\n\
-land by 20%, but makes your movement silent.  However, they also increase\n\
-your swimming speed."}
+Your legs have transformed into six tentacles.  This makes your movement\n\
+silent, but feet encumbrance cannot be lower than 4 now.  However, they also\n\
+increase your swimming speed."}
 };
 
 enum hp_part {

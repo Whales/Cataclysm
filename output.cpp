@@ -316,27 +316,35 @@ void debugmsg(const char *mes, ...)
 bool query_yn(const char *mes, ...)
 {
  bool force_uc = OPTIONS[OPT_FORCE_YN];
+ bool enter_and_escape = OPTIONS[OPT_ENT_AND_ESC_IN_YNQUERIES];
  va_list ap;
  va_start(ap, mes);
  char buff[1024];
  vsprintf(buff, mes, ap);
  va_end(ap);
- int win_width = strlen(buff) + 26;
- WINDOW* w = newwin(3, win_width, 11, 0);
+ int win_width = strlen(buff) + (force_uc ? 2 : 8);
+ if (force_uc && win_width < 24)
+  win_width = 24;
+ WINDOW* w = newwin((force_uc ? 4 : 3), win_width, 11, 0);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- mvwprintz(w, 1, 1, c_ltred, "%s (%s)", buff,
-           (force_uc ? "Y/N - Case Sensitive" : "y/n"));
+ if (force_uc) {
+  mvwprintz(w, 1, int((win_width - strlen(buff)) / 2), c_ltred, buff);
+  mvwprintz(w, 2, int((win_width - 22) / 2), c_ltred, "(Y/N - case sensitive)");
+ } else
+  mvwprintz(w, 1, 1, c_ltred, "%s (%s)", buff, "y/n");
  wrefresh(w);
  char ch;
  do
   ch = getch();
- while (ch != 'Y' && ch != 'N' && (force_uc || (ch != 'y' && ch != 'n')));
+ while (ch != 'Y' && ch != 'N' &&
+        (force_uc || (ch != 'y' && ch != 'n')) &&
+        (!enter_and_escape || (ch != '\n' && ch != KEY_ESCAPE)));
  werase(w);
  wrefresh(w);
  delwin(w);
  refresh();
- if (ch == 'Y' || ch == 'y')
+ if (ch == 'Y' || ch == 'y' || ch == '\n')
   return true;
  return false;
 }
@@ -399,12 +407,14 @@ std::string string_input_popup(const char *mes, ...)
    delwin(w);
    refresh();
    return ret;
-  } else if ((ch == KEY_BACKSPACE || ch == 127) && posx > startx) {
+  } else if (ch == KEY_BACKSPACE || ch == 127) {
+   if (posx > startx) {
 // Move the cursor back and re-draw it
-   ret = ret.substr(0, ret.size() - 1);
-   mvwputch(w, 1, posx, c_ltgray, '_');
-   posx--;
-   mvwputch(w, 1, posx, h_ltgray, '_');
+    ret = ret.substr(0, ret.size() - 1);
+    mvwputch(w, 1, posx, c_ltgray, '_');
+    posx--;
+    mvwputch(w, 1, posx, h_ltgray, '_');
+   }
   } else {
    ret += ch;
    mvwputch(w, 1, posx, c_magenta, ch);
@@ -446,12 +456,14 @@ std::string string_input_popup(int max_length, const char *mes, ...)
    delwin(w);
    refresh();
    return ret;
-  } else if ((ch == KEY_BACKSPACE || ch == 127) && posx > startx) {
+  } else if (ch == KEY_BACKSPACE || ch == 127) {
+   if (posx > startx) {
 // Move the cursor back and re-draw it
-   ret = ret.substr(0, ret.size() - 1);
-   mvwputch(w, 1, posx, c_ltgray, '_');
-   posx--;
-   mvwputch(w, 1, posx, h_ltgray, '_');
+    ret = ret.substr(0, ret.size() - 1);
+    mvwputch(w, 1, posx, c_ltgray, '_');
+    posx--;
+    mvwputch(w, 1, posx, h_ltgray, '_');
+   }
   } else if(ret.size() < max_length || max_length == 0) {
    ret += ch;
    mvwputch(w, 1, posx, c_magenta, ch);

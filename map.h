@@ -37,7 +37,7 @@ class map
 // Visual Output
  void draw(game *g, WINDOW* w, point center);
  void debug();
- void drawsq(WINDOW* w, player &u, int x, int y, bool invert, bool show_items,
+ void drawsq(game *g, WINDOW* w, int x, int y, bool invert, bool show_items,
              int cx = -1, int cy = -1);
 
 // File I/O

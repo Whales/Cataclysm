@@ -138,8 +138,12 @@ void game::wish()
   tmp.bday = turn;
   if (tmp.is_tool())
    tmp.charges = dynamic_cast<it_tool*>(tmp.type)->max_charges;
+  else if (tmp.is_gun())
+   tmp.charges = 0;
   else if (tmp.is_ammo())
    tmp.charges = 100;
+  else if (tmp.is_food())
+   tmp.charges = dynamic_cast<it_comest*>(tmp.type)->charges;
   else
    tmp.charges = -1;
   info = tmp.info(true);
@@ -150,15 +154,15 @@ void game::wish()
    ch = getch();
   else
    ch = input();
- } while (ch != '\n');
- clear();
- mvprintw(0, 0, "\nWish granted - %d (%d).", tmp.type->id, itm_antibiotics);
- tmp.invlet = nextinv;
- u.i_add(tmp);
- advance_nextinv();
- getch();
+ } while (ch != '\n' && ch != KEY_ESCAPE);
  delwin(w_info);
  delwin(w_list);
+ if (ch == '\n') {
+  popup("Wish granted - %d (%d).", tmp.type->id, itm_antibiotics);
+  tmp.invlet = nextinv;
+  u.i_add(tmp);
+  advance_nextinv();
+ }
 }
 
 void game::monster_wish()
@@ -296,17 +300,17 @@ void game::monster_wish()
    ch = getch();
   else
    ch = input();
- } while (ch != '\n');
- clear();
+ } while (ch != '\n' && ch != KEY_ESCAPE);
  delwin(w_info);
  delwin(w_list);
  refresh_all();
- wrefresh(w_terrain);
- point spawn = look_around();
- if (spawn.x == -1)
-  return;
- tmp.spawn(spawn.x, spawn.y);
- z.push_back(tmp);
+ if (ch == '\n') {
+  point spawn = look_around();
+  if (spawn.x == -1)
+   return;
+  tmp.spawn(spawn.x, spawn.y);
+  z.push_back(tmp);
+ }
 }
 
 void game::mutation_wish()
@@ -463,12 +467,12 @@ void game::mutation_wish()
    ch = getch();
   else
    ch = input();
- } while (ch != '\n');
- clear();
- if (a+shift == 0)
-  u.mutate(this);
- else
-  u.mutate_towards(this, pl_flag(a + shift));
+ } while (ch != '\n' && ch != KEY_ESCAPE);
  delwin(w_info);
  delwin(w_list);
+ if (ch == '\n')
+  if (a+shift == 0)
+   u.mutate(this);
+  else
+   u.mutate_towards(this, pl_flag(a + shift));
 }

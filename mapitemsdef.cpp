@@ -187,7 +187,7 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_sports],
-	itm_bandages, itm_aspirin, itm_bat, itm_sneakers, itm_tshirt,
+	itm_bandages, itm_aspirin, itm_bat, itm_metalbat, itm_sneakers, itm_tshirt,
 	itm_tank_top, itm_gloves_fingerless, itm_glasses_safety,
 	itm_goggles_swim, itm_goggles_ski, itm_hat_ball, itm_helmet_bike,
 	itm_helmet_ball, itm_manual_brawl, NULL);
@@ -204,7 +204,7 @@ void game::init_mapitems()
 
  setvector(
    mapitems[mi_allsporting],
-	itm_aspirin, itm_bat, itm_sneakers, itm_tshirt, itm_tank_top,
+	itm_aspirin, itm_bat, itm_metalbat, itm_sneakers, itm_tshirt, itm_tank_top,
 	itm_gloves_fingerless, itm_glasses_safety, itm_goggles_swim,
 	itm_goggles_ski, itm_hat_ball, itm_helmet_bike, itm_helmet_ball,
 	itm_manual_brawl, itm_rope_30, itm_hatchet, itm_pot, itm_pan,
@@ -409,7 +409,7 @@ void game::init_mapitems()
 	itm_novel_romance, itm_novel_spy, itm_novel_scifi, itm_novel_drama,
 	itm_SICP, itm_textbook_robots, itm_extinguisher, itm_radio,
 	itm_chainsaw_off, itm_jackhammer, itm_ring, itm_necklace, itm_usb_drive,
-	itm_broadsword, itm_morningstar, itm_helmet_plate,
+    itm_broadsword, itm_morningstar, itm_helmet_plate,
 	NULL);
 
  setvector(
@@ -540,8 +540,8 @@ void game::init_mapitems()
  setvector(
    mapitems[mi_weapons],
 	itm_chain, itm_hammer, itm_wrench, itm_hammer_sledge, itm_hatchet,
-	itm_ax, itm_knife_combat, itm_pipe, itm_bat, itm_machete, itm_katana,
-	itm_baton, itm_tazer, itm_rapier, NULL);
+	itm_ax, itm_knife_combat, itm_pipe, itm_bat, itm_metalbat, itm_machete,
+	itm_katana, itm_baton, itm_tazer, itm_rapier, NULL);
 
  setvector(
    mapitems[mi_survival_armor],
@@ -736,12 +736,12 @@ void game::init_mapitems()
 	itm_energy_drink, itm_whiskey, itm_jerky, itm_bandages, itm_caffeine,
 	itm_oxycodone, itm_adderall, itm_cig, itm_weed, itm_coke, itm_meth,
 	itm_heroin, itm_syringe, itm_electrohack, itm_hatchet, itm_nailboard,
-	itm_knife_combat, itm_bat, itm_machete, itm_katana, itm_pants_cargo,
-	itm_hoodie, itm_gloves_fingerless, itm_backpack, itm_holster,
-	itm_shot_00, itm_9mm, itm_45_acp, itm_glock_19, itm_shotgun_sawn,
-	itm_uzi, itm_tec9, itm_mac_10, itm_silencer, itm_clip2, itm_autofire,
-	itm_mag_porn, itm_lighter, itm_crowbar, itm_pipebomb, itm_grenade,
-	itm_mininuke, NULL);
+	itm_knife_combat, itm_bat, itm_nailbat, itm_metalbat, itm_machete,
+	itm_katana, itm_pants_cargo, itm_hoodie, itm_gloves_fingerless,
+	itm_backpack, itm_holster, itm_shot_00, itm_9mm, itm_45_acp,
+	itm_glock_19, itm_shotgun_sawn, itm_uzi, itm_tec9, itm_mac_10,
+	itm_silencer, itm_clip2, itm_autofire, itm_mag_porn, itm_lighter,
+	itm_crowbar, itm_pipebomb, itm_grenade, itm_mininuke, NULL);
 
  setvector(
    mapitems[mi_wreckage],
@@ -756,13 +756,13 @@ void game::init_mapitems()
 // This one kind of an inverted list; what an NPC will NOT carry
  setvector(
    mapitems[mi_trader_avoid],
-	itm_null, itm_corpse, itm_fire, itm_toolset, itm_meat, itm_veggy,
-	itm_meat_tainted, itm_veggy_tainted, itm_meat_cooked, itm_veggy_cooked,
-	itm_mushroom_poison, itm_spaghetti_cooked, itm_macaroni_cooked,
-	itm_fetus, itm_arm, itm_leg, itm_wrapper, itm_manhole_cover, itm_rock,
-	itm_stick, itm_bag_plastic, itm_flashlight_on, itm_radio_on,
-	itm_chainsaw_on, itm_pipebomb_act, itm_grenade_act, itm_flashbang_act,
-	itm_EMPbomb_act, itm_gasbomb_act, itm_smokebomb_act, itm_molotov_lit,
-	itm_dynamite_act, itm_mininuke_act, itm_UPS_on, itm_mp3_on, itm_c4armed,
+	itm_null, itm_corpse, itm_fire, itm_meat, itm_veggy, itm_meat_tainted,
+    itm_veggy_tainted, itm_meat_cooked, itm_veggy_cooked, itm_mushroom_poison,
+    itm_spaghetti_cooked, itm_macaroni_cooked, itm_fetus, itm_arm, itm_leg,
+    itm_wrapper, itm_manhole_cover, itm_rock, itm_stick, itm_bag_plastic,
+    itm_flashlight_on, itm_radio_on, itm_chainsaw_on, itm_pipebomb_act,
+    itm_grenade_act, itm_flashbang_act, itm_EMPbomb_act, itm_gasbomb_act,
+    itm_smokebomb_act, itm_molotov_lit, itm_dynamite_act, itm_mininuke_act,
+    itm_UPS_on, itm_mp3_on, itm_c4armed,
 	NULL);
 }

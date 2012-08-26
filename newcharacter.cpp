@@ -894,6 +894,7 @@ Points left: %d    You must use the rest of your points!", points);
   } else if (ch == '?') {
    mvwprintz(w, 6, 8, c_ltgray, "______________________________");
    u->pick_name();
+   wrefresh(w);
   } else {
    switch (line) {
     case 1:

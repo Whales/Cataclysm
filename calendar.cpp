@@ -345,7 +345,7 @@ std::string calendar::print_time(bool twentyfour)
    int hours = hour % 24;
    if (hours < 10)
     ret << "0";
-   ret << hours;
+   ret << hours << ":";
   } else {
    int hours = hour % 12;
    if (hours == 0)

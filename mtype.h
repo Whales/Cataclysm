@@ -146,7 +146,6 @@ MF_ACIDPROOF,	// Immune to acid
 MF_ACIDTRAIL,	// Leaves a trail of acid
 MF_FIREY,	// Burns stuff and is immune to fire
 MF_QUEEN,	// When it dies, local populations start to die off too
-MF_ELECTRONIC,	// e.g. a robot; affected by emp blasts, and other stuff
 MF_FUR,		// May produce fur when butchered.
 MF_LEATHER,	// May produce leather when butchered
 MF_IMMOBILE,	// Doesn't move (e.g. turrets)

@@ -184,7 +184,7 @@ void veh_interact::do_install(int reason)
     int engines = 0;
     int dif_eng = 0;
     for (int p = 0; p < veh->parts.size(); p++)
-        if (veh->part_flag (p, vpf_engine))
+        if (veh->part_flag(p, vpf_engine))
         {
             engines++;
             dif_eng = dif_eng / 2 + 12;
@@ -432,7 +432,7 @@ void veh_interact::move_cursor (int dx, int dy)
     int vehx = veh->global_x() + vx;
     int vehy = veh->global_y() + vy;
     bool obstruct = g->m.move_cost_ter_only (vehx, vehy) == 0;
-    vehicle *oveh = g->m.veh_at (vehx, vehy);
+    vehicle *oveh = g->m.veh_at(vehx, vehy);
     if (oveh && oveh != veh)
         obstruct = true;
     nc_color col = cpart >= 0? veh->part_color (cpart) : c_black;
@@ -611,7 +611,7 @@ void complete_vehicle (game *g)
         debugmsg ("Invalid activity ACT_VEHICLE values:%d", g->u.activity.values.size());
         return;
     }
-    vehicle *veh = g->m.veh_at (g->u.activity.values[0], g->u.activity.values[1]);
+    vehicle *veh = g->m.veh_at(g->u.activity.values[0], g->u.activity.values[1]);
     if (!veh)
     {
         debugmsg ("Activity ACT_VEHICLE: vehicle not found");

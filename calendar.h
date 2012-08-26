@@ -67,7 +67,7 @@ class calendar
 
   void standardize(); // Ensure minutes <= 59, hour <= 23, etc.
 
-// Sunlight and day/night calcuations
+// Sunlight and day/night calculations
   int minutes_past_midnight(); // Useful for sunrise/set calculations
   moon_phase moon();  // Find phase of moon
   calendar sunrise(); // Current time of sunrise

@@ -154,12 +154,12 @@ the more intense high of Adderall and methamphetamine.");
    mvprintz(0, 0, c_white, "\
 Many drugs have a potential for addiction.  Each time you consume such a drug\n\
 there is a chance that you will grow dependent on it.  Consuming more of that\n\
-drug will increase your dependance.  Effects vary greatly between drugs, but\n\
+drug will increase your dependence.  Effects vary greatly between drugs, but\n\
 all addictions have only one cure; going cold turkey.  The process may last\n\
 days, and will leave you very weak, so try to do it in a safe area.\n\
 \n\
 If you are suffering from drug withdrawal, taking more of the drug will cause\n\
-the effects to cease immediately, but may deepen your dependance.");
+the effects to cease immediately, but may deepen your dependence.");
   getch();
   break;
 
@@ -205,7 +205,7 @@ each turn.  Above 100, you get 1 XP point each turn for every 100 morale.");
   case 'G':
    erase();
    mvprintz(0, 0, c_white, "\
-Though it is relatively rare, certain areas of the world may be contamiated\n\
+Though it is relatively rare, certain areas of the world may be contaminated\n\
 with radiation.  It will gradually accumulate in your body, weakening you\n\
 more and more.  While in radiation-free areas, your radiation level will\n\
 slowly decrease.  Taking iodine tablets will help speed the process.\n\
@@ -638,7 +638,7 @@ H=          Highway - Like roads, but lined with guard rails.");
    mvprintz( 6, 0, c_blue,    "\
 R           River - Most creatures can not swim across them, but you may.");
    mvprintz( 7, 0, c_dkgray,  "\
-O           Parking lot - Empty lot, few items.  Mostly useless.");
+O           Parking lot - Vehicles may be found here.");
    mvprintz( 8, 0, c_ltgreen, "\
 ^>v<        House - Filled with a variety of items.  Good place to sleep.");
    mvprintz( 9, 0, c_ltblue,  "\
@@ -753,7 +753,7 @@ making them very good at clearing out large numbers of enemies.");
    mvprintz(10, 0, c_magenta, "( Energy Weapons");
    mvprintz(11, 0, c_white, "\
 Energy weapons is an umbrella term used to describe a variety of rifles and\n\
-handguns which fire lasers, plasma, or energy atttacks.  They started to\n\
+handguns which fire lasers, plasma, or energy attacks.  They started to\n\
 appear in military use just prior to the start of the apocalypse, and as such\n\
 are very difficult to find.\n\
 Energy weapons have no recoil at all; they are nearly silent, have a long\n\
@@ -771,7 +771,7 @@ Q: What is Run Mode, and why does it prevent me from moving?\n\
 A: Run Mode is a way to guarantee that you won't die by holding a movement\n\
    key down.  When a monster comes into view, your movement will be ignored\n\
    until Run Mode is turned off with the ! key.  This ensures that the\n\
-   sudden appearence of a monster won't catch you off guard.\n\
+   sudden appearance of a monster won't catch you off guard.\n\
 \n\
 Q: It seems like everything I eat makes me sick!  What's wrong?\n\
 A: Lots of the food found in towns is perishable, and will only last a few\n\

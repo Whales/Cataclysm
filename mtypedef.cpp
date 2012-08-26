@@ -931,7 +931,7 @@ five feet of the ground.  Its front side is\n\
 dominated by a huge eye and a flash bulb.\n\
 Frequently used for reconaissance."
 );
-FLAGS(MF_SEES, MF_FLIES, MF_ELECTRONIC, MF_NOHEAD);
+FLAGS(MF_SEES, MF_FLIES, MF_NOHEAD);
 
 mon("manhack",	species_robot, 'r',	c_green,	MS_TINY,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -941,7 +941,7 @@ A fist-sized robot that flies swiftly through\n\
 the air.  It's covered with whirring blades\n\
 and has one small, glowing red eye."
 );
-FLAGS(MF_SEES, MF_FLIES, MF_NOHEAD, MF_ELECTRONIC, MF_HIT_AND_RUN);
+FLAGS(MF_SEES, MF_FLIES, MF_NOHEAD, MF_HIT_AND_RUN);
 
 mon("skitterbot",species_robot, 'r',	c_ltred,	MS_SMALL,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -952,7 +952,7 @@ the size of a small dog.  It skitters\n\
 quickly across the ground, two electric\n\
 prods at the ready."
 );
-FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_ELECTRONIC);
+FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING);
 
 mon("secubot",	species_robot, 'R',	c_dkgray,	MS_SMALL,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -963,7 +963,7 @@ slowly on a set of treads, and is armed with\n\
 a large machine gun type weapon.  It is\n\
 heavily armored."
 );
-FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_ATTACKMON, MF_ELECTRONIC);
+FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_ATTACKMON);
 
 mon("copbot",	species_robot, 'R',	c_dkgray,	MS_MEDIUM,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -973,7 +973,7 @@ A blue-painted robot that moves quickly on a\n\
 set of three omniwheels.  It has a nightstick\n\
 readied, and appears to be well-armored."
 );
-FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_ATTACKMON, MF_ELECTRONIC);
+FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_ATTACKMON);
 
 mon("molebot",	species_robot, 'R',	c_brown,	MS_MEDIUM,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -984,7 +984,7 @@ ground slowly.  When it emerges from the\n\
 ground it can attack with its large, spike-\n\
 covered head."
 );
-FLAGS(MF_HEARS, MF_GOODHEARING, MF_DIGS, MF_ELECTRONIC);
+FLAGS(MF_HEARS, MF_GOODHEARING, MF_DIGS);
 
 mon("tripod robot",species_robot, 'R',	c_white,	MS_LARGE,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -994,7 +994,7 @@ A 8-foot-tall robot that walks on three long\n\
 legs.  It has a pair of spiked tentacles, as\n\
 well as a flamethrower mounted on its head."
 );
-FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_BASHES, MF_ELECTRONIC);
+FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_BASHES);
 
 mon("chicken walker",species_robot, 'R',c_red,		MS_LARGE,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1005,7 +1005,7 @@ walks on a pair of legs with the knees\n\
 facing backwards.  It's armed with a\n\
 nasty-looking machine gun."
 );
-FLAGS(MF_SEES, MF_HEARS, MF_BASHES, MF_ELECTRONIC);
+FLAGS(MF_SEES, MF_HEARS, MF_BASHES);
 
 mon("tankbot",	species_robot, 'R',	c_blue,		MS_HUGE,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1017,7 +1017,7 @@ on its treads, and is armed with a variety of\n\
 deadly weapons."
 );
 FLAGS(MF_SEES, MF_HEARS, MF_GOODHEARING, MF_NOHEAD, MF_BASHES, MF_DESTROYS,
-      MF_ATTACKMON, MF_ELECTRONIC);
+      MF_ATTACKMON);
 
 mon("turret",	species_robot, 't',	c_ltgray,	MS_SMALL,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq
@@ -1027,7 +1027,7 @@ A small, round turret which extends from\n\
 the floor.  Two SMG barrels swivel 360\n\
 degrees."
 );
-FLAGS(MF_SEES, MF_NOHEAD, MF_ELECTRONIC, MF_IMMOBILE, MF_FRIENDLY_SPECIAL);
+FLAGS(MF_SEES, MF_NOHEAD, MF_IMMOBILE, MF_FRIENDLY_SPECIAL);
 
 mon("exploder",	species_robot, 'm',	c_ltgray,	MS_LARGE,	STEEL,
 //	frq dif agr mor spd msk mdi m## cut dge bsh cut itm  HP special freq

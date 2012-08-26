@@ -45,7 +45,7 @@ void iuse::royal_jelly(game *g, player *p, item *it, bool t)
   p->rem_disease(DI_ASTHMA);
  }
  if (p->has_disease(DI_COMMON_COLD) || p->has_disease(DI_FLU)) {
-  message = "You feel healther!";
+  message = "You feel healthier!";
   p->rem_disease(DI_COMMON_COLD);
   p->rem_disease(DI_FLU);
  }
@@ -430,6 +430,7 @@ void iuse::meth(game *g, player *p, item *it, bool t)
  if (p->has_charges(itm_lighter, 1)) {
   if (!p->is_npc())
    g->add_msg("You smoke some crystals.");
+  p->use_charges(itm_lighter, 1);
   duration *= 1.5;
  } else if (!p->is_npc())
   g->add_msg("You snort some crystals.");
@@ -887,19 +888,30 @@ void iuse::hammer(game *g, player *p, item *it, bool t)
  }
  dirx += p->posx;
  diry += p->posy;
- int nails = 0, boards = 0;
+ int nails = 8, boards = 3; // same for everything
  ter_id newter;
  switch (g->m.ter(dirx, diry)) {
- case t_window_boarded:
-  nails =  8;
-  boards = 3;
-  newter = t_window_empty;
-  break;
- case t_door_boarded:
-  nails = 12;
-  boards = 3;
-  newter = t_door_b;
-  break;
+  case t_door_boarded:
+   newter = t_door_c;
+   break;
+  case t_door_b_boarded:
+   newter = t_door_b;
+   break;
+  case t_door_locked_boarded:
+   newter = t_door_locked;
+   break;
+  case t_door_frame_boarded:
+   newter = t_door_frame;
+   break;
+  case t_window_boarded:
+   newter = t_window;
+   break;
+  case t_window_empty_boarded:
+   newter = t_window_empty;
+   break;
+  case t_window_frame_boarded:
+   newter = t_window_frame;
+   break;
  default:
   g->add_msg("Hammers can only remove boards from windows and doors.");
   g->add_msg("To board up a window or door, press *");
@@ -1133,18 +1145,29 @@ void iuse::crowbar(game *g, player *p, item *it, bool t)
    p->moves -= 100;
   } 
  } else {
-  int nails = 0, boards = 0;
+  int nails = 8, boards = 3; // same for everything
   ter_id newter;
   switch (g->m.ter(dirx, diry)) {
+  case t_door_boarded:
+   newter = t_door_c;
+   break;
+  case t_door_b_boarded:
+   newter = t_door_b;
+   break;
+  case t_door_locked_boarded:
+   newter = t_door_locked;
+   break;
+  case t_door_frame_boarded:
+   newter = t_door_frame;
+   break;
   case t_window_boarded:
-   nails =  8;
-   boards = 3;
+   newter = t_window;
+   break;
+  case t_window_empty_boarded:
    newter = t_window_empty;
    break;
-  case t_door_boarded:
-   nails = 12;
-   boards = 3;
-   newter = t_door_b;
+  case t_window_frame_boarded:
+   newter = t_window_frame;
    break;
   default:
    g->add_msg("There's nothing to pry there.");
@@ -1253,7 +1276,7 @@ void iuse::set_trap(game *g, player *p, item *it, bool t)
  }
  int posx = dirx + p->posx;
  int posy = diry + p->posy;
- if (g->m.move_cost(posx, posy) != 2) {
+ if (g->m.move_cost(posx, posy) != 2 || g->m.tr_at(posx, posy) != tr_null) {
   g->add_msg("You can't place a %s there.", it->tname().c_str());
   return;
  }
@@ -1785,6 +1808,8 @@ void iuse::pheromone(game *g, player *p, item *it, bool t)
   else
    g->add_msg("...and several nearby zombies turn friendly!");
  }
+ if (it->charges == 1)
+  it->invlet = 0;
 }
  
 

@@ -22,7 +22,7 @@ enum itype_id {
 itm_null = 0,
 itm_corpse,
 // Special pseudoitems
-itm_fire, itm_toolset,
+itm_fire,
 // Drinks
 itm_water, itm_sewage, itm_salt_water, itm_oj, itm_apple_cider,
  itm_energy_drink, itm_cola, itm_rootbeer, itm_milk, itm_V8, itm_broth,
@@ -59,11 +59,12 @@ itm_wrapper, itm_syringe, itm_rag, itm_fur, itm_leather, itm_superglue,
  itm_hacksaw, itm_hammer_sledge, itm_hatchet, itm_ax, itm_nailboard, itm_xacto,
  itm_scalpel, itm_pot, itm_pan, itm_knife_butter, itm_knife_steak,
  itm_knife_butcher, itm_knife_combat, itm_2x4, itm_muffler, itm_pipe, itm_bat,
- itm_machete, itm_katana, itm_spear_wood, itm_spear_knife, itm_baton,
- itm_bee_sting, itm_wasp_sting, itm_chitin_piece, itm_biollante_bud,
- itm_canister_empty, itm_gold, itm_coal, itm_petrified_eye, itm_spiral_stone,
- itm_rapier, itm_cane, itm_binoculars, itm_usb_drive, itm_pike, itm_broadsword,
- itm_mace, itm_morningstar, itm_pool_cue, itm_pool_ball, itm_candlestick,
+ itm_nailbat, itm_metalbat, itm_machete, itm_katana, itm_spear_wood,
+ itm_spear_knife, itm_baton, itm_bee_sting, itm_wasp_sting, itm_chitin_piece,
+ itm_biollante_bud, itm_canister_empty, itm_gold, itm_coal, itm_petrified_eye,
+ itm_spiral_stone, itm_rapier, itm_cane, itm_binoculars, itm_usb_drive,
+ itm_pike, itm_broadsword, itm_mace, itm_morningstar, itm_pool_cue,
+ itm_pool_ball, itm_candlestick,
 // Vehicle parts
 itm_frame, itm_wheel, itm_big_wheel, itm_seat, itm_vehicle_controls,
  itm_combustion_small, itm_combustion, itm_combustion_large,
@@ -178,7 +179,7 @@ itm_note,
 num_items,
 // These shouldn't be counted among "normal" items; thus, they are outside the
 // bounds of num_items
-itm_bio_claws, itm_bio_fusion, itm_bio_blaster,
+itm_toolset, itm_bio_claws, itm_bio_fusion, itm_bio_blaster,
 // Unarmed Combat Styles
 itm_style_karate, itm_style_aikido, itm_style_judo, itm_style_tai_chi,
  itm_style_capoeira, itm_style_krav_maga, itm_style_muay_thai,

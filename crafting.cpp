@@ -53,8 +53,13 @@ recipes.push_back( new recipe(id, result, category, skill1, skill2, difficulty,\
                                  
  RECIPE(itm_nailboard, CC_WEAPON, sk_null, sk_null, 0, 1000);
   TOOL(itm_hatchet, -1, itm_hammer, -1, itm_rock, -1, itm_toolset, -1, NULL);
-  COMP(itm_2x4, 1, itm_bat, 1, NULL);
+  COMP(itm_2x4, 1, NULL);
   COMP(itm_nail, 6, NULL);
+
+ RECIPE(itm_nailbat, CC_WEAPON, sk_null, sk_null, 0, 1200);
+  TOOL(itm_hatchet, -1, itm_hammer, -1, itm_rock, -1, itm_toolset, -1, NULL);
+  COMP(itm_bat, 1, NULL);
+  COMP(itm_nail, 10, NULL);
 
  RECIPE(itm_molotov, CC_WEAPON, sk_null, sk_null, 0, 500);
   COMP(itm_rag, 1, NULL);
@@ -80,7 +85,7 @@ recipes.push_back( new recipe(id, result, category, skill1, skill2, difficulty,\
        NULL);
 
  RECIPE(itm_crossbow, CC_WEAPON, sk_mechanics, sk_archery, 3, 15000);
-  TOOL(itm_wrench, -1, NULL);
+  TOOL(itm_wrench, -1, itm_toolset, -1, NULL);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
   COMP(itm_2x4, 1, itm_stick, 4, NULL);
   COMP(itm_hose, 1, NULL);
@@ -100,7 +105,7 @@ recipes.push_back( new recipe(id, result, category, skill1, skill2, difficulty,\
  RECIPE(itm_smg_9mm, CC_WEAPON, sk_mechanics, sk_gun, 5, 18000);
   TOOL(itm_hacksaw, -1, itm_toolset, -1, NULL);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, NULL);
+  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
   COMP(itm_pipe, 1, NULL);
   COMP(itm_2x4, 2, NULL);
   COMP(itm_nail, 4, NULL);
@@ -108,7 +113,7 @@ recipes.push_back( new recipe(id, result, category, skill1, skill2, difficulty,\
  RECIPE(itm_smg_45, CC_WEAPON, sk_mechanics, sk_gun, 5, 20000);
   TOOL(itm_hacksaw, -1, itm_toolset, -1, NULL);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, NULL);
+  TOOL(itm_hammer, -1, itm_rock, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
   COMP(itm_pipe, 1, NULL);
   COMP(itm_2x4, 2, NULL);
   COMP(itm_nail, 4, NULL);
@@ -142,7 +147,7 @@ recipes.push_back( new recipe(id, result, category, skill1, skill2, difficulty,\
 
  RECIPE(itm_chainsaw_off, CC_WEAPON, sk_mechanics, sk_null, 4, 20000);
   TOOL(itm_screwdriver, -1, itm_toolset, -1, NULL);
-  TOOL(itm_hammer, -1, itm_hatchet, -1, NULL);
+  TOOL(itm_hammer, -1, itm_hatchet, -1, itm_toolset, -1, NULL);
   TOOL(itm_wrench, -1, itm_toolset, -1, NULL);
   COMP(itm_motor, 1, NULL);
   COMP(itm_chain, 1, NULL);
@@ -178,7 +183,7 @@ recipes.push_back( new recipe(id, result, category, skill1, skill2, difficulty,\
   COMP(itm_power_supply, 1, NULL);
 
 /*
- * We need a some Chemicals which arn't implemented to realistically craft this!
+ * We need a some Chemicals which aren't implemented to realistically craft this!
 RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
  TOOL(itm_screwdriver, -1, NULL);
  COMP(itm_can_food, 1, itm_steel_chunk, 1, itm_canister_empty, 1, NULL);
@@ -192,7 +197,7 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
 
  RECIPE(itm_meat_cooked, CC_FOOD, sk_cooking, sk_null, 0, 5000);
   TOOL(itm_hotplate, 7, itm_toolset, 4, itm_fire, -1, NULL);
-  TOOL(itm_pan, -1, itm_pot, -1, NULL);
+  TOOL(itm_pan, -1, itm_pot, -1, itm_spear_wood, -1, NULL);
   COMP(itm_meat, 1, NULL);
 
  RECIPE(itm_dogfood, CC_FOOD, sk_cooking, sk_null, 4, 10000);
@@ -204,7 +209,7 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
 
  RECIPE(itm_veggy_cooked, CC_FOOD, sk_cooking, sk_null, 0, 4000);
   TOOL(itm_hotplate, 5, itm_toolset, 3, itm_fire, -1, NULL);
-  TOOL(itm_pan, -1, itm_pot, -1, NULL);
+  TOOL(itm_pan, -1, itm_pot, -1, itm_spear_wood, -1, NULL);
   COMP(itm_veggy, 1, NULL);
 
  RECIPE(itm_spaghetti_cooked, CC_FOOD, sk_cooking, sk_null, 0, 10000);
@@ -255,6 +260,7 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   COMP(itm_meat, 1, NULL);
 
  RECIPE(itm_V8, CC_FOOD, sk_cooking, sk_null, 2, 5000);
+  TOOL(itm_rock, -1, itm_toolset, -1, NULL);
   COMP(itm_tomato, 1, NULL);
   COMP(itm_broccoli, 1, NULL);
   COMP(itm_zucchini, 1, NULL);
@@ -554,20 +560,20 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
   COMP(itm_stick, 1, NULL);
 
  RECIPE(itm_frame, CC_MISC, sk_mechanics, sk_null, 1, 8000);
-  TOOL(itm_welder, 50, NULL);
+  TOOL(itm_welder, 50, itm_toolset, 10, NULL);
   COMP(itm_steel_lump, 3, NULL);
 
  RECIPE(itm_steel_plate, CC_MISC, sk_mechanics, sk_null,4, 12000);
-  TOOL(itm_welder, 100, NULL);
+  TOOL(itm_welder, 100, itm_toolset, 20, NULL);
   COMP(itm_steel_lump, 8, NULL);
 
  RECIPE(itm_spiked_plate, CC_MISC, sk_mechanics, sk_null, 4, 12000);
-  TOOL(itm_welder, 120, NULL);
+  TOOL(itm_welder, 120, itm_toolset, 24, NULL);
   COMP(itm_steel_lump, 8, NULL);
   COMP(itm_steel_chunk, 4, NULL);
 
  RECIPE(itm_hard_plate, CC_MISC, sk_mechanics, sk_null, 4, 12000);
-  TOOL(itm_welder, 300, NULL);
+  TOOL(itm_welder, 300, itm_toolset, 60, NULL);
   COMP(itm_steel_lump, 24, NULL);
 
  RECIPE(itm_crowbar, CC_MISC, sk_mechanics, sk_null, 1, 1000);
@@ -700,17 +706,34 @@ void game::craft()
 
 // Clear the screen of recipe data, and draw it anew
   werase(w_data);
-   mvwprintz(w_data, 20, 0, c_white, "\
-Press ? to describe object.  Press <ENTER> to attempt to craft object.");
+   mvwprintz(w_data, 19, 30, c_white, "Press ? to describe object.");
+   mvwprintz(w_data, 20, 30, c_white, "Press <ENTER> to attempt to craft object.");
   wrefresh(w_data);
-  for (int i = 0; i < current.size() && i < 23; i++) {
-   if (i == line)
-    mvwprintz(w_data, i, 0, (available[i] ? h_white : h_dkgray),
-              itypes[current[i]->result]->name.c_str());
-   else
-    mvwprintz(w_data, i, 0, (available[i] ? c_white : c_dkgray),
-              itypes[current[i]->result]->name.c_str());
+// Print list of recipes
+// Determine where in the master list to start printing
+  int offset = line - 11;
+// if (offset > current.size() - 20) // acts weird with this
+//   offset = current.size() - 20;
+  if (offset <= 0) {
+   offset = 0;
+   mvwputch(w_data, 0, 0, c_black, 'x');
+  } else
+   mvwputch(w_data, 0, 0, h_white, '^');
+  if (current.size() - offset > 21)
+   mvwputch(w_data, 20, 0, h_white, 'v');
+  else
+   mvwputch(w_data, 20, 0, c_black, 'x');
+
+// Print the recipes between offset and max (or how many will fit)
+  for (int i = 0; i < 21 && i + offset < current.size(); i++) {
+   int cur = i + offset;
+   nc_color col = (available[cur] ? c_white : c_dkgray);
+   if (cur == line)
+    col = hilite(col);
+   mvwprintz(w_data, i, 1, col, itypes[current[cur]->result]->name.c_str());
   }
+
+// Print current recipe requirements
   if (current.size() > 0) {
    nc_color col = (available[line] ? c_white : c_dkgray);
    mvwprintz(w_data, 0, 30, col, "Primary skill: %s",
@@ -729,8 +752,8 @@ Press ? to describe object.  Press <ENTER> to attempt to craft object.");
     mvwprintz(w_data, 4, 30, col, "Time to complete: %d minutes",
               int(current[line]->time / 1000));
    else
-    mvwprintz(w_data, 4, 30, col, "Time to complete: %d turns",
-              int(current[line]->time / 100));
+    mvwprintz(w_data, 4, 30, col, "Time to complete: %d seconds (%d turns)",
+              int(current[line]->time / 100)*6, int(current[line]->time / 100));
    mvwprintz(w_data, 5, 30, col, "Tools required:");
    if (current[line]->tools[0].size() == 0) {
     mvwputch(w_data, 6, 30, col, '>');
@@ -742,7 +765,7 @@ Press ? to describe object.  Press <ENTER> to attempt to craft object.");
     for (int i = 0; i < 5 && current[line]->tools[i].size() > 0; i++) {
      ypos++;
      xpos = 32;
-     mvwputch(w_data, ypos, 30, col, '>');
+     mvwputch(w_data, ypos, xpos - 2, col, '>');
 
      for (int j = 0; j < current[line]->tools[i].size(); j++) {
       itype_id type = current[line]->tools[i][j].type;
@@ -780,11 +803,11 @@ Press ? to describe object.  Press <ENTER> to attempt to craft object.");
    ypos++;
    mvwprintz(w_data, ypos, 30, col, "Components required:");
    for (int i = 0; i < 5; i++) {
+    xpos = 32;
     if (current[line]->components[i].size() > 0) {
      ypos++;
-     mvwputch(w_data, ypos, 30, col, '>');
+     mvwputch(w_data, ypos, xpos - 2, col, '>');
     }
-    xpos = 32;
     for (int j = 0; j < current[line]->components[i].size(); j++) {
      int count = current[line]->components[i][j].count;
      itype_id type = current[line]->components[i][j].type;
@@ -834,9 +857,13 @@ Press ? to describe object.  Press <ENTER> to attempt to craft object.");
    break;
   case 'j':
    line++;
+   if (line >= current.size())
+    line = 0;
    break;
   case 'k':
    line--;
+   if (line < 0)
+    line = current.size() - 1;
    break;
   case '\n':
    if (!available[line])
@@ -855,10 +882,6 @@ Press ? to describe object.  Press <ENTER> to attempt to craft object.");
    redraw = true;
    break;
   }
-  if (line < 0)
-   line = current.size() - 1;
-  else if (line >= current.size())
-   line = 0;
  } while (ch != KEY_ESCAPE && ch != 'q' && ch != 'Q' && !done);
 
  werase(w_head);
@@ -1101,11 +1124,12 @@ void game::complete_craft()
  item newit(itypes[making->result], turn, nextinv);
  if (!newit.craft_has_charges())
   newit.charges = 0;
- do {
+ while (iter < 52 && u.has_item(newit.invlet) &&
+        !u.i_at(newit.invlet).stacks_with(newit)) {
   newit.invlet = nextinv;
   advance_nextinv();
   iter++;
- } while (u.has_item(newit.invlet) && iter < 52);
+ }
  //newit = newit.in_its_container(&itypes);
  if (newit.made_of(LIQUID))
   handle_liquid(newit, false, false);

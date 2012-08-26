@@ -588,13 +588,15 @@ std::string map::features(int x, int y)
 // to take up one line.  So, make sure it does that.
  std::string ret;
  if (has_flag(bashable, x, y))
-  ret += "Smashable. ";	// 11 chars (running total)
+  ret += "Smashable. "; // 11 chars (running total)
  if (has_flag(diggable, x, y))
-  ret += "Diggable. ";	// 21 chars
+  ret += "Diggable. ";  // 21 chars
  if (has_flag(rough, x, y))
-  ret += "Rough. ";	// 28 chars
+  ret += "Rough. ";     // 28 chars
  if (has_flag(sharp, x, y))
-  ret += "Sharp. ";	// 35 chars
+  ret += "Sharp. ";     // 35 chars
+ if (!is_outside(x, y))
+  ret += "Inside. ";    // 43 chars
  return ret;
 }
 
@@ -692,7 +694,7 @@ bool map::is_outside(int x, int y)
          ter(x + 1, y + 1) != t_floor_wax   );
  if (out) {
   int vpart;
-  vehicle *veh = veh_at (x, y, vpart);
+  vehicle *veh = veh_at(x, y, vpart);
   if (veh && veh->is_inside(vpart))
    out = false;
  }
@@ -823,6 +825,7 @@ bool map::bash(int x, int y, int str, std::string &sound, int *res)
   }
   break;
 
+
  case t_door_b:
   result = rng(0, 30);
   if (res) *res = result;
@@ -830,6 +833,55 @@ bool map::bash(int x, int y, int str, std::string &sound, int *res)
    sound += "crash!";
    ter(x, y) = t_door_frame;
    int num_boards = rng(2, 6);
+   for (int i = 0; i < num_boards; i++)
+    add_item(x, y, (*itypes)[itm_2x4], 0);
+   return true;
+  } else {
+   sound += "wham!";
+   return true;
+  }
+  break;
+
+ case t_door_boarded:
+ case t_door_locked_boarded:
+  result = dice(3, 50);
+  if (res) *res = result;
+  if (str >= result) {
+   sound += "crash!";
+   ter(x, y) = t_door_b;
+   int num_boards = rng(0, 2);
+   for (int i = 0; i < num_boards; i++)
+    add_item(x, y, (*itypes)[itm_2x4], 0);
+   return true;
+  } else {
+   sound += "wham!";
+   return true;
+  }
+  break;
+
+ case t_door_b_boarded:
+  result = rng(0, 40);
+  if (res) *res = result;
+  if (str >= result) {
+   sound += "crash!";
+   ter(x, y) = t_door_frame;
+   int num_boards = rng(2, 8);
+   for (int i = 0; i < num_boards; i++)
+    add_item(x, y, (*itypes)[itm_2x4], 0);
+   return true;
+  } else {
+   sound += "wham!";
+   return true;
+  }
+  break;
+
+ case t_door_frame_boarded:
+  result = dice(2, 16);
+  if (res) *res = result;
+  if (str >= result) {
+   sound += "crash!";
+   ter(x, y) = t_door_frame;
+   int num_boards = rng(0, 2);
    for (int i = 0; i < num_boards; i++)
     add_item(x, y, (*itypes)[itm_2x4], 0);
    return true;
@@ -853,12 +905,13 @@ bool map::bash(int x, int y, int str, std::string &sound, int *res)
   }
   break;
 
- case t_door_boarded:
-  result = dice(3, 50);
+ case t_window_boarded:
+ case t_window_frame_boarded:
+  result = dice(3, 30);
   if (res) *res = result;
   if (str >= result) {
    sound += "crash!";
-   ter(x, y) = t_door_frame;
+   ter(x, y) = t_window_frame;
    int num_boards = rng(0, 2);
    for (int i = 0; i < num_boards; i++)
     add_item(x, y, (*itypes)[itm_2x4], 0);
@@ -869,13 +922,13 @@ bool map::bash(int x, int y, int str, std::string &sound, int *res)
   }
   break;
 
- case t_window_boarded:
+ case t_window_empty_boarded:
   result = dice(3, 30);
   if (res) *res = result;
   if (str >= result) {
    sound += "crash!";
-   ter(x, y) = t_window_frame;
-   int num_boards = rng(0, 2) * rng(0, 1);
+   ter(x, y) = t_window_empty;
+   int num_boards = rng(0, 2);
    for (int i = 0; i < num_boards; i++)
     add_item(x, y, (*itypes)[itm_2x4], 0);
    return true;
@@ -1069,9 +1122,11 @@ void map::destroy(game *g, int x, int y, bool makesound)
   break;
 
  case t_door_c:
- case t_door_b:
- case t_door_locked:
  case t_door_boarded:
+ case t_door_b:
+ case t_door_b_boarded:
+ case t_door_locked:
+ case t_door_locked_boarded:
   ter(x, y) = t_door_frame;
   for (int i = x - 2; i <= x + 2; i++) {
    for (int j = y - 2; j <= y + 2; j++) {
@@ -1079,6 +1134,10 @@ void map::destroy(game *g, int x, int y, bool makesound)
      add_item(i, j, g->itypes[itm_2x4], 0);
    }
   }
+  break;
+
+ case t_door_frame_boarded:
+  ter(x, y) = t_door_frame;
   break;
 
  case t_wall_v:
@@ -1123,6 +1182,14 @@ void map::shoot(game *g, int x, int y, int &dam, bool hit_items, unsigned flags)
 
  switch (ter(x, y)) {
 
+ case t_door_frame_boarded:
+  if (hit_items || one_in(16)) { // 1 in 16 chance of hitting the planks
+   dam -= rng(25, 45);
+   if (dam > 0)
+    ter(x, y) = t_door_frame;
+  }
+  break;
+
  case t_wall_wood_broken:
  case t_door_b:
   if (hit_items || one_in(8)) {	// 1 in 8 chance of hitting the door
@@ -1137,12 +1204,14 @@ void map::shoot(game *g, int x, int y, int &dam, bool hit_items, unsigned flags)
  case t_door_c:
  case t_door_locked:
  case t_door_locked_alarm:
+ case t_door_b_boarded:
   dam -= rng(15, 30);
   if (dam > 0)
    ter(x, y) = t_door_b;
   break;
 
  case t_door_boarded:
+ case t_door_locked_boarded:
   dam -= rng(15, 35);
   if (dam > 0)
    ter(x, y) = t_door_b;
@@ -1155,9 +1224,16 @@ void map::shoot(game *g, int x, int y, int &dam, bool hit_items, unsigned flags)
   break;
 
  case t_window_boarded:
+ case t_window_frame_boarded:
   dam -= rng(10, 30);
   if (dam > 0)
    ter(x, y) = t_window_frame;
+  break;
+
+ case t_window_empty_boarded:
+  dam -= rng(10, 30);
+  if (dam > 0)
+   ter(x, y) = t_window_empty;
   break;
 
  case t_wall_glass_h:
@@ -1536,7 +1612,7 @@ void map::process_active_items_in_submap(game *g, int nonant)
      if (!(*items)[n].is_tool()) { // It's probably a charger gun
       (*items)[n].active = false;
       (*items)[n].charges = 0;
-     } else { 
+     } else {
       tmp = dynamic_cast<it_tool*>((*items)[n].type);
       (use.*tmp->use)(g, &(g->u), &((*items)[n]), true);
       if (tmp->turns_per_charge > 0 && int(g->turn) % tmp->turns_per_charge ==0)
@@ -1809,13 +1885,11 @@ void map::draw(game *g, WINDOW* w, point center)
   for (int realy = center.y - SEEY; realy <= center.y + SEEY; realy++) {
    int dist = rl_dist(g->u.posx, g->u.posy, realx, realy);
    if (dist > light) {
-    if (g->u.has_disease(DI_BOOMERED))
-     mvwputch(w, realy+SEEY - center.y, realx+SEEX - center.x, c_magenta,'#');
-    else
-     mvwputch(w, realy+SEEY - center.y, realx+SEEX - center.x, c_dkgray, '#');
+    mvwputch(w, realy+SEEY - center.y, realx+SEEX - center.x,
+             (g->u.has_disease(DI_BOOMERED) ? c_magenta : c_dkgray), '#');
    } else if (dist <= g->u.clairvoyance() ||
               sees(g->u.posx, g->u.posy, realx, realy, light, t))
-    drawsq(w, g->u, realx, realy, false, true, center.x, center.y);
+    drawsq(g, w, realx, realy, false, true, center.x, center.y);
    else
     mvwputch(w, realy+SEEY - center.y, realx+SEEX - center.x, c_black,'#');
   }
@@ -1825,35 +1899,39 @@ void map::draw(game *g, WINDOW* w, point center)
   mvwputch(w, aty, atx, g->u.color(), '@');
 }
 
-void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
+void map::drawsq(game *g, WINDOW* w, int x, int y, bool invert,
                  bool show_items, int cx, int cy)
 {
  if (!INBOUNDS(x, y))
   return;	// Out of bounds
  if (cx == -1)
-  cx = u.posx;
+  cx = g->u.posx;
  if (cy == -1)
-  cy = u.posy;
+  cy = g->u.posy;
  int k = x + SEEX - cx;
  int j = y + SEEY - cy;
  nc_color tercol;
  long sym = terlist[ter(x, y)].sym;
  bool hi = false;
  bool normal_tercol = false; // indicates that tile color is not changed by effects (boomered, nigh vision)
- if (u.has_disease(DI_BOOMERED))
+ if (g->u.has_disease(DI_BOOMERED))
   tercol = c_magenta;
- else if ((u.is_wearing(itm_goggles_nv) && u.has_active_item(itm_UPS_on)) ||
-          u.has_active_bionic(bio_night_vision))
+ else if ((g->u.is_wearing(itm_goggles_nv) &&
+           g->u.has_active_item(itm_UPS_on)) ||
+          g->u.has_active_bionic(bio_night_vision))
   tercol = c_ltgreen;
  else {
   normal_tercol = true;
   tercol = terlist[ter(x, y)].color;
  }
- if (move_cost(x, y) == 0 && has_flag(swimmable, x, y) && !u.underwater)
+ if (move_cost(x, y) == 0 && has_flag(swimmable, x, y) && !g->u.underwater)
   show_items = false;	// Can only see underwater items if WE are underwater
+// Scent. Should be after normal_tercol = true, because it may not cover full screen
+ if (g->u.has_active_bionic(bio_scent_vision) && g->scent(x, y) != 0)
+  tercol = c_magenta;
 // If there's a trap here, and we have sufficient perception, draw that instead
  if (tr_at(x, y) != tr_null &&
-     u.per_cur - u.encumb(bp_eyes) >= (*traps)[tr_at(x, y)]->visibility) {
+     g->u.per_cur - g->u.encumb(bp_eyes) >= (*traps)[tr_at(x, y)]->visibility) {
   tercol = (*traps)[tr_at(x, y)]->color;
   if ((*traps)[tr_at(x, y)]->sym == '%') {
    switch(rng(1, 5)) {

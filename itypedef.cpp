@@ -37,12 +37,7 @@ void game::init_itypes ()
   new itype(2, 0, 0, "nearby fire",
             "Some fire - if you are reading this it's a bug!",
             '$', c_red, MNULL, MNULL, 0, 0, 0, 0, 0, 0));
-// Integrated toolset - ditto
- itypes.push_back(
-  new itype(3, 0, 0, "integrated toolset",
-            "A fake item.  If you are reading this it's a bug!",
-            '$', c_red, MNULL, MNULL, 0, 0, 0, 0, 0, 0));
- int index = 3;
+ int index = 2;
  
 // Drinks
 // Stim should be -8 to 8.
@@ -332,7 +327,7 @@ Yuck, not very tasty.  But it is quite filling.");
 
 FOOD("pineapple",	30, 50,	c_cyan,		VEGGY,	itm_can_food,
     1,  2,  5, 26,  0,  0,  1,  0,  1,  7,	&iuse::none, ADD_NULL, "\
-Canned pinapple rings in water.  Quite tasty.");
+Canned pineapple rings in water.  Quite tasty.");
 
 FOOD("coconut milk",	10, 45,	c_cyan,		VEGGY,	itm_can_food,
     1,  2,  5, 30,  0,  0,  0,  0,  1,  0,	&iuse::none, ADD_NULL, "\
@@ -378,7 +373,7 @@ Eating this would be pretty gross.  It causes you to mutate.");
 
 FOOD("ant egg",		 5, 80,	c_white,	FLESH,	itm_null,
     4,  2, 10, 100, 0,  0, -1,  0,  1, -10,	&iuse::none,	ADD_NULL, "\
-A large ant egg, the size of a softball.  Extremely nutrtious, but gross.");
+A large ant egg, the size of a softball.  Extremely nutritious, but gross.");
 
 FOOD("marloss berry",	 2,600, c_pink,		VEGGY,	itm_null,
     1,  1, 20, 40,  0,  0,-10,  0,  1, 30,	&iuse::marloss,	ADD_NULL, "\
@@ -462,7 +457,7 @@ Simple cloth bandages.  Used for healing small amounts of damage.");
 
 MED("first aid",	35,350,	c_red,		itm_null,
 	PLASTIC,  0,  0,  0,  2,  0,&iuse::firstaid,	ADD_NULL, "\
-A full medical kit, with bandages, anti-biotics, and rapid healing agents.\n\
+A full medical kit, with bandages, antibiotics, and rapid healing agents.\n\
 Used for healing large amounts of damage.");
 
 MED("vitamins",		75, 45,	c_cyan,		itm_null,
@@ -844,9 +839,19 @@ MELEE("baseball bat",	60, 160,'/', c_ltred,	WOOD,	MNULL,
 A sturdy wood bat.  Makes a great melee weapon.");
 TECH( mfb(TEC_WBLOCK_1) );
 
+MELEE("nail bat",	50, 180,'/', c_ltred,	WOOD,	MNULL,
+	12, 10, 30,  6,  3, mfb(IF_STAB), "\
+A sturdy wood bat with improvised spikes. Makes a great melee weapon.");
+TECH( mfb(TEC_WBLOCK_1) );
+
 //    NAME		RAR PRC SYM COLOR	MAT1	MAT2
-MELEE("machete",	 5, 280,'/', c_blue,	IRON,	MNULL,
+MELEE("metal baseball bat",	60, 180,'/', c_ltgray,	STEEL,	MNULL,
 //	VOL WGT DAM CUT HIT FLAGS
+	12, 9, 36,  0,  3, 0, "\
+A hollowed bat made from aluminum alloy.  Makes a great melee weapon.");
+TECH( mfb(TEC_WBLOCK_1) );
+
+MELEE("machete",	 5, 280,'/', c_blue,	IRON,	MNULL,
 	 8, 14,  6, 28,  2, 0, "\
 This huge iron knife makes an excellent melee weapon.");
 TECH( mfb(TEC_WBLOCK_1) );
@@ -1466,7 +1471,7 @@ TECH( mfb(TEC_WBLOCK_1) );
 
 ARMOR("army helmet",	40, 480,C_HAT,		PLASTIC,	IRON,
    16,  8, 10, -1,  2, 12, 28,  0,  2,  0,	mfb(bp_head), "\
-A heavy helmet whic provides excellent protection from all sorts of damage.");
+A heavy helmet which provides excellent protection from all sorts of damage.");
 TECH( mfb(TEC_WBLOCK_1) );
 
 //     NAME		RAR PRC	COLOR		MAT1		MAT2
@@ -1627,7 +1632,7 @@ AMMO("shotgun slug",	 6, 900,AT_SHOT,	c_red,		PLASTIC,
 //	VOL WGT DMG  AP RNG ACC REC COUNT
 	 2, 34, 50,  8, 12, 10, 28,  25, "\
 A heavy metal slug used with shotguns to give them the range capabilities of\n\
-a rifle.  Extremely damaging but rather innaccurate.  Works best in a shotgun\n\
+a rifle.  Extremely damaging but rather inaccurate.  Works best in a shotgun\n\
 with a rifled barrel.",
 0);
 
@@ -1672,7 +1677,7 @@ popular round in sub-machine guns.",
 AMMO("9mm +P",		 8, 380,AT_9MM,		c_ltblue,	STEEL,
 	 1,  7, 20,  4, 14, 15, 14,  25, "\
 Attempts to improve the ballistics of 9mm ammunition lead to high pressure\n\
-rounds.  Increased velocity resullts in superior accuracy and damage.",
+rounds.  Increased velocity results in superior accuracy and damage.",
 0);
 
 //  NAME		RAR PRC TYPE		COLOR		MAT
@@ -1692,8 +1697,8 @@ throughout the 20th century.  It is most commonly used in revolvers.",
 AMMO(".38 Super",	 7, 450,AT_38,		c_ltblue,	STEEL,
 	 1,  9, 25,  4, 16, 14, 14,  25, "\
 The .38 Super is a high-pressure load of the .38 Special caliber.  It is a\n\
-popular choice in pistol competions for its high accuracy, while its stopping\n\
-power keeps it popular for self-defense.",
+popular choice in pistol competitions for its high accuracy, while its\n\
+stopping power keeps it popular for self-defense.",
 0);
 
 AMMO("10mm Auto",	 4, 420,AT_40,		c_blue,		STEEL,
@@ -1715,7 +1720,7 @@ has greater stopping power, leading to widespread use in law enforcement.",
 AMMO(".44 Magnum",	 7, 580,AT_44,		c_blue,		STEEL,
 	 2, 15, 36,  2, 16, 16, 22,  50, "\
 Described (in 1971) by Dirty Harry as \"the most powerful handgun in the\n\
-world,\" the .44 Magnum gained widespead popularity due to its depictions in\n\
+world,\" the .44 Magnum gained widespread popularity due to its depictions in\n\
 the media.  In reality, its intense recoil makes it unsuitable in most cases.",
 0);
 
@@ -2010,8 +2015,8 @@ shooting.\" --Smith & Wesson official website",
 
 GUN("Glock 19",		 7,1400,c_dkgray,	STEEL,	PLASTIC,
 	sk_pistol,	AT_9MM,	 2,  5,  8,  1,  0, 24,  6,  6,  0, 15, 300, "\
-Possibly the most popular pistol in existance.  The Glock 19 is often derided\n\
-for its plastic contruction, but it is easy to shoot.",
+Possibly the most popular pistol in existence.  The Glock 19 is often derided\n\
+for its plastic construction, but it is easy to shoot.",
 0);
 
 GUN("USP 9mm",		 6,1450,c_dkgray,	STEEL,	PLASTIC,
@@ -2052,15 +2057,15 @@ GUN("Ruger Redhawk",	 3,1560,c_dkgray,	STEEL,	WOOD,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	sk_pistol,	AT_44,	 2, 12, 10,  1,  2, 21,  6,  8,  0,  6, 80, "\
 One of the most powerful handguns in the world when it was released in 1979,\n\
-the Redhawk offers very sturdy contruction, with an appearance that is\n\
+the Redhawk offers very sturdy construction, with an appearance that is\n\
 reminiscent of \"Wild West\" revolvers.",
 mfb(IF_RELOAD_ONE));
 
 GUN("Desert Eagle .44",	 2,1750,c_dkgray,	STEEL,	PLASTIC,
 	sk_pistol,	AT_44,	 4, 17, 14,  1,  4, 35,  3,  7,  0, 10, 400, "\
 One of the most recognizable handguns due to its popularity in movies, the\n\
-\"Deagle\" is better known for its menacing appearance than its performace.\n\
-It's highly innaccurate, but its heavy weight reduces recoil.",
+\"Deagle\" is better known for its menacing appearance than its performance.\n\
+It's highly inaccurate, but its heavy weight reduces recoil.",
 0);
 
 GUN("USP .45",		 6,1600,c_dkgray,	STEEL,	PLASTIC,
@@ -2129,7 +2134,7 @@ mfb(IF_RELOAD_ONE));
 GUN("Saiga-12",		 3,2300,c_red,	STEEL,	PLASTIC,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	sk_shotgun,	AT_SHOT,15, 36, 17,  3,  0, 17,  2,  7,  4, 10, 500, "\
-The Saiga-12 shotgun is designed on the same Kalishnikov pattern as the AK47\n\
+The Saiga-12 shotgun is designed on the same Kalashnikov pattern as the AK47\n\
 rifle.  It reloads with a magazine, rather than one shell at a time like most\n\
 shotguns.",
 0);
@@ -2192,14 +2197,14 @@ GUN("TDI Vector",	 4,4200,c_cyan,	STEEL,	PLASTIC,
 //	SKILL		AMMO	VOL WGT MDG HIT DMG ACC REC DUR BST CLIP
 	sk_smg,		AT_45,	13, 20,  9,  0, -2, 15,-14,  7,  8, 30, 450, "\
 The TDI Vector is a submachine gun with a unique in-line design which makes\n\
-recoil very managable, even in the powerful .45 caliber.",
+recoil very manageable, even in the powerful .45 caliber.",
 0);
 
 GUN("FN P90",		 7,4000,c_cyan,	STEEL,	PLASTIC,
 	sk_smg,		AT_57,	14, 22, 10,  1,  0, 22, -8,  8, 15, 50, 500, "\
 The first in a new genre of guns, termed \"personal defense weapons.\"  FN\n\
 designed the P90 to use their proprietary 5.7x28mm ammunition.  It is made\n\
-for firing bursts managably.",
+for firing bursts manageably.",
 0);
 
 GUN("H&K MP7",		 5,3400,c_cyan,	STEEL,	PLASTIC,
@@ -2340,7 +2345,7 @@ GUN("M249",		 1,7500,c_ltred,STEEL,	PLASTIC,
 //  SKILL       AMMO    VOL WGT MDG HIT DMG ACC REC DUR BST CLIP RELOAD
 	sk_rifle,	AT_223,	32, 68, 27, -4, -6, 20,  6,  7, 20,200, 750, "\
 The M249 is a mountable machine gun used by the US Military and SWAT teams.\n\
-Quite innaccurate and difficult to control, the M249 is designed to fire many\n\
+Quite inaccurate and difficult to control, the M249 is designed to fire many\n\
 rounds very quickly."
 ,
 0);
@@ -2377,8 +2382,8 @@ more than capable of igniting terrain and monsters alike.",
 mfb(IF_FIRE_100));
 
 GUN("flamethrower",	 1,3800,c_pink,	STEEL,	MNULL,
-	sk_shotgun,	AT_GAS,  20, 14, 10, -2,  0,  4,  0,  8,  4,1600, 900, "\
-A large flamethrower with substantial gas reserves.  Very manacing and\n\
+	sk_shotgun,	AT_GAS, 20, 14, 10, -2, 0,  4,  0,  8,  4,1600, 900, "\
+A large flamethrower with substantial gas reserves.  Very menacing and\n\
 deadly.",
 mfb(IF_FIRE_100));
 
@@ -2481,7 +2486,7 @@ GUNMOD("shortened barrel", 6, 320, c_ltgray, STEEL, MNULL,    1,  1, -2,  0, -1,
 	0, "\
 A shortened barrel results in markedly reduced accuracy, and a minor increase\n\
 in noise, but also reduces recoil greatly as a result of the improved\n\
-managability of the firearm.",
+manageability of the firearm.",
 0);
 
 GUNMOD("rifled barrel",    5, 220, c_ltgray, STEEL, MNULL,    2,  1,  3,  0,  1,
@@ -2503,7 +2508,7 @@ GUNMOD("double clip",	   4, 720, c_ltgray, STEEL, PLASTIC,  2,  2,  0,  0,  0,
 //	ACC DAM NOI CLP REC BST NEWTYPE,	PISTOL	SHOT	SMG	RIFLE
 	-2,  0,  0,100,  2,  0, AT_NULL,	false,	true,	true,	true,
 	0, "\
-Completely doubles the ammunition capacity of your firmarm, but the added\n\
+Completely doubles the ammunition capacity of your firearm, but the added\n\
 bulk reduces accuracy and increases recoil.",
 0);
 
@@ -2626,7 +2631,7 @@ GUNMOD("bayonet",	 6, 400, c_ltcyan, STEEL, MNULL,       2,  2,  0, 16, -3,
 	  0,  0,  0,  0,  3,  0, AT_NULL,	false,	true,	true,	true,
 	0, "\
 A bayonet is a stabbing weapon which can be attached to the front of a\n\
-shotgun, sub-machinegun or rifle, allowing a melee attack to deal\n\
+shotgun, submachine gun or rifle, allowing a melee attack to deal\n\
 piercing damage.  The added length increases recoil slightly.",
 mfb(IF_STAB));
 
@@ -3076,7 +3081,7 @@ field which damages robots and drains bionic energy.");
 TOOL("teargas canister",3,  600,'*', c_yellow,	STEEL, MNULL,
     1,  1,  6,  0, -1,  0,  0,  0,  0, AT_NULL, itm_null, &iuse::gasbomb,0,"\
 Use this item to pull the pin.  Five turns after you do that, it will begin\n\
-to expell a highly toxic gas for several turns.  This gas damages and slows\n\
+to expel a highly toxic gas for several turns.  This gas damages and slows\n\
 those who enter it, as well as obscuring vision and scent.");
 
 //	NAME		RAR PRC SYM  COLOR	MAT1	MAT
@@ -3089,7 +3094,7 @@ will shortly be) expelling highly toxic gas.");
 TOOL("smoke bomb",	5,  180,'*', c_dkgray,	STEEL,	MNULL,
     1,  1,  5,  0, -1,  0,  0,  0,  0, AT_NULL,	itm_null, &iuse::smokebomb,0,"\
 Use this item to pull the pin.  Five turns after you do that, it will begin\n\
-to expell a thick black smoke.  This smoke will slow those who enter it, as\n\
+to expel a thick black smoke.  This smoke will slow those who enter it, as\n\
 well as obscuring vision and scent.");
 
 TOOL("active smoke bomb",0,  0, '*', c_dkgray,	STEEL,	MNULL,
@@ -3398,6 +3403,14 @@ MELEE("Null 2 - num_items",0,0,'#',c_white,MNULL,MNULL,0,0,0,0,0,0,"");
 // Sometimes a bionic needs to set you up with a dummy weapon, or something
 // similar.  For the sake of clarity, no matter what the type of item, place
 // them all here.
+
+//    NAME		RARE SYM COLOR		MAT1	MAT2
+MELEE("integrated toolset",0,0,'{', c_blue,	STEEL,	MNULL,
+//	VOL WGT DAM CUT HIT
+	 1,  3,  8, 10,  1,
+ mfb(IF_STAB)|mfb(IF_UNARMED_WEAPON)|mfb(IF_NO_UNWIELD), "\
+Swirling and tinkling mess of tools that bulge out of your hands.\n\
+It should look menacingly enough, at least you hope it is so.");
 
 //    NAME		RARE SYM COLOR		MAT1	MAT2
 MELEE("adamantite claws",0,0,'{', c_pink,	STEEL,	MNULL,

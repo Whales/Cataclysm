@@ -111,7 +111,7 @@ public:
     ~vehicle ();
 
 // check if given player controls this vehicle
-    bool player_in_control (player *p);
+    bool player_in_control(player *p);
 
 // init parts state for randomly generated vehicle
     void init_state();
@@ -146,7 +146,7 @@ public:
     int part_with_feature (int p, unsigned int f, bool unbroken = true);
 
 // returns true if given flag is present for given part index (WARNING: without mfb!)
-    bool part_flag (int p, unsigned int f);
+    bool part_flag(int p, unsigned int f);
 
 // Translate seat-relative mount coords into tile coords
     void coord_translate (int reldx, int reldy, int &dx, int &dy);

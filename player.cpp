@@ -8,6 +8,7 @@
 #include "moraledata.h"
 #include "inventory.h"
 #include "artifact.h"
+#include <fstream>
 #include <sstream>
 #include <stdlib.h>
 
@@ -162,7 +163,7 @@ void player::pick_name()
  ss << random_first_name(male) << " " << random_last_name();
  name = ss.str();
 }
- 
+
 void player::reset(game *g)
 {
 // Reset our stats to normal levels
@@ -199,7 +200,9 @@ void player::reset(game *g)
   dex_cur -= 2;
  if (has_trait(PF_CHITIN2) || has_trait(PF_CHITIN3))
   dex_cur--;
- if (has_trait(PF_COMPOUND_EYES) && !wearing_something_on(bp_eyes))
+ if (has_trait(PF_COMPOUND_EYES))
+  per_cur -= 2;
+ if (has_trait(PF_SPIDER_EYES_MAIN) && !wearing_something_on(bp_eyes))
   per_cur++;
  if (has_trait(PF_ARM_TENTACLES) || has_trait(PF_ARM_TENTACLES_4) ||
      has_trait(PF_ARM_TENTACLES_8))
@@ -390,8 +393,6 @@ int player::run_cost(int base_cost)
   movecost = int(movecost * .8);
  if (has_trait(PF_WINGS_INSECT))
   movecost -= 15;
- if (has_trait(PF_LEG_TENTACLES))
-  movecost += 20;
  if (has_trait(PF_PONDEROUS1))
   movecost = int(movecost * 1.1);
  if (has_trait(PF_PONDEROUS2))
@@ -895,11 +896,15 @@ Strength - 4;    Dexterity - 4;    Intelligence - 4;    Dexterity - 4");
   if (sklevel[i] > 0) {
    skillslist.push_back(skill(i));
    if (line < 9) {
-    mvwprintz(w_skills, line, 1, c_ltblue, "%s:",
+    if (skexercise[i] < 0)
+     status = c_ltred;
+    else
+     status = c_ltblue;
+    mvwprintz(w_skills, line, 1, status, "%s:",
               skill_name(skill(i)).c_str());
-    mvwprintz(w_skills, line,19, c_ltblue, "%d%s(%s%d%%%%)", sklevel[i],
+    mvwprintz(w_skills, line,19, status, "%d%s(%s%d%%%%)", sklevel[i],
               (sklevel[i] < 10 ? " " : ""),
-              (skexercise[i] < 10 && skexercise[i] >= 0 ? " " : ""),
+              (skexercise[i] < 10 ? " " : ""),
               (skexercise[i] <  0 ? 0 : skexercise[i]));
     line++;
    }
@@ -1081,11 +1086,11 @@ detecting traps and other things of interest.");
    wrefresh(w_stats);
    break;
   case 2:	// Encumberment tab
-   mvwprintz(w_encumb, 0, 0, h_ltgray, "      ENCUMBERANCE        ");
+   mvwprintz(w_encumb, 0, 0, h_ltgray, "       ENCUMBRANCE        ");
    if (line == 0) {
     mvwprintz(w_encumb, 2, 2, h_ltgray, "Head");
     mvwprintz(w_info, 0, 0, c_magenta, "\
-Head encumberance has no effect; it simply limits how much you can put on.");
+Head encumbrance has no effect; it simply limits how much you can put on.");
    } else if (line == 1) {
     mvwprintz(w_encumb, 3, 2, h_ltgray, "Eyes");
     mvwprintz(w_info, 0, 0, c_magenta, "\
@@ -1137,7 +1142,7 @@ encumb(bp_feet) * 5);
       line = 6;
      break;
     case '\t':
-     mvwprintz(w_encumb, 0, 0, c_ltgray, "      ENCUMBERANCE        ");
+     mvwprintz(w_encumb, 0, 0, c_ltgray, "       ENCUMBRANCE        ");
      wrefresh(w_encumb);
      line = 0;
      curtab++;
@@ -1291,10 +1296,10 @@ encumb(bp_feet) * 5);
    }
    for (int i = min; i < max; i++) {
     if (i == line) {
-     if (skexercise[skillslist[i]] >= 100)
+     if (skexercise[skillslist[i]] < 0)
       status = h_pink;
      else
-      status = h_ltblue;
+      status = h_ltgray;
     } else {
      if (skexercise[skillslist[i]] < 0)
       status = c_ltred;
@@ -1302,25 +1307,13 @@ encumb(bp_feet) * 5);
       status = c_ltblue;
     }
     mvwprintz(w_skills, 2 + i - min, 1, c_ltgray, "                         ");
-    if (skexercise[i] >= 100) {
-     mvwprintz(w_skills, 2 + i - min, 1, status, "%s:",
-               skill_name(skillslist[i]).c_str());
-     mvwprintz(w_skills, 2 + i - min,19, status, "%d (%s%d%%%%)",
-               sklevel[skillslist[i]],
-               (skexercise[skillslist[i]] < 10 &&
-                skexercise[skillslist[i]] >= 0 ? " " : ""),
-               (skexercise[skillslist[i]] <  0 ? 0 :
-                skexercise[skillslist[i]]));
-    } else {
-     mvwprintz(w_skills, 2 + i - min, 1, status, "%s:",
-               skill_name(skillslist[i]).c_str());
-     mvwprintz(w_skills, 2 + i - min,19, status, "%d (%s%d%%%%)", 
-               sklevel[skillslist[i]],
-               (skexercise[skillslist[i]] < 10 &&
-                skexercise[skillslist[i]] >= 0 ? " " : ""),
-               (skexercise[skillslist[i]] <  0 ? 0 :
-                skexercise[skillslist[i]]));
-    }
+    mvwprintz(w_skills, 2 + i - min, 1, status, "%s:",
+              skill_name(skillslist[i]).c_str());
+    mvwprintz(w_skills, 2 + i - min,19, status, "%d (%s%d%%%%)",
+              sklevel[skillslist[i]],
+              (skexercise[skillslist[i]] < 10 ? " " : ""),
+              (skexercise[skillslist[i]] <  0 ? 0 :
+               skexercise[skillslist[i]]));
    }
    werase(w_info);
    if (line >= 0 && line < skillslist.size())
@@ -1348,8 +1341,7 @@ encumb(bp_feet) * 5);
                 skill_name(skillslist[i]).c_str());
       mvwprintz(w_skills, i + 2, 19, status, "%d (%s%d%%%%)",
                 sklevel[skillslist[i]],
-                (skexercise[skillslist[i]] < 10 &&
-                 skexercise[skillslist[i]] >= 0 ? " " : ""),
+                (skexercise[skillslist[i]] < 10 ? " " : ""),
                 (skexercise[skillslist[i]] <  0 ? 0 :
                  skexercise[skillslist[i]]));
      }
@@ -1431,18 +1423,30 @@ void player::disp_morale()
 
 void player::disp_status(WINDOW *w, game *g)
 {
+// Current overmap tile
+ oter_id cur_ter = g->cur_om.ter((g->levx + int(MAPSIZE / 2)) / 2,
+                                 (g->levy + int(MAPSIZE / 2)) / 2);
+ std::string tername = oterlist[cur_ter].name;
+ if (tername.length() > 16)
+  tername = tername.substr(0, 16);
+ mvwprintz(w, 0, 0, oterlist[cur_ter].color, tername.c_str());
+// Current weapon
+ nc_color temp_col; // temporal color
  mvwprintz(w, 1, 0, c_ltgray, "Weapon: %s", weapname().c_str());
- if (weapon.is_gun()) {
-   int adj_recoil = recoil + driving_recoil;
+ int adj_recoil = recoil + driving_recoil;
+ if (weapon.is_gun() && adj_recoil > 0) {
        if (adj_recoil >= 36)
-   mvwprintz(w, 1, 30, c_red,    "Recoil");
+   temp_col = c_red;
   else if (adj_recoil >= 20)
-   mvwprintz(w, 1, 30, c_ltred,  "Recoil");
+   temp_col = c_ltred;
   else if (adj_recoil >= 4)
-   mvwprintz(w, 1, 30, c_yellow, "Recoil");
+   temp_col = c_yellow;
   else if (adj_recoil > 0)
-   mvwprintz(w, 1, 30, c_ltgray, "Recoil");
+   temp_col = c_ltgray;
+  mvwprintz(w, 1, 33, temp_col, "Recoil");
  }
+// Time.
+  mvwprintz(w, 1, 41, c_white, g->turn.print_time().c_str());
 
       if (hunger > 2800)
   mvwprintz(w, 2, 0, c_red,    "Starving!");
@@ -1469,19 +1473,40 @@ void player::disp_status(WINDOW *w, game *g)
   mvwprintz(w, 2, 15, c_green,  "Slaked");
 
       if (fatigue > 575)
-  mvwprintz(w, 2, 30, c_red,    "Exhausted");
+  mvwprintz(w, 2, 29, c_red,    "Exhausted");
  else if (fatigue > 383)
-  mvwprintz(w, 2, 30, c_ltred,  "Dead tired");
+  mvwprintz(w, 2, 29, c_ltred,  "Dead tired");
  else if (fatigue > 191)
-  mvwprintz(w, 2, 30, c_yellow, "Tired");
+  mvwprintz(w, 2, 29, c_yellow, "Tired");
 
- mvwprintz(w, 2, 41, c_white, "XP: ");
- nc_color col_xp = c_dkgray;
- if (xp_pool >= 100)
-  col_xp = c_white;
+ int morale_cur = morale_level ();
+ temp_col = c_white;
+      if (morale_cur >=  10)
+  temp_col = c_green;
+ else if (morale_cur <= -10)
+  temp_col = c_red;
+
+      if (morale_cur >= 100)
+  mvwprintz(w, 2, 41, temp_col, ":D");
+ else if (morale_cur >= 10)
+  mvwprintz(w, 2, 41, temp_col, ":)");
+ else if (morale_cur > -10)
+  mvwprintz(w, 2, 41, temp_col, ":|");
+ else if (morale_cur > -100)
+  mvwprintz(w, 2, 41, temp_col, ":(");
+ else
+  mvwprintz(w, 2, 41, temp_col, "D:");
+
+ temp_col = c_dkgray;
+      if (xp_pool == 800)
+  temp_col = c_green;
+ else if (xp_pool >= 400)
+  temp_col = c_yellow;
+ else if (xp_pool >= 100)
+  temp_col = c_white;
  else if (xp_pool >  0)
-  col_xp = c_ltgray;
- mvwprintz(w, 2, 45, col_xp, "%d", xp_pool);
+  temp_col = c_ltgray;
+ mvwprintz(w, 2, 47, temp_col, "XP: %d", xp_pool);
 
       if (pain - pkill >= 50)
   mvwprintz(w, 3, 0, c_red,    "Excrutiating pain!");
@@ -1496,66 +1521,46 @@ void player::disp_status(WINDOW *w, game *g)
  else if (pain - pkill >   0)
   mvwprintz(w, 3, 0, c_yellow, "Minor pain");
 
- vehicle *veh = g->m.veh_at (posx, posy);
- int dmor = (in_vehicle && veh) ? 0 : 9;
-
- int morale_cur = morale_level ();
- nc_color col_morale = c_white;
- if (morale_cur >= 10)
-  col_morale = c_green;
- else if (morale_cur <= -10)
-  col_morale = c_red;
- if (morale_cur >= 100)
-  mvwprintz(w, 3, 10 + dmor, col_morale, ":D");
- else if (morale_cur >= 10)
-  mvwprintz(w, 3, 10 + dmor, col_morale, ":)");
- else if (morale_cur > -10)
-  mvwprintz(w, 3, 10 + dmor, col_morale, ":|");
- else if (morale_cur > -100)
-  mvwprintz(w, 3, 10 + dmor, col_morale, ":(");
- else
-  mvwprintz(w, 3, 10 + dmor, col_morale, "D:");
-
+ vehicle *veh = g->m.veh_at(posx, posy);
  if (in_vehicle && veh) {
-  veh->print_fuel_indicator (w, 3, 49);
   nc_color col_indf1 = c_ltgray;
-
+// Skidding indicator
+  if (veh->velocity != 0) {
+   temp_col = veh->skidding ? c_red : c_green;
+   int dfm = veh->face.dir() - veh->move.dir();
+   mvwprintz(w, 3, 20, temp_col, dfm  < 0 ? "L" : ".");
+   mvwprintz(w, 3, 21, temp_col, dfm == 0 ? "0" : ".");
+   mvwprintz(w, 3, 22, temp_col, dfm  > 0 ? "R" : ".");
+  }
+// Speedometer
   float strain = veh->strain();
-  nc_color col_vel = strain <= 0? c_ltblue :
-                     (strain <= 0.2? c_yellow :
-                     (strain <= 0.4? c_ltred : c_red));
+  temp_col =  strain <= 0   ? c_ltblue :
+             (strain <= 0.2 ? c_yellow :
+             (strain <= 0.4 ? c_ltred : c_red));
+  if (veh->cruise_on) {// 34 38 43  // 34 40
+   mvwprintz(w, 3, 24, col_indf1, "{mph....>....}");
+   mvwprintz(w, 3, 28, temp_col,  "%4d", veh->velocity / 100);
+   mvwprintz(w, 3, 33, c_ltgreen, "%4d", veh->cruise_velocity / 100);
+  } else {
+   mvwprintz(w, 3, 24, col_indf1, "  {mph....}   ");
+   mvwprintz(w, 3, 30, temp_col,  "%4d", veh->velocity / 100);
+  }
 
+  veh->print_fuel_indicator (w, 3, 39);
+// Turrets
   bool has_turrets = false;
-  for (int p = 0; p < veh->parts.size(); p++) {
-   if (veh->part_flag (p, vpf_turret)) {
+  for (int p = 0; p < veh->parts.size(); p++)
+   if (veh->part_flag(p, vpf_turret)) {
     has_turrets = true;
     break;
    }
-  }
-
   if (has_turrets) {
-   mvwprintz(w, 3, 25, col_indf1, "Gun:");
-   mvwprintz(w, 3, 29, veh->turret_mode ? c_ltred : c_ltblue,
-                       veh->turret_mode ? "auto" : "off ");
-  }
-
-  if (veh->cruise_on) {
-   mvwprintz(w, 3, 34, col_indf1, "{mph....>....}");
-   mvwprintz(w, 3, 38, col_vel, "%4d", veh->velocity / 100);
-   mvwprintz(w, 3, 43, c_ltgreen, "%4d", veh->cruise_velocity / 100);
-  } else {
-   mvwprintz(w, 3, 34, col_indf1, "  {mph....}  ");
-   mvwprintz(w, 3, 40, col_vel, "%4d", veh->velocity / 100);
-  }
-
-  if (veh->velocity != 0) {
-   nc_color col_indc = veh->skidding? c_red : c_green;
-   int dfm = veh->face.dir() - veh->move.dir();
-   mvwprintz(w, 3, 21, col_indc, dfm < 0? "L" : ".");
-   mvwprintz(w, 3, 22, col_indc, dfm == 0? "0" : ".");
-   mvwprintz(w, 3, 23, col_indc, dfm > 0? "R" : ".");
+   mvwprintz(w, 3, 45, col_indf1, "Gun: ");
+     wprintz(w, veh->turret_mode ? c_ltred : c_ltblue,
+                veh->turret_mode ? "auto" : "off ");
   }
  } else {  // Not in vehicle
+// Stats and speed
   nc_color col_str = c_white, col_dex = c_white, col_int = c_white,
            col_per = c_white, col_spd = c_white;
   if (str_cur < str_max)
@@ -1575,16 +1580,16 @@ void player::disp_status(WINDOW *w, game *g)
   if (per_cur > per_max)
    col_per = c_green;
   int spd_cur = current_speed();
-  if (current_speed() < 100)
+  if (spd_cur < 100)
    col_spd = c_red;
-  if (current_speed() > 100)
+  if (spd_cur > 100)
    col_spd = c_green;
 
-  mvwprintz(w, 3, 22, col_str, "Str %s%d", str_cur >= 10 ? "" : " ", str_cur);
-  mvwprintz(w, 3, 29, col_dex, "Dex %s%d", dex_cur >= 10 ? "" : " ", dex_cur);
-  mvwprintz(w, 3, 36, col_int, "Int %s%d", int_cur >= 10 ? "" : " ", int_cur);
-  mvwprintz(w, 3, 43, col_per, "Per %s%d", per_cur >= 10 ? "" : " ", per_cur);
-  mvwprintz(w, 3, 50, col_spd, "Spd %s%d", spd_cur >= 10 ? "" : " ", spd_cur);
+  mvwprintz(w, 3, 19, col_str, "Str %s%d", str_cur >= 10 ? "" : " ", str_cur);
+  wprintz(w, col_dex, " Dex %s%d", dex_cur >= 10 ? "" : " ", dex_cur);
+  wprintz(w, col_int, " Int %s%d", int_cur >= 10 ? "" : " ", int_cur);
+  wprintz(w, col_per, " Per %s%d", per_cur >= 10 ? "" : " ", per_cur);
+  wprintz(w, col_spd, " Spd %s%d", spd_cur >= 10 ? "" : " ", spd_cur);
  }
 }
 
@@ -1655,14 +1660,35 @@ void player::power_bionics(game *g)
  werase(wBio);
  std::vector <bionic> passive;
  std::vector <bionic> active;
- mvwprintz(wBio, 0, 0, c_blue, "BIONICS -");
+ mvwprintz(wBio, 0, 0, c_ltblue, "BIONICS");
+ mvwputch(wBio,  0, 8, c_white, '-');
  mvwprintz(wBio, 0,10, c_white,
            "Activating.  Press '!' to examine your implants.");
-
+//Upper and lower full horizontal lines
  for (int i = 0; i < 80; i++) {
   mvwputch(wBio,  1, i, c_ltgray, LINE_OXOX);
   mvwputch(wBio, 21, i, c_ltgray, LINE_OXOX);
  }
+
+ nc_color type; //temp color
+// Power display
+ mvwputch(wBio,  0,59, c_ltgray, LINE_XOXO);
+ mvwputch(wBio,  1,59, c_ltgray, LINE_XXOX);
+ mvwprintz(wBio, 0,61, c_yellow, "Power:");
+ if (max_power_level == 0)
+  mvwprintz(wBio, 0, 68, c_red, "--/--");
+ else {
+  if (power_level == max_power_level)
+   type = c_blue;
+  else if (power_level >= max_power_level * .5)
+   type = c_ltblue;
+  else if (power_level > 0)
+   type = c_yellow;
+  else
+   type = c_red;
+  mvwprintz(wBio, 0, 68, type, "%d / %d", power_level, max_power_level);
+ }
+//Bionics list
  for (int i = 0; i < my_bionics.size(); i++) {
   if ( bionics[my_bionics[i].id].power_source ||
       !bionics[my_bionics[i].id].activated      )
@@ -1670,7 +1696,6 @@ void player::power_bionics(game *g)
   else
    active.push_back(my_bionics[i]);
  }
- nc_color type;
  if (passive.size() > 0) {
   mvwprintz(wBio, 2, 0, c_ltblue, "Passive:");
   for (int i = 0; i < passive.size(); i++) {
@@ -1690,8 +1715,15 @@ void player::power_bionics(game *g)
    else
     type = c_ltred;
    mvwputch(wBio, 3 + i, 32, type, active[i].invlet);
-   mvwprintz(wBio, 3 + i, 34, type,
-             (active[i].powered ? "%s - ON" : "%s - %d PU / %d trns"),
+   if (active[i].powered)
+    mvwprintz(wBio, 3 + i, 34, type, "%s - ON",
+				bionics[active[i].id].name.c_str());
+   else if (bionics[active[i].id].charge_time == 0)
+    mvwprintz(wBio, 3 + i, 34, type, "%s - %d PU",
+             bionics[active[i].id].name.c_str(),
+             bionics[active[i].id].power_cost);
+   else
+	mvwprintz(wBio, 3 + i, 34, type, "%s - %d PU / %d trns",
              bionics[active[i].id].name.c_str(),
              bionics[active[i].id].power_cost,
              bionics[active[i].id].charge_time);
@@ -1729,8 +1761,9 @@ void player::power_bionics(game *g)
       if (tmp->powered) {
        tmp->powered = false;
        g->add_msg("%s powered off.", bionics[tmp->id].name.c_str());
-      } else if (power_level >= bionics[tmp->id].power_cost ||
-                 (weapon.type->id == itm_bio_claws && tmp->id == bio_claws))
+      } else if ( power_level >= bionics[tmp->id].power_cost ||
+                 ( weapon.type->id == itm_toolset && tmp->id == bio_tools ) ||
+                 ( weapon.type->id == itm_bio_claws && tmp->id == bio_claws) )
        activate_bionic(b, g);
      } else
       mvwprintz(wBio, 22, 0, c_ltred, "\
@@ -1740,10 +1773,11 @@ You can not activate %s!  To read a description of \
     } else {	// Describing bionics, not activating them!
 // Clear the lines first
      ch = 0;
-     mvwprintz(wBio, 22, 0, c_ltgray, "\
-                                                                               \
-                                                                               \
-                                                                             ");
+	 for (int i = 0; i < 80; i++) {
+	  mvwputch(wBio, 22, i, c_ltgray, ' ');
+	  mvwputch(wBio, 23, i, c_ltgray, ' ');
+	  mvwputch(wBio, 24, i, c_ltgray, ' ');
+	 }
      mvwprintz(wBio, 22, 0, c_ltblue,
                bionics[tmp->id].description.c_str());
     }
@@ -1770,18 +1804,20 @@ int player::sight_range(int light_level)
   ret += 4;
  if (has_trait(PF_NIGHTVISION3) && ret < 12)
   ret = 12;
- if (underwater && !has_bionic(bio_membrane) && !has_trait(PF_MEMBRANE) &&
-     !is_wearing(itm_goggles_swim))
-  ret = 1;
- if (has_disease(DI_BOOMERED))
-  ret = 1;
- if (has_disease(DI_IN_PIT))
-  ret = 1;
- if (has_disease(DI_BLIND))
-  ret = 0;
  if (ret > 4 && has_trait(PF_MYOPIC) && !is_wearing(itm_glasses_eye) &&
      !is_wearing(itm_glasses_monocle))
   ret = 4;
+ if (ret > 1 &&
+     (is_wearing(itm_goggles_ski) || is_wearing(itm_goggles_welding)))
+  ret -= 1;	// not a big deal at sunny day, but real penalty in the darkness
+ if (underwater && !has_bionic(bio_membrane) && !has_trait(PF_MEMBRANE) &&
+     !is_wearing(itm_goggles_swim))
+  ret = 1;
+ if (has_disease(DI_BOOMERED) || has_disease(DI_IN_PIT))
+  ret = 1;
+ if (has_disease(DI_BLIND))
+  ret = 0;
+
  return ret;
 }
 
@@ -2686,7 +2722,8 @@ void player::suffer(game *g)
    g->sound(posx, posy, 20 + 4 * str_cur, "You let out a piercing howl!");
  }	// Done with while-awake-only effects
 
- if (has_trait(PF_ASTHMA) && one_in(3600 - stim * 50)) {
+ if (has_trait(PF_ASTHMA) && one_in(3600 - stim * 50) && 
+     (!has_bionic(bio_purifier) || !one_in(5)) ) {
   bool auto_use = has_charges(itm_inhaler, 1);
   if (underwater) {
    oxygen = int(oxygen / 2);
@@ -3119,7 +3156,7 @@ void player::process_active_items(game *g)
    return;
   } // if (weapon.has_flag(IF_CHARGE))
 
-     
+
   if (!weapon.is_tool()) {
    debugmsg("%s is active, but it is not a tool.", weapon.tname().c_str());
    return;
@@ -3337,10 +3374,15 @@ void player::use_amount(itype_id it, int quantity, bool use_container)
 void player::use_charges(itype_id it, int quantity)
 {
  if (it == itm_toolset) {
-  power_level -= quantity;
-  if (power_level < 0)
-   power_level = 0;
+  charge_power(0 - quantity);
   return;
+
+// Improvised lighters, TODO: announces? chance to accidentally burn yourself?
+ } else if ( (it == itm_lighter) && (charges_of(itm_lighter) < quantity) ) {
+  if (has_bionic(bio_lighter) && power_level > 0 ) {
+   charge_power(0 - rng(0, 3)); // 1 charge lighter actions only, overkill?
+   return;
+  }
  }
 // Start by checking weapon contents
  for (int i = 0; i < weapon.contents.size(); i++) {
@@ -3382,7 +3424,9 @@ void player::use_charges(itype_id it, int quantity)
 
 int player::butcher_factor()
 {
- int lowest_factor = 999;
+ // butcher factor for inactive integrated toolset (based on weapon stats)
+ int lowest_factor = has_bionic(bio_tools) ? -19 : 999;
+
  for (int i = 0; i < inv.size(); i++) {
   for (int j = 0; j < inv.stack_at(i).size(); j++) {
    item *cur_item = &(inv.stack_at(i)[j]);
@@ -3478,7 +3522,9 @@ bool player::has_amount(itype_id it, int quantity)
 {
  if (it == itm_toolset)
   return has_bionic(bio_tools);
- return (amount_of(it) >= quantity);
+ if ( (it == itm_lighter) && (amount_of(it) < 1) ) // Improvised lighters
+  return has_bionic(bio_lighter);
+ return (amount_of(it) >= quantity); 
 }
 
 int player::amount_of(itype_id it)
@@ -3498,7 +3544,13 @@ int player::amount_of(itype_id it)
 
 bool player::has_charges(itype_id it, int quantity)
 {
- return (charges_of(it) >= quantity);
+ if (charges_of(it) >= quantity)
+  return true;
+ else {
+  if (it == itm_lighter) // Improvised lighters
+   return has_bionic(bio_lighter) && (power_level > 0);
+  return false;
+ }
 }
 
 int player::charges_of(itype_id it)
@@ -4245,8 +4297,8 @@ press 'U' while wielding the unloaded gun.", gun->tname(g).c_str());
 
 void player::read(game *g, char ch)
 {
- vehicle *veh = g->m.veh_at (posx, posy);
- if (veh && veh->player_in_control (this)) {
+ vehicle *veh = g->m.veh_at(posx, posy);
+ if (veh && veh->player_in_control(this)) {
   g->add_msg("It's bad idea to read while driving.");
   return;
  }
@@ -4347,7 +4399,7 @@ bool player::can_sleep(game *g)
   sleepy -= 8;
 
  int vpart = -1;
- vehicle *veh = g->m.veh_at (posx, posy, vpart);
+ vehicle *veh = g->m.veh_at(posx, posy, vpart);
  if (veh && veh->part_with_feature (vpart, vpf_seat) >= 0)
   sleepy += 4;
  else if (g->m.ter(posx, posy) == t_bed)
@@ -4414,6 +4466,8 @@ int player::encumb(body_part bp)
      (has_trait(PF_ARM_TENTACLES) || has_trait(PF_ARM_TENTACLES_4) ||
       has_trait(PF_ARM_TENTACLES_8)))
   ret += 3;
+ if (bp == bp_feet && ret < 4 && has_trait(PF_LEG_TENTACLES))
+  ret = 4;
  return ret;
 }
 
@@ -4598,6 +4652,9 @@ void player::absorb(game *g, body_part bp, int &dam, int &cut)
   dam -= 2;
  if (bp == bp_feet && has_trait(PF_HOOVES))
   cut--;
+ if (bp == bp_head && has_trait(PF_SPIDER_EYES_SECONDARY))
+  dam *= 1.3;
+  cut *= 1.3;
  if (has_trait(PF_LIGHT_BONES))
   dam *= 1.4;
  if (has_trait(PF_HOLLOW_BONES))
@@ -4619,6 +4676,7 @@ int player::resist(body_part bp)
  }
  if (bp == bp_mouth && has_bionic(bio_purifier) && ret < 5) {
   ret += 2;
+  power_level--;
   if (ret == 6)
    ret = 5;
  }
@@ -4827,7 +4885,7 @@ nc_color encumb_color(int level)
 
 bool activity_is_suspendable(activity_type type)
 {
- if (type == ACT_NULL || type == ACT_RELOAD)
+ if (type == ACT_NULL || type == ACT_RELOAD || type == ACT_WAIT)
   return false;
  return true;
 }
@@ -4871,4 +4929,3 @@ std::string random_last_name()
  fin.close();
  return lastname;
 }
-

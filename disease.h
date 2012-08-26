@@ -91,7 +91,7 @@ void dis_msg(game *g, dis_type type)
   g->add_msg("You're knocked to the floor!");
   break;
  case DI_AMIGARA:
-  g->add_msg("You can't look away from the fautline...");
+  g->add_msg("You can't look away from the faultline...");
   break;
  default:
   break;
@@ -515,7 +515,7 @@ void dis_effect(game *g, player &p, disease &dis)
   }
   if ((p.has_trait(PF_WEAKSTOMACH) && one_in(300 + bonus)) ||
       (p.has_trait(PF_NAUSEA) && one_in(50 + bonus)) ||
-      one_in(600 + bonus)) 
+      one_in(600 + bonus))
    p.vomit(g);
   p.str_cur -= 3;
   p.dex_cur--;
@@ -1052,11 +1052,11 @@ Range of Sight: 1;     All sight is tinted magenta";
 Dexterity - 3;   Speed - 25";
 
  case DI_SPORES:	return "\
-Speed -40%\
+Speed -15%\
 You can feel the tiny spores sinking directly into your flesh.";
 
  case DI_SLIMED:	return "\
-Speed -40%;     Dexterity - 2";
+Speed -25%;     Dexterity - 2";
 
  case DI_DEAF:		return "\
 Sounds will not be reported.  You cannot talk with NPCs.";
@@ -1092,7 +1092,7 @@ You stop to scratch yourself frequently; high intelligence helps you resist\n\
 this urge.";
 
  case DI_WEBBED:	return "\
-Strength - 1;     Dexterity - 4;    Speed - 25";
+Strength - 2;     Dexterity - 4;    Speed - 25";
 
  case DI_RAT:
   intpen = int(dis.duration / 20);
@@ -1144,9 +1144,9 @@ You can't trust everything that you see.";
  case DI_ADRENALINE:
   if (dis.duration > 150)
    return "\
-Speed +80;   Strength + 5;   Dexterity + 3;   Intelligence - 8;   Perception + 1";
+Speed +40;  Strength + 5;  Dexterity + 3;  Intelligence - 8;  Perception + 1";
   return "\
-Strength - 2;     Dexterity - 1;     Intelligence - 1;     Perception - 1";
+Speed -10;  Strength - 2;  Dexterity - 1;  Intelligence - 1;  Perception - 1";
 
  case DI_ASTHMA:
   stream<< "Speed - " << int(dis.duration / 5) << "%;     Strength - 2;     " <<
@@ -1158,7 +1158,7 @@ Strength - 2;     Dexterity - 1;     Intelligence - 1;     Perception - 1";
    return "\
 Speed +50;  Strength + 2;  Dexterity + 2;  Intelligence + 3;  Perception + 3";
    return "\
-Speed -40;   Strength - 3;   Dexterity - 2;   Intelligence - 2";
+Speed -40;  Strength - 3;  Dexterity - 2;  Intelligence - 1";
 
  case DI_IN_PIT:
   return "\

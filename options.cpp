@@ -62,6 +62,8 @@ option_key lookup_option_key(std::string id)
   return OPT_USE_CELSIUS;
  if (id == "force_capital_yn")
   return OPT_FORCE_YN;
+ if (id == "ent_and_esc_in_ynquiries")
+  return OPT_ENT_AND_ESC_IN_YNQUERIES;
  if (id == "no_bright_backgrounds")
   return OPT_NO_CBLINK;
  if (id == "24_hour")
@@ -72,6 +74,8 @@ option_key lookup_option_key(std::string id)
   return OPT_SAFEMODE;
  if (id == "autosafemode")
   return OPT_AUTOSAFEMODE;
+ if (id == "random_npcs")
+  return OPT_RANDOM_NPCS;
 
  return OPT_NULL;
 }
@@ -81,11 +85,13 @@ std::string option_string(option_key key)
  switch (key) {
   case OPT_USE_CELSIUS:		return "use_celsius";
   case OPT_FORCE_YN:		return "force_capital_yn";
+  case OPT_ENT_AND_ESC_IN_YNQUERIES:	return "ent_and_esc_in_ynquiries";
   case OPT_NO_CBLINK:		return "no_bright_backgrounds";
   case OPT_24_HOUR:		return "24_hour";
   case OPT_SNAP_TO_TARGET:	return "snap_to_target";
   case OPT_SAFEMODE:		return "safemode";
   case OPT_AUTOSAFEMODE:	return "autosafemode";
+  case OPT_RANDOM_NPCS:	return "random_npcs";
   default:			return "unknown_option";
  }
  return "unknown_option";
@@ -96,11 +102,14 @@ std::string option_name(option_key key)
  switch (key) {
   case OPT_USE_CELSIUS:		return "Use Celsius";
   case OPT_FORCE_YN:		return "Force Y/N in prompts";
+  case OPT_ENT_AND_ESC_IN_YNQUERIES:
+   return "Use Enter and Esc in prompts";
   case OPT_NO_CBLINK:		return "No Bright Backgrounds";
   case OPT_24_HOUR:		return "24 Hour Time";
   case OPT_SNAP_TO_TARGET:	return "Snap to Target";
   case OPT_SAFEMODE:		return "Safemode on by default";
   case OPT_AUTOSAFEMODE:	return "Auto-Safemode on by default";
+  case OPT_RANDOM_NPCS:	return "Random NPCs";
   default:			return "Unknown Option (BUG)";
  }
  return "Big ol Bug";
@@ -127,6 +136,8 @@ void create_default_options()
 use_celsius F\n\
 # If true, y/n prompts are case-sensitive, y and n are not accepted\n\
 force_capital_yn T\n\
+# If true, enter and escape keys can be used in y/n prompts\n\
+ent_and_esc_in_ynquiries T\n\
 # If true, bright backgrounds are not used--some consoles are not compatible\n\
 no_bright_backgrounds F\n\
 # If true, use military time, not AM/PM\n\
@@ -137,6 +148,8 @@ snap_to_target F\n\
 safemode T\n\
 # If true, auto-safemode will be on after starting a new game or loading\n\
 autosafemode F\n\
+# If true, random NPCs will be spawned on map\n\
+random_npcs T\n\
 ";
  fout.close();
 }
