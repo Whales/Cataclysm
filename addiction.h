@@ -149,7 +149,7 @@ std::string addiction_name(addiction cur)
   case ADD_CIG:		return "Nicotine Withdrawal";
   case ADD_CAFFEINE:	return "Caffeine Withdrawal";
   case ADD_ALCOHOL:	return "Alcohol Withdrawal";
-  case ADD_SLEEP:	return "Sleeping Pill Dependance";
+  case ADD_SLEEP:	return "Sleeping Pill Dependence";
   case ADD_PKILLER:	return "Opiate Withdrawal";
   case ADD_SPEED:	return "Amphetamine Withdrawal";
   case ADD_COKE:	return "Cocaine Withdrawal";

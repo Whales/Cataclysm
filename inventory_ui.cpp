@@ -211,15 +211,14 @@ std::vector<item> game::multidrop()
     }
    }
    if (cur_it < u.inv.size()) {
-    mvwputch (w_inv, cur_line, 0, c_white, u.inv[cur_it].invlet);
     char icon = '-';
     if (dropping[cur_it] >= u.inv.stack_at(cur_it).size())
      icon = '+';
     else if (dropping[cur_it] > 0)
      icon = '#';
     nc_color col = (dropping[cur_it] == 0 ? c_ltgray : c_white);
-    mvwprintz(w_inv, cur_line, 1, col, " %c %s", icon,
-              u.inv[cur_it].tname(this).c_str());
+    mvwputch(w_inv, cur_line, 0, c_white, u.inv[cur_it].invlet);
+    wprintz(w_inv, col, " %c %s", icon, u.inv[cur_it].tname(this).c_str());
     if (u.inv.stack_at(cur_it).size() > 1)
      wprintz(w_inv, col, " [%d]", u.inv.stack_at(cur_it).size());
     if (u.inv[cur_it].charges > 0)

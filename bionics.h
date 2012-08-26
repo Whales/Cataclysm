@@ -145,11 +145,11 @@ reduces bashing damage by 2 and cutting damage by 4, but also reduces your\n\
 dexterity by 2."},
 {"Alloy Plating - Head", false, false, 0, 0, "\
 The flesh on your head has been replaced by a strong armor, protecting both\n\
-your head and jaw regions, but increasing encumberance by 2 and decreasing\n\
+your head and jaw regions, but increasing encumbrance by 2 and decreasing\n\
 perception by 1."},
 {"Alloy Plating - Torso", false, false, 0, 0, "\
 The flesh on your torso has been replaced by a strong armor, protecting you\n\
-greatly, but increasing your encumberance by 2."},
+greatly, but increasing your encumbrance by 2."},
 {"Alloy Plating - Arms", false, false, 0, 0, "\
 The flesh on your arms has been replaced by a strong armor, protecting you\n\
 greatly, but decreasing your dexterity by 1."},
@@ -195,7 +195,7 @@ may cause delayed reaction time and drowsiness."},
 {"Repair Nanobots", false, true, 5, 0, "\
 Inside your body is a fleet of tiny dormant robots.  Once charged from your\n\
 energy banks, they will flit about your body, repairing any damage."},
-{"Thermal Dissapation", false, true, 1, 6, "\
+{"Thermal Dissipation", false, true, 1, 6, "\
 Powerful heatsinks supermaterials are woven into your flesh.  While powered,\n\
 this system will prevent heat damage up to 2000 degrees fahrenheit.  Note\n\
 that this does not affect your internal temperature, nor protects from smoke."},
@@ -245,10 +245,10 @@ Mounted in the palms of your hand are small parabolic EMP field generators.\n\
 You may use power to fire a short-ranged blast which will disable electronics\n\
 and robots."},
 {"Hydraulic Muscles", false, true, 1, 3, "\
-While activated, the muscles in your arms will be greatly enchanced,\n\
+While activated, the muscles in your arms will be greatly enhanced,\n\
 increasing your strength by 20."},
 {"Water Extraction Unit", false, true, 2, 0, "\
-Nanotubs embedded in the palm of your hand will pump any available fluid out\n\
+Nanotubes embedded in the palm of your hand will pump any available fluid out\n\
 of a dead body, cleanse it of impurities and convert it into drinkable water.\n\
 You must, however, have a container to store the water in."},
 {"Electromagnetic Unit", false, true, 2, 0, "\
@@ -267,7 +267,7 @@ Your feet are equipped with precision sonar equipment, allowing you to detect\n\
 the movements of creatures below the ground."},
 
 {"max_bio_start - BUG", false, false, 0, 0, "\
-This is a placeholder bionic meant to demarkate those which a new character\n\
+This is a placeholder bionic meant to demarcate those which a new character\n\
 can start with.  If you are reading this, you have found a bug!"},
 
 {"Banishment", false, true, 40, 0, "\
@@ -283,7 +283,7 @@ You can temporarily open a one-way gate from the nether realm.  This will\n\
 attract the attention of its horrifying inhabitants, who may begin to pour\n\
 into reality."},
 {"Artificial Night", false, true, 5, 1, "\
-Photon absorbtion panels will attract and obliterate photons within a 100'\n\
+Photon absorption panels will attract and obliterate photons within a 100'\n\
 radius, casting an area around you into pitch darkness."},
 {"Borehole Drill", false, true, 30, 0, "\
 Your legs can transform into a powerful drill which will bury you 50 feet\n\

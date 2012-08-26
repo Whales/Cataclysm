@@ -513,7 +513,7 @@ for 50 years, and hasn't even been up for termination despite the fact that\n\
 these mining operations are the backbone of our economy.\n\
 \n\
 ENTRY 52:\n\
-Still waiting on the archaeologists.  We've done a little light insepction of\n\
+Still waiting on the archaeologists.  We've done a little light inspection of\n\
 the faultline; our sounding equipment is insufficient to measure the depth of\n\
 the concavities.  The equipment is rated at 15 miles depth, but it isn't made\n\
 for such narrow tunnels, so it's hard to say exactly how far back they go.\n");
@@ -561,7 +561,7 @@ FAULTLINE SOUNDING HAS PLACED DEPTH AT 30.09 KM\n\
 DAMAGE TO FAULTLINE DISCOVERED; NEPOWER MINE CREW PLACED UNDER ARREST FOR\n\
    VIOLATION OF REGULATION 87.08 AND TRANSFERRED TO LAB 89-C FOR USE AS\n\
    SUBJECTS\n\
-QUALITIY OF FAULTLINE NOT COMPROMISED\n\
+QUALITY OF FAULTLINE NOT COMPROMISED\n\
 INITIATING STANDARD TREMOR TEST...");
    print_gibberish_line();
    print_gibberish_line();

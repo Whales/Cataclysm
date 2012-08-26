@@ -1086,11 +1086,11 @@ detecting traps and other things of interest.");
    wrefresh(w_stats);
    break;
   case 2:	// Encumberment tab
-   mvwprintz(w_encumb, 0, 0, h_ltgray, "      ENCUMBERANCE        ");
+   mvwprintz(w_encumb, 0, 0, h_ltgray, "       ENCUMBRANCE        ");
    if (line == 0) {
     mvwprintz(w_encumb, 2, 2, h_ltgray, "Head");
     mvwprintz(w_info, 0, 0, c_magenta, "\
-Head encumberance has no effect; it simply limits how much you can put on.");
+Head encumbrance has no effect; it simply limits how much you can put on.");
    } else if (line == 1) {
     mvwprintz(w_encumb, 3, 2, h_ltgray, "Eyes");
     mvwprintz(w_info, 0, 0, c_magenta, "\
@@ -1142,7 +1142,7 @@ encumb(bp_feet) * 5);
       line = 6;
      break;
     case '\t':
-     mvwprintz(w_encumb, 0, 0, c_ltgray, "      ENCUMBERANCE        ");
+     mvwprintz(w_encumb, 0, 0, c_ltgray, "       ENCUMBRANCE        ");
      wrefresh(w_encumb);
      line = 0;
      curtab++;

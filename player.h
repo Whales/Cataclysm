@@ -197,7 +197,7 @@ public:
  bool can_sleep(game *g);	// Checked each turn during DIS_LYING_DOWN
 
  int warmth(body_part bp);	// Warmth provided by armor &c
- int encumb(body_part bp);	// Encumberance from armor &c
+ int encumb(body_part bp);	// Encumbrance from armor &c
  int armor_bash(body_part bp);	// Bashing resistance
  int armor_cut(body_part bp);	// Cutting  resistance
  int resist(body_part bp);	// Infection &c resistance

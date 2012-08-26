@@ -1124,11 +1124,12 @@ void game::complete_craft()
  item newit(itypes[making->result], turn, nextinv);
  if (!newit.craft_has_charges())
   newit.charges = 0;
- do {
+ while (iter < 52 && u.has_item(newit.invlet) &&
+        !u.i_at(newit.invlet).stacks_with(newit)) {
   newit.invlet = nextinv;
   advance_nextinv();
   iter++;
- } while (u.has_item(newit.invlet) && iter < 52);
+ }
  //newit = newit.in_its_container(&itypes);
  if (newit.made_of(LIQUID))
   handle_liquid(newit, false, false);

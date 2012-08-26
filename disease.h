@@ -91,7 +91,7 @@ void dis_msg(game *g, dis_type type)
   g->add_msg("You're knocked to the floor!");
   break;
  case DI_AMIGARA:
-  g->add_msg("You can't look away from the fautline...");
+  g->add_msg("You can't look away from the faultline...");
   break;
  default:
   break;
