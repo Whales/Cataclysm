@@ -326,7 +326,7 @@ RECIPE(itm_c4, CC_WEAPON, sk_mechanics, sk_electronics, 4, 8000);
 
  RECIPE(itm_purifier, CC_FOOD, sk_cooking, sk_firstaid, 9, 10000);
   TOOL(itm_hotplate, 25, itm_toolset, 12, itm_fire, -1, NULL);
-  COMP(itm_royal_jelly, 3, itm_mutagen, 1, NULL);
+  COMP(itm_royal_jelly, 4, itm_mutagen, 2, NULL);
   COMP(itm_bleach, 3, NULL);
   COMP(itm_ammonia, 2, NULL);
 

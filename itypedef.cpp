@@ -1546,11 +1546,6 @@ ARMOR("silver necklace",14, 500,C_DECOR,	SILVER,		MNULL,
 A nice silver necklace.  You can wear it if you like, but it won't provide\n\
 any effects.");
 
-ARMOR("watch",40, 40,C_DECOR,	STEEL,		GLASS,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,	0,	"\
-A self-winding wristwatch, simple, reliable and probably waterproof. You can\n\
-wear it if you like, but it only shows time.");
-
 // AMMUNITION
 // Material should be the wrapper--even though shot is made of iron, because
 //   it can survive a dip in water and be okay, its material here is PLASTIC.
@@ -3255,9 +3250,9 @@ sample.  Use this tool to draw blood, either from yourself or from a corpse\n\
 you are standing on.");
 
 //  NAME        RAR PRC SYM  COLOR  MAT1    MAT
-TOOL("welder",   10,900,';', c_ltred,  IRON,MNULL,
-// VOL WGT DAM CUT HIT   MAX    DEF  USE SEC   FUEL    REVERT    FUNCTION
-     6,  24,  7,  0, -1,  1000,  300,  50,  0, AT_BATT, itm_null, &iuse::none,
+TOOL("welder",   25,900,';', c_ltred,  IRON,MNULL,
+// VOL WGT DAM CUT HIT   MAX DEF  USE SEC   FUEL    REVERT    FUNCTION
+     6, 24,  7,  0, -1, 1000,  0,  50,  0, AT_BATT, itm_null, &iuse::none,
 0, "\
 A tool for welding metal pieces together.  Useful for construction.");
 

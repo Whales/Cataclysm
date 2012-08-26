@@ -102,7 +102,7 @@ itm_hat_ball, itm_hat_boonie, itm_hat_cotton, itm_hat_knit, itm_hat_hunting,
 // High-storage
 itm_backpack, itm_purse, itm_mbag, itm_fanny, itm_holster, itm_bootstrap,
 // Decorative
-itm_ring, itm_necklace, itm_watch,
+itm_ring, itm_necklace,
 // Ammunition
 itm_battery, itm_plut_cell, itm_nail, itm_bb, itm_arrow_wood, itm_arrow_cf,
  itm_bolt_wood, itm_bolt_steel, itm_shot_bird, itm_shot_00, itm_shot_slug,

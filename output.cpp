@@ -14,6 +14,7 @@
 #include "output.h"
 #include "rng.h"
 #include "keypress.h"
+#include "options.h"
 
 #define LINE_XOXO 4194424
 #define LINE_OXOX 4194417
@@ -51,6 +52,25 @@ nc_color hilite(nc_color c)
 
 nc_color invert_color(nc_color c)
 {
+ if (OPTIONS[OPT_NO_CBLINK]) {
+  switch (c) {
+   case c_white:
+   case c_ltgray:
+   case c_dkgray:  return i_ltgray;
+   case c_red:
+   case c_ltred:   return i_red;
+   case c_green:
+   case c_ltgreen: return i_green;
+   case c_blue:
+   case c_ltblue:  return i_blue;
+   case c_cyan:
+   case c_ltcyan:  return i_cyan;
+   case c_magenta:
+   case c_pink:    return i_magenta;
+   case c_brown:
+   case c_yellow:  return i_brown;
+  }
+ }
  switch (c) {
   case c_white:   return i_white;
   case c_ltgray:  return i_ltgray;
@@ -295,29 +315,36 @@ void debugmsg(const char *mes, ...)
 
 bool query_yn(const char *mes, ...)
 {
+ bool force_uc = OPTIONS[OPT_FORCE_YN];
+ bool enter_and_escape = OPTIONS[OPT_ENT_AND_ESC_IN_YNQUERIES];
  va_list ap;
  va_start(ap, mes);
  char buff[1024];
  vsprintf(buff, mes, ap);
  va_end(ap);
- int win_width = strlen(buff) + 2;
- if (win_width < 24)
+ int win_width = strlen(buff) + (force_uc ? 2 : 8);
+ if (force_uc && win_width < 24)
   win_width = 24;
- WINDOW* w = newwin(4, win_width, 11, 0);
+ WINDOW* w = newwin((force_uc ? 4 : 3), win_width, 11, 0);
  wborder(w, LINE_XOXO, LINE_XOXO, LINE_OXOX, LINE_OXOX,
             LINE_OXXO, LINE_OOXX, LINE_XXOO, LINE_XOOX );
- mvwprintz(w, 1, int((win_width - strlen(buff)) / 2), c_ltred, buff);
- mvwprintz(w, 2, int((win_width - 22) / 2), c_ltred, "(Y/N - case sensitive)");
+ if (force_uc) {
+  mvwprintz(w, 1, int((win_width - strlen(buff)) / 2), c_ltred, buff);
+  mvwprintz(w, 2, int((win_width - 22) / 2), c_ltred, "(Y/N - case sensitive)");
+ } else
+  mvwprintz(w, 1, 1, c_ltred, "%s (%s)", buff, "y/n");
  wrefresh(w);
  char ch;
  do
   ch = getch();
- while (ch != 'Y' && ch != '\n' && ch != 'N' && ch != KEY_ESCAPE);
+ while (ch != 'Y' && ch != 'N' &&
+        (force_uc || (ch != 'y' && ch != 'n')) &&
+        (!enter_and_escape || (ch != '\n' && ch != KEY_ESCAPE)));
  werase(w);
  wrefresh(w);
  delwin(w);
  refresh();
- if (ch == 'Y' || ch == '\n')
+ if (ch == 'Y' || ch == 'y' || ch == '\n')
   return true;
  return false;
 }

@@ -7,6 +7,7 @@
 #include "skill.h"
 #include "rng.h"
 #include "item.h"
+#include "options.h"
 
 int time_to_fire(player &p, it_gun* firing);
 int recoil_add(player &p);
@@ -204,7 +205,8 @@ void game::fire(player &p, int tarx, int tary, std::vector<point> &trajectory,
     mvwputch(w_terrain, trajectory[i].y + SEEY - u.posy,
                         trajectory[i].x + SEEX - u.posx, c_red, bullet);
     wrefresh(w_terrain);
-    nanosleep(&ts, NULL);
+    if (&p == &u)
+     nanosleep(&ts, NULL);
    }
    
    if (dam <= 0) { // Ran out of momentum.
@@ -468,27 +470,33 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
   mvwprintz(w_target, 1, 1, c_red, "Select a vehicle");
  else
  if (relevent == &u.weapon && relevent->is_gun())
-  mvwprintz(w_target, 1, 1, c_red, "Firing %s - %s (%d)",
-            u.weapon.tname().c_str(), u.weapon.curammo->name.c_str(),
+  mvwprintz(w_target, 1, 1, c_red, "Firing %s (%d)", // - %s (%d)",
+            u.weapon.tname().c_str(),// u.weapon.curammo->name.c_str(),
             u.weapon.charges);
  else
   mvwprintz(w_target, 1, 1, c_red, "Throwing %s", relevent->tname().c_str());
  mvwprintz(w_target, 2, 1, c_white,
            "Move cursor to target with directional keys.");
- if (relevent)
- mvwprintz(w_target, 3, 1, c_white,
-           "'<' '>' Cycle targets; 'f' or '.' to fire.");
+ if (relevent) {
+  mvwprintz(w_target, 3, 1, c_white,
+            "'<' '>' Cycle targets; 'f' or '.' to fire.");
+  mvwprintz(w_target, 4, 1, c_white,
+            "'0' target self; '*' toggle snap-to-target");
+ }
+
  wrefresh(w_target);
  char ch;
+ bool snap_to_target = OPTIONS[OPT_SNAP_TO_TARGET];
 // The main loop.
  do {
-  werase(w_terrain);
-  draw_ter();
+  point center = (snap_to_target ? point(x, y) : point(u.posx, u.posy));
 // Clear the target window (partially).
-  for (int i = 4; i < 12; i++) {
+  for (int i = 5; i < 12; i++) {
    for (int j = 1; j < 46; j++)
     mvwputch(w_target, i, j, c_white, ' ');
   }
+  werase(w_terrain);
+  draw_ter(center.x, center.y);
 // ...drawing trajectory and target info
   if (x != u.posx || y != u.posy) {
    if (m.sees(u.posx, u.posy, x, y, -1, tart)) {// Selects a valid line-of-sight
@@ -496,14 +504,15 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
     for (int i = 0; i < ret.size(); i++) {    // Hilights vector's squares
      if (abs(ret[i].x - u.posx) <= sight_dist &&
          abs(ret[i].y - u.posy) <= sight_dist   ) {
-      int mon = mon_at(ret[i].x, ret[i].y);
-      int smb = npc_at(ret[i].x, ret[i].y);
+      int mon = mon_at(ret[i].x, ret[i].y), smb = npc_at(ret[i].x, ret[i].y);
+// NPCs and monsters get drawn with inverted colors
       if (mon != -1 && u_see(&(z[mon]), tart))
-       z[mon].draw(w_terrain, u.posx, u.posy, true);
+       z[mon].draw(w_terrain, center.x, center.y, true);
       else if (smb != -1)
-       active_npc[smb].draw(w_terrain, u.posx, u.posy, true);
+       active_npc[smb].draw(w_terrain, center.x, center.y, true);
       else
-       m.drawsq(this, w_terrain, ret[i].x, ret[i].y, true, true);
+       m.drawsq(this, w_terrain, ret[i].x, ret[i].y,
+                true, true, center.x, center.y);
      }
     }
    }
@@ -514,8 +523,7 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
    } else
     mvwprintw(w_target, 5, 1, "Range: %d", rl_dist(u.posx, u.posy, x, y));
 
-   int mon = mon_at(x, y);
-   int smb = npc_at(x, y);
+   int mon = mon_at(x, y), smb = npc_at(x, y);
    if (mon != -1 && u_see(&(z[mon]), tart)) // Visible monster
     z[mon].print_info(this, w_target);
    else if (smb != -1)                      // NPC
@@ -524,23 +532,28 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
      mvwprintz(w_target, 6, 1, c_ltgray, "There is a %s there. Parts:",
                veh->name.c_str());
      veh->print_part_desc(w_target, 7, 48, veh_part);
-   } else
-    mvwputch(w_terrain, y + SEEY - u.posy, x + SEEX - u.posx, c_red, '*');
+   } else {
+    if (snap_to_target)
+     mvwputch(w_terrain, SEEY, SEEX, c_red, '*');
+    else
+     mvwputch(w_terrain, y + SEEY - u.posy, x + SEEX - u.posx, c_red, '*');
+   }
   } // else "you aimed yourself"?
 // rangebox
-  for (int j = u.posx - SEEX; j <= u.posx + SEEX; j++)
-   for (int k = u.posy - SEEY; k <= u.posy + SEEY; k++)
+  for (int j = center.x - SEEX; j <= center.x + SEEX; j++)
+   for (int k = center.y - SEEY; k <= center.y + SEEY; k++)
     if (u_see(j, k, junk) && (k < lowy || k > hiy || j < lowx || j > hix))
-      mvwputch(w_terrain, k + SEEY - u.posy, j + SEEX - u.posx, c_dkgray, '#');
+      mvwputch(w_terrain, k + SEEY - center.y,
+                          j + SEEX - center.x, c_dkgray, '#');
 
   wrefresh(w_target);
   wrefresh(w_terrain);
 
   ch = input();
   get_direction(this, tarx, tary, ch);
-  if (tarx != -2 && tary != -2) {	// Direction character pressed
+  if (tarx != -2 && tary != -2 && ch != '.') {	// Direction character pressed
    if (!u_see(x, y, junk)) // clear previous cursor mark
-    mvwputch(w_terrain, y - u.posy + SEEY, x - u.posx + SEEX, c_black, ' ');
+    mvwputch(w_terrain, SEEY, SEEX, c_black, ' ');
    x += tarx;
    y += tary;
    if (x < lowx)
@@ -567,7 +580,12 @@ std::vector<point> game::target(int &x, int &y, int lowx, int lowy, int hix,
      target = i;
    }
    return ret;
-  } else if (ch == KEY_ESCAPE || ch == 'q') { // return empty vector (cancel)
+  } else if (ch == '0') {
+   x = u.posx;
+   y = u.posy;
+  } else if (ch == '*')
+   snap_to_target = !snap_to_target;
+  else if (ch == KEY_ESCAPE || ch == 'q') { // return empty vector (cancel)
    ret.clear();
    return ret;
   }

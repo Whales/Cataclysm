@@ -6,6 +6,7 @@
 #include "rng.h"
 #include "item.h"
 #include <sstream>
+#include <fstream>
 #include <stdlib.h>
 
 #if (defined _WIN32 || defined WINDOWS)
@@ -33,7 +34,7 @@ monster::monster()
  spawnposy = -1;
  friendly = 0;
  anger = 0;
- morale = 0;
+ morale = 2;
  faction_id = -1;
  mission_id = -1;
  dead = false;
@@ -93,6 +94,10 @@ monster::monster(mtype *t, int x, int y)
  unique_name = "";
 }
 
+monster::~monster()
+{
+}
+
 void monster::poly(mtype *t)
 {
  double hp_percentage = double(hp) / double(type->hp);
@@ -109,10 +114,6 @@ void monster::spawn(int x, int y)
 {
  posx = x;
  posy = y;
-}
-
-monster::~monster()
-{
 }
 
 std::string monster::name()

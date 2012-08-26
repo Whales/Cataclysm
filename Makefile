@@ -5,6 +5,7 @@
 #WARNINGS = -Wall -Wextra -Wno-switch -Wno-sign-compare -Wno-missing-braces -Wno-unused-parameter -Wno-char-subscripts
 #DEBUG = -g
 #PROFILE = -pg
+OTHERS = -O3
 
 ODIR = obj
 DDIR = .deps
@@ -14,7 +15,7 @@ TARGET = cataclysm
 OS  = $(shell uname -o)
 CXX = g++
 
-CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE)
+CFLAGS = $(WARNINGS) $(DEBUG) $(PROFILE) $(OTHERS)
 
 ifeq ($(OS), Msys)
 LDFLAGS = -static -lpdcurses
