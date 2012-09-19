@@ -11,11 +11,7 @@
 #include <sstream>
 #include <stdlib.h>
 
-#if (defined _WIN32 || defined WINDOWS)
-	#include "catacurse.h"
-#else
-	#include <curses.h>
-#endif
+#include "catacurse.h"
 
 nc_color encumb_color(int level);
 bool activity_is_suspendable(activity_type type);
