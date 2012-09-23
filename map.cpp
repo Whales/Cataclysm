@@ -64,6 +64,10 @@ vehicle* map::veh_at(int x, int y, int &part_num)
  x %= SEEX;
  y %= SEEY;
 
+ // Check vehicle location cache for vehicle presence
+ if (grid[nonant].veh[x][y] == false)
+  return NULL;
+
  // must check 3x3 map chunks, as vehicle part may span to neighbour chunk
  // we presume that vehicles don't intersect (they shouldn't by any means)
  for (int mx = -1; mx <= 1; mx++) {
