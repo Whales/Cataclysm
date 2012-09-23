@@ -6575,6 +6575,7 @@ vehicle *map::add_vehicle(game *g, vhtype_id type, int x, int y, int dir)
  veh.face.init(dir);
  veh.turn_dir = dir;
  veh.precalc_mounts (0, dir);
+ update_vehicle_presence (&veh, true);
  grid[nonant].vehicles.push_back(veh);
  //debugmsg ("grid[%d].vehicles.size=%d veh.parts.size=%d", nonant, grid[nonant].vehicles.size(),veh.parts.size());
  return &grid[nonant].vehicles[grid[nonant].vehicles.size()-1];
@@ -6725,11 +6726,13 @@ void map::rotate(int turns)
   return;
  }
 
-// change vehicles' directions
+// change vehicles' directions and regenrate vehicle location cache
  for (int i = 0; i < my_MAPSIZE * my_MAPSIZE; i++)
-     for (int v = 0; v < grid[i].vehicles.size(); v++)
+     for (int v = 0; v < grid[i].vehicles.size(); v++) {
          if (turns >= 1 && turns <= 3)
             grid[i].vehicles[v].turn (turns * 90);
+         update_vehicle_presence (&(grid[i].vehicles[v]), true);
+     }
 
 // Set the spawn points
  grid[0].spawns = sprot[0];

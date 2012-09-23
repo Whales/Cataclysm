@@ -180,6 +180,7 @@ void map::destroy_vehicle (vehicle *veh)
  int sm = veh->smx + veh->smy * my_MAPSIZE;
  for (int i = 0; i < grid[sm].vehicles.size(); i++) {
   if (&(grid[sm].vehicles[i]) == veh) {
+   update_vehicle_presence (veh, false);
    grid[sm].vehicles.erase (grid[sm].vehicles.begin() + i);
    return;
   }
@@ -270,6 +271,8 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
    upd_y = psg->posy;
   }
  }
+ // Clear the previous record of the vehicle's presence.
+ update_vehicle_presence (veh, false);
  for (int p = 0; p < veh->parts.size(); p++) {
   veh->parts[p].precalc_dx[0] = veh->parts[p].precalc_dx[1];
   veh->parts[p].precalc_dy[0] = veh->parts[p].precalc_dy[1];
@@ -277,12 +280,19 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
 
  veh->posx = dstx;
  veh->posy = dsty;
+ // Record the new record of the vehicle's presence.
+ update_vehicle_presence (veh, true);
+
  if (src_na != dst_na) {
   vehicle veh1 = *veh;
+  // Clear the entry in the cache since we're updating it again.
+  update_vehicle_presence (&veh1, false);
   veh1.smx = int(x2 / SEEX);
   veh1.smy = int(y2 / SEEY);
   grid[dst_na].vehicles.push_back (veh1);
   grid[src_na].vehicles.erase (grid[src_na].vehicles.begin() + our_i);
+  // Record the new record of the vehicle's presence.
+  update_vehicle_presence (&veh1, true);
  }
 
  x += dx;
@@ -341,6 +351,7 @@ void map::vehmove(game *g)
        if (pl_ctrl)
         g->add_msg ("Your %s sank.", veh->name.c_str());
        veh->unboard_all ();
+       update_vehicle_presence (veh, false);
 // destroy vehicle (sank to nowhere)
        grid[sm].vehicles.erase (grid[sm].vehicles.begin() + v);
        v--;
@@ -2471,6 +2482,7 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
     veh.smx = gridx;
     veh.smy = gridy;
     grid[gridn].vehicles.push_back(veh);
+    update_vehicle_presence (&veh, true);
    } else if (!mapin.eof() && ch == 'c') {
     getline(mapin, databuff);
     grid[gridn].comp.load_data(databuff);
@@ -2534,8 +2546,10 @@ void map::copy_grid(int to, int from)
  {
    grid[to].vehicles.push_back(grid[from].vehicles[i]);
    int ind = grid[to].vehicles.size() - 1;
+   update_vehicle_presence(&grid[to].vehicles[ind], false);
    grid[to].vehicles[ind].smx = to % my_MAPSIZE;
    grid[to].vehicles[ind].smy = to / my_MAPSIZE;
+   update_vehicle_presence(&grid[to].vehicles[ind], true);
  }
 }
 
