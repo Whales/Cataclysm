@@ -154,6 +154,23 @@ void map::unboard_vehicle(game *g, int x, int y)
  veh->skidding = true;
 }
 
+void map::update_vehicle_presence( vehicle *veh, bool add_rem )
+{
+  /* Iterate over the parts of the vehicle and either add or remove the cache of the vehicle's presence, based on add_rem. */
+  for (int p = 0; p < veh->parts.size(); p++)
+  {
+    int px = veh->global_x () + veh->parts[p].precalc_dx[0];
+    int py = veh->global_y () + veh->parts[p].precalc_dy[0];
+
+    if (!INBOUNDS(px, py)) continue;
+
+    int nonant = int(px / SEEX) + int(py / SEEY) * my_MAPSIZE;
+    px %= SEEX;
+    py %= SEEY;
+    grid[nonant].veh[px][py] = add_rem;
+  }
+}
+
 void map::destroy_vehicle (vehicle *veh)
 {
  if (!veh) {

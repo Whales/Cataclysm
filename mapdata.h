@@ -611,6 +611,7 @@ struct submap {
  trap_id		trp[SEEX][SEEY]; // Trap on each square
  field			fld[SEEX][SEEY]; // Field on each square
  int			rad[SEEX][SEEY]; // Irradiation of each square
+ bool			veh[SEEX][SEEY]; // Vehicle presence on each square
  int active_item_count;
  int field_count;
  std::vector<spawn_point> spawns;

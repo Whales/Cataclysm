@@ -69,6 +69,7 @@ class map
  // put player on vehicle at x,y
  void board_vehicle(game *g, int x, int y, player *p);
  void unboard_vehicle(game *g, int x, int y);//remove player from vehicle at x,y
+ void update_vehicle_presence(vehicle *veh, bool add_rem);//Either set or clear the selected vehicle's location cache entry
 
  void destroy_vehicle (vehicle *veh);
 // Change vehicle coords and move vehicle's driver along.
