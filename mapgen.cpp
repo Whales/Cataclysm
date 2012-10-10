@@ -12,6 +12,7 @@
 #endif
 
 #define dbg(x) dout((DebugLevel)(x),D_MAP_GEN) << __FILE__ << ":" << __LINE__ << ": "
+#define dbg_veh(x) dout((DebugLevel)(x),D_VEH) << __FILE__ << ":" << __LINE__ << ": "
 
 ter_id grass_or_dirt()
 {
@@ -6598,6 +6599,10 @@ vehicle *map::add_vehicle(game *g, vhtype_id type, int x, int y, int dir)
   debugmsg("Bad add_vehicle t=%d d=%d x=%d y=%d", type, dir, x, y);
   return 0;
  }
+
+ veh_cached_parts.clear();
+ dbg_veh(D_INFO) << "map::shift: cleared vehicle cache.";
+
 // debugmsg("add_vehicle t=%d d=%d x=%d y=%d", type, dir, x, y);
  int smx = x / SEEX;
  int smy = y / SEEY;
@@ -6605,17 +6610,21 @@ vehicle *map::add_vehicle(game *g, vhtype_id type, int x, int y, int dir)
  x %= SEEX;
  y %= SEEY;
 // debugmsg("n=%d x=%d y=%d MAPSIZE=%d ^2=%d", nonant, x, y, MAPSIZE, MAPSIZE*MAPSIZE);
- vehicle veh(g, type);
- veh.posx = x;
- veh.posy = y;
- veh.smx = smx;
- veh.smy = smy;
- veh.face.init(dir);
- veh.turn_dir = dir;
- veh.precalc_mounts (0, dir);
+ vehicle * veh = new vehicle(g, type);
+ veh->posx = x;
+ veh->posy = y;
+ veh->smx = smx;
+ veh->smy = smy;
+ veh->face.init(dir);
+ veh->turn_dir = dir;
+ veh->precalc_mounts (0, dir);
+
+ dbg_veh(D_INFO) << "map::add_vehicle: Adding vehicle.";
+ vehicle_list.insert(veh);
+
  grid[nonant]->vehicles.push_back(veh);
  //debugmsg ("grid[%d]->vehicles.size=%d veh.parts.size=%d", nonant, grid[nonant]->vehicles.size(),veh.parts.size());
- return &grid[nonant]->vehicles[grid[nonant]->vehicles.size()-1];
+ return veh;
 }
 
 computer* map::add_computer(int x, int y, std::string name, int security)
@@ -6645,7 +6654,7 @@ void map::rotate(int turns)
  std::vector<item> itrot[SEEX*2][SEEY*2];
  std::vector<spawn_point> sprot[my_MAPSIZE * my_MAPSIZE];
  computer tmpcomp;
- std::vector<vehicle> tmpveh;
+ std::vector<vehicle*> tmpveh;
 
  switch (turns) {
  case 1:
@@ -6767,7 +6776,7 @@ void map::rotate(int turns)
  for (int i = 0; i < my_MAPSIZE * my_MAPSIZE; i++)
      for (int v = 0; v < grid[i]->vehicles.size(); v++)
          if (turns >= 1 && turns <= 3)
-            grid[i]->vehicles[v].turn (turns * 90);
+            grid[i]->vehicles[v]->turn (turns * 90);
 
 // Set the spawn points
  grid[0]->spawns = sprot[0];

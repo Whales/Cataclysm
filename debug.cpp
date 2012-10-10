@@ -57,6 +57,14 @@ void setupDebug()
  cl |= D_GAME;
 #endif
 
+#ifdef DEBUG_ENABLE_NPC
+ cl |= D_NPC;
+#endif
+
+#ifdef DEBUG_ENABLE_VEH
+ cl |= D_VEH;
+#endif
+
  if( cl != 0 )
   limitDebugClass(cl);
 }

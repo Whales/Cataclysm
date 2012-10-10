@@ -27,8 +27,9 @@ enum DebugClass
  D_MAP_GEN = 1<<3,
  D_GAME    = 1<<4,
  D_NPC     = 1<<5,
+ D_VEH     = 1<<6,
 
- DC_ALL    = (1<<6)-1
+ DC_ALL    = (1<<7)-1
 };
 
 void setupDebug();

@@ -13,6 +13,7 @@
 #define INBOUNDS(x, y) \
  (x >= 0 && x < SEEX * my_MAPSIZE && y >= 0 && y < SEEY * my_MAPSIZE)
 #define dbg(x) dout((DebugLevel)(x),D_MAP) << __FILE__ << ":" << __LINE__ << ": "
+#define dbg_veh(x) dout((DebugLevel)(x),D_VEH) << __FILE__ << ":" << __LINE__ << ": "
 
 enum astar_list {
  ASL_NONE,
@@ -53,6 +54,13 @@ map::map(std::vector<itype*> *itptr, std::vector<itype_id> (*miptr)[num_itloc],
 
 map::~map()
 {
+ dbg_veh(D_INFO) << "map::~map: DTOR";
+ // for( std::set<vehicle*>::iterator it = vehicle_list.begin(),
+ //      it_end = vehicle_list.end(); it != it_end; ++it )
+ // {
+ //  dbg_veh(D_INFO) << "map::~map: Deleting vehicle.";
+ //  delete *it;
+ // }
 }
 
 vehicle* map::veh_at(int x, int y, int &part_num)
@@ -61,6 +69,38 @@ vehicle* map::veh_at(int x, int y, int &part_num)
  {
   return NULL;    // Out-of-bounds - null vehicle
  }
+
+#if 1
+ std::pair<int,int> point(x,y);
+ if (veh_cached_parts.empty()) {
+  // Now cache all locations
+  //dbg_veh(D_INFO) << "map::veh_at: looking for " << x << "," << y;
+
+  for( std::set<vehicle*>::iterator veh = vehicle_list.begin(),
+        it_end = vehicle_list.end(); veh != it_end; ++veh ) {
+   // Get parts
+   std::vector<vehicle_part> & parts = (*veh)->parts;
+   const int gx = (*veh)->global_x();
+   const int gy = (*veh)->global_y();
+   int partid = 0;
+   for( std::vector<vehicle_part>::iterator it = parts.begin(),
+         end = parts.end(); it != end; ++it, ++partid ) {
+    const int px = gx + it->precalc_dx[0];
+    const int py = gy + it->precalc_dy[0];
+    veh_cached_parts.insert( std::make_pair( std::make_pair(px,py), std::make_pair(*veh,partid) ));
+   }
+  }
+ }
+ if (!veh_cached_parts.empty()) {
+  std::map< std::pair<int,int>, std::pair<vehicle*,int> >::iterator it;
+  if ((it = veh_cached_parts.find(point)) != veh_cached_parts.end())
+  {
+   part_num = it->second.second;
+   return it->second.first;
+  }
+ }
+
+#else
  int nonant = int(x / SEEX) + int(y / SEEY) * my_MAPSIZE;
 
  x %= SEEX;
@@ -73,17 +113,21 @@ vehicle* map::veh_at(int x, int y, int &part_num)
    int nonant1 = nonant + mx + my * my_MAPSIZE;
    if (nonant1 < 0 || nonant1 >= my_MAPSIZE * my_MAPSIZE)
     continue; // out of grid
-   for (int i = 0; i < grid[nonant1]->vehicles.size(); i++) {
-    vehicle *veh = &(grid[nonant1]->vehicles[i]);
-    int part = veh->part_at (x - (veh->posx + mx * SEEX),
-                             y - (veh->posy + my * SEEY));
+
+   std::vector<vehicle*> & vehicles = grid[nonant1]->vehicles;
+   for( std::vector<vehicle*>::iterator veh = vehicles.begin(),
+           it_end = vehicles.end(); veh != it_end; ++veh ) {
+    int part = (*veh)->part_at (x - ((*veh)->posx + mx * SEEX),
+                             y - ((*veh)->posy + my * SEEY));
     if (part >= 0) {
      part_num = part;
-     return veh;
+     return *veh;
     }
    }
   }
  }
+
+#endif
  return NULL;
 }
 
@@ -166,7 +210,7 @@ void map::destroy_vehicle (vehicle *veh)
  }
  int sm = veh->smx + veh->smy * my_MAPSIZE;
  for (int i = 0; i < grid[sm]->vehicles.size(); i++) {
-  if (&(grid[sm]->vehicles[i]) == veh) {
+  if (grid[sm]->vehicles[i] == veh) {
    grid[sm]->vehicles.erase (grid[sm]->vehicles.begin() + i);
    return;
   }
@@ -205,8 +249,8 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
  // first, let's find our position in current vehicles vector
  int our_i = -1;
  for (int i = 0; i < grid[src_na]->vehicles.size(); i++) {
-  if (grid[src_na]->vehicles[i].posx == srcx &&
-      grid[src_na]->vehicles[i].posy == srcy) {
+  if (grid[src_na]->vehicles[i]->posx == srcx &&
+      grid[src_na]->vehicles[i]->posy == srcy) {
    our_i = i;
    break;
   }
@@ -216,7 +260,7 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
   return false;
  }
  // move the vehicle
- vehicle *veh = &(grid[src_na]->vehicles[our_i]);
+ vehicle *veh = grid[src_na]->vehicles[our_i];
  // don't let it go off grid
  if (!inbounds(x2, y2))
   veh->stop();
@@ -265,9 +309,9 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
  veh->posx = dstx;
  veh->posy = dsty;
  if (src_na != dst_na) {
-  vehicle veh1 = *veh;
-  veh1.smx = int(x2 / SEEX);
-  veh1.smy = int(y2 / SEEY);
+  vehicle * veh1 = veh;
+  veh1->smx = int(x2 / SEEX);
+  veh1->smy = int(y2 / SEEY);
   grid[dst_na]->vehicles.push_back (veh1);
   grid[src_na]->vehicles.erase (grid[src_na]->vehicles.begin() + our_i);
  }
@@ -302,7 +346,7 @@ void map::vehmove(game *g)
   for (int j = 0; j < my_MAPSIZE; j++) {
    int sm = i + j * my_MAPSIZE;
    for (int v = 0; v < grid[sm]->vehicles.size(); v++) {
-    vehicle *veh = &(grid[sm]->vehicles[v]);
+    vehicle *veh = grid[sm]->vehicles[v];
     // velocity is ability to make more one-tile steps per turn
     veh->gain_moves (abs (veh->velocity));
    }
@@ -318,7 +362,7 @@ void map::vehmove(game *g)
     int sm = i + j * my_MAPSIZE;
 
     for (int v = 0; v < grid[sm]->vehicles.size(); v++) {
-     vehicle *veh = &(grid[sm]->vehicles[v]);
+     vehicle *veh = grid[sm]->vehicles[v];
      bool pl_ctrl = veh->player_in_control(&g->u);
      while (!sm_change && veh->moves > 0 && veh->velocity != 0) {
       int x = veh->posx + i * SEEX;
@@ -2207,6 +2251,9 @@ void map::load(game *g, int wx, int wy)
 
 void map::shift(game *g, int wx, int wy, int sx, int sy)
 {
+ veh_cached_parts.clear();
+ dbg_veh(D_INFO) << "map::shift: cleared vehicle cache.";
+
 // Special case of 0-shift; refresh the map
  if (sx == 0 && sy == 0) {
   return; // Skip this?
@@ -2339,8 +2386,9 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
  if (tmpsub) {
   grid[gridn] = tmpsub;
   for (int i = 0; i < grid[gridn]->vehicles.size(); i++) {
-   grid[gridn]->vehicles[i].smx = gridx;
-   grid[gridn]->vehicles[i].smy = gridy;
+   grid[gridn]->vehicles[i]->smx = gridx;
+   grid[gridn]->vehicles[i]->smy = gridy;
+   vehicle_list.insert( grid[gridn]->vehicles[i] );
   }
  } else { // It doesn't exist; we must generate it!
   dbg(D_INFO|D_WARNING) << "map::loadn: Missing mapbuffer data. Regenerating.";
@@ -2367,8 +2415,8 @@ void map::copy_grid(int to, int from)
  grid[to] = grid[from];
  for (int i = 0; i < grid[to]->vehicles.size(); i++) {
   int ind = grid[to]->vehicles.size() - 1;
-  grid[to]->vehicles[ind].smx = to % my_MAPSIZE;
-  grid[to]->vehicles[ind].smy = to / my_MAPSIZE;
+  grid[to]->vehicles[ind]->smx = to % my_MAPSIZE;
+  grid[to]->vehicles[ind]->smy = to / my_MAPSIZE;
  }
 }
 

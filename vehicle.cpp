@@ -5,11 +5,14 @@
 #include "item.h"
 #include <sstream>
 #include <stdlib.h>
+#include "debug.h"
 #if (defined _WIN32 || defined WINDOWS)
     #include "catacurse.h"
 #else
     #include <curses.h>
 #endif
+
+#define dbg_veh(x) dout((DebugLevel)(x),D_VEH) << __FILE__ << ":" << __LINE__ << ": "
 
 vehicle::vehicle(game *ag, vhtype_id type_id): g(ag), type(type_id)
 {
@@ -359,6 +362,7 @@ bool vehicle::part_flag (int p, unsigned int f)
 
 int vehicle::part_at(int dx, int dy)
 {
+    dbg_veh(D_INFO) << "vehicle::part_at: dx: " << dx << " dy: " << dy;
     for (int i = 0; i < external_parts.size(); i++)
     {
         int p = external_parts[i];
@@ -367,6 +371,15 @@ int vehicle::part_at(int dx, int dy)
             return p;
     }
     return -1;
+}
+
+int vehicle::global_part_at(int x, int y)
+{
+ dbg_veh(D_INFO) << "vehicle::global_part_at: x: " << x << " y: " << y;
+
+ int dx = x - global_x();
+ int dy = y - global_y();
+ return part_at(dx,dy);
 }
 
 char vehicle::part_sym (int p)
