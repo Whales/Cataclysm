@@ -5950,6 +5950,7 @@ void game::pldrive(int x, int y)
   u.in_vehicle = false;
   return;
  }
+ //m.update_vehicle_cache(veh);
  int pctr = veh->part_with_feature (part, vpf_controls);
  if (pctr < 0) {
   add_msg ("You can't drive the vehicle from here. You need controls!");
