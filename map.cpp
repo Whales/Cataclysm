@@ -29,7 +29,7 @@ map::map()
   my_MAPSIZE = 2;
  else
   my_MAPSIZE = MAPSIZE;
- veh_in_active_range = false;
+ veh_in_active_range = true;
 
  dbg(D_INFO) << "map::map(): my_MAPSIZE: " << my_MAPSIZE;
 }
@@ -48,7 +48,7 @@ map::map(std::vector<itype*> *itptr, std::vector<itype_id> (*miptr)[num_itloc],
   my_MAPSIZE = MAPSIZE;
  for (int n = 0; n < my_MAPSIZE * my_MAPSIZE; n++)
   grid[n] = NULL;
- veh_in_active_range = false;
+ veh_in_active_range = true;
 
  dbg(D_INFO) << "map::map( itptr["<<itptr<<"], miptr["<<miptr<<"], trptr["<<trptr<<"] ): my_MAPSIZE: " << my_MAPSIZE;
 
@@ -56,7 +56,6 @@ map::map(std::vector<itype*> *itptr, std::vector<itype_id> (*miptr)[num_itloc],
 
 map::~map()
 {
- dbg_veh(D_INFO) << "map::~map: DTOR";
 }
 
 vehicle* map::veh_at(int x, int y, int &part_num)
@@ -81,12 +80,25 @@ vehicle* map::veh_at(int x, int y)
  return veh;
 }
 
-void map::update_vehicle_cache(vehicle * veh, bool keep_cache)
+void map::reset_vehicle_cache()
 {
- if(!keep_cache) {
+ dbg_veh(D_INFO) << "map::reset_vehicle_cache";
+
+ // Cache all vehicles
+ veh_cached_parts.clear();
+ for( std::set<vehicle*>::iterator veh = vehicle_list.begin(),
+   it_end = vehicle_list.end(); veh != it_end; ++veh ) {
+  update_vehicle_cache(*veh, true);
+ }
+}
+
+void map::update_vehicle_cache(vehicle * veh, bool brand_new)
+{
+ if(brand_new)
+  veh_in_active_range = true; // will reset on shift if false
+ else { // Existing must be cleared
   std::map< std::pair<int,int>, std::pair<vehicle*,int> >::iterator it =
-             veh_cached_parts.begin(), end = veh_cached_parts.end(),
-             tmp;
+             veh_cached_parts.begin(), end = veh_cached_parts.end(), tmp;
   while( it != end ) {
    if( it->second.first == veh ) {
     tmp = it;
@@ -183,6 +195,8 @@ void map::destroy_vehicle (vehicle *veh)
  int sm = veh->smx + veh->smy * my_MAPSIZE;
  for (int i = 0; i < grid[sm]->vehicles.size(); i++) {
   if (grid[sm]->vehicles[i] == veh) {
+   vehicle_list.erase(veh);
+   reset_vehicle_cache();
    grid[sm]->vehicles.erase (grid[sm]->vehicles.begin() + i);
    return;
   }
@@ -2272,8 +2286,9 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
    vcptmp.insert( std::make_pair( std::make_pair( newx, newy ),
                                                         it->second ));
    if( !veh_in_active_range &&
-         newx >= minx && newx <= maxx && newy >= miny && newy <= maxy )
-     veh_in_active_range = true;
+         newx >= minx && newx <= maxx && newy >= miny && newy <= maxy ) {
+    veh_in_active_range = true;
+   }
   }
   veh_cached_parts.swap(vcptmp);
  }
@@ -2380,8 +2395,6 @@ void map::saven(overmap *om, unsigned int turn, int worldx, int worldy,
 // 0,2  1,2  2,2 etc
 bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
 {
- dbg(D_INFO) << "map::loadn(game[" << g << "], worldx["<<worldx<<"], worldy["<<worldy<<"], gridx["<<gridx<<"], gridy["<<gridy<<"])";
-
  int absx = g->cur_om.posx * OMAPX * 2 + worldx + gridx,
      absy = g->cur_om.posy * OMAPY * 2 + worldy + gridy,
      gridn = gridx + gridy * my_MAPSIZE;
@@ -2396,10 +2409,15 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
   // Update vehicle data
   for( std::vector<vehicle*>::iterator it = tmpsub->vehicles.begin(),
         end = tmpsub->vehicles.end(); it != end; ++it ) {
-   (*it)->smx = gridx;
-   (*it)->smy = gridy;
-   vehicle_list.insert(*it);
-   update_vehicle_cache(*it);
+
+   // Only add if not tracking already.
+   if( vehicle_list.find( *it ) == vehicle_list.end() ) {
+    // gridx/y not correct. TODO: Fix
+    (*it)->smx = gridx;
+    (*it)->smy = gridy;
+    vehicle_list.insert(*it);
+    update_vehicle_cache(*it);
+   }
   }
  } else { // It doesn't exist; we must generate it!
   dbg(D_INFO|D_WARNING) << "map::loadn: Missing mapbuffer data. Regenerating.";
@@ -2413,8 +2431,6 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
    newmapx = worldx + gridx;
   if (worldy + gridy < 0)
    newmapy = worldy + gridy;
-  if (worldx + gridx < 0)
-   newmapx = worldx + gridx;
   tmp_map.generate(g, &(g->cur_om), newmapx, newmapy, int(g->turn));
   return false;
  }
@@ -2424,10 +2440,10 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
 void map::copy_grid(int to, int from)
 {
  grid[to] = grid[from];
- for (int i = 0; i < grid[to]->vehicles.size(); i++) {
-  int ind = grid[to]->vehicles.size() - 1;
-  grid[to]->vehicles[ind]->smx = to % my_MAPSIZE;
-  grid[to]->vehicles[ind]->smy = to / my_MAPSIZE;
+ for( std::vector<vehicle*>::iterator it = grid[to]->vehicles.begin(),
+       end = grid[to]->vehicles.end(); it != end; ++it ) {
+  (*it)->smx = to % my_MAPSIZE;
+  (*it)->smy = to / my_MAPSIZE;
  }
 }
 
