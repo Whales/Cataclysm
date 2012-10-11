@@ -6621,7 +6621,7 @@ vehicle *map::add_vehicle(game *g, vhtype_id type, int x, int y, int dir)
 
  dbg_veh(D_INFO) << "map::add_vehicle: Adding vehicle.";
  vehicle_list.insert(veh);
- reset_vehicle_cache();
+ update_vehicle_cache(veh,true);
 
  grid[nonant]->vehicles.push_back(veh);
  //debugmsg ("grid[%d]->vehicles.size=%d veh.parts.size=%d", nonant, grid[nonant]->vehicles.size(),veh.parts.size());
