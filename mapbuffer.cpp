@@ -1,7 +1,11 @@
 #include "mapbuffer.h"
 #include "game.h"
 #include "output.h"
+#include "debug.h"
 #include <fstream>
+
+#define dbg(x) dout((DebugLevel)(x),D_MAP) << __FILE__ << ":" << __LINE__ << ": "
+#define dbg_veh(x) dout((DebugLevel)(x),D_VEH) << __FILE__ << ":" << __LINE__ << ": "
 
 mapbuffer MAPBUFFER;
 
@@ -31,6 +35,8 @@ void mapbuffer::set_game(game *g)
 
 bool mapbuffer::add_submap(int x, int y, int z, submap *sm)
 {
+ dbg(D_INFO) << "mapbuffer::add_submap( x["<< x <<"], y["<< y <<"], z["<< z <<"], submap["<< sm <<"])";
+
  tripoint p(x, y, z);
  if (submaps.count(p) != 0)
   return false;
@@ -43,10 +49,14 @@ bool mapbuffer::add_submap(int x, int y, int z, submap *sm)
 
 submap* mapbuffer::lookup_submap(int x, int y, int z)
 {
+ dbg(D_INFO) << "mapbuffer::lookup_submap( x["<< x <<"], y["<< y <<"], z["<< z <<"])";
+
  tripoint p(x, y, z);
 
  if (submaps.count(p) == 0)
   return NULL;
+
+ dbg(D_INFO) << "mapbuffer::lookup_submap success: "<< submaps[p];
 
  return submaps[p];
 }
@@ -130,7 +140,7 @@ void mapbuffer::save()
  // Output the vehicles
   for (int i = 0; i < sm->vehicles.size(); i++) {
    fout << "V ";
-   sm->vehicles[i].save (fout);
+   sm->vehicles[i]->save (fout);
   }
  // Output the computer
   if (sm->comp.name != "")
@@ -144,6 +154,7 @@ void mapbuffer::save()
 void mapbuffer::load()
 {
  if (!master_game) {
+  dbg(D_ERROR) << "mapbuffer::load: No master_game!";
   debugmsg("Can't load mapbuffer without a master_game");
   return;
  }
@@ -234,10 +245,12 @@ void mapbuffer::load()
                     spawnname);
     sm->spawns.push_back(tmp);
    } else if (string_identifier == "V") {
-    vehicle veh(master_game);
-    veh.load (fin);
+    vehicle * veh = new vehicle(master_game);
+    veh->load (fin);
     //veh.smx = gridx;
     //veh.smy = gridy;
+    dbg_veh(D_INFO) << "mapbuffer::load: Adding vehicle.";
+    master_game->m.vehicle_list.insert(veh);
     sm->vehicles.push_back(veh);
    } else if (string_identifier == "c") {
     getline(fin, databuff);

@@ -7,10 +7,13 @@
 #include <cmath>
 #include <stdlib.h>
 #include <fstream>
+#include "debug.h"
 
 #define SGN(a) (((a)<0) ? -1 : 1)
 #define INBOUNDS(x, y) \
  (x >= 0 && x < SEEX * my_MAPSIZE && y >= 0 && y < SEEY * my_MAPSIZE)
+#define dbg(x) dout((DebugLevel)(x),D_MAP) << __FILE__ << ":" << __LINE__ << ": "
+#define dbg_veh(x) dout((DebugLevel)(x),D_VEH) << __FILE__ << ":" << __LINE__ << ": "
 
 enum astar_list {
  ASL_NONE,
@@ -26,6 +29,9 @@ map::map()
   my_MAPSIZE = 2;
  else
   my_MAPSIZE = MAPSIZE;
+ veh_in_active_range = true;
+
+ dbg(D_INFO) << "map::map(): my_MAPSIZE: " << my_MAPSIZE;
 }
 
 map::map(std::vector<itype*> *itptr, std::vector<itype_id> (*miptr)[num_itloc],
@@ -42,6 +48,10 @@ map::map(std::vector<itype*> *itptr, std::vector<itype_id> (*miptr)[num_itloc],
   my_MAPSIZE = MAPSIZE;
  for (int n = 0; n < my_MAPSIZE * my_MAPSIZE; n++)
   grid[n] = NULL;
+ veh_in_active_range = true;
+
+ dbg(D_INFO) << "map::map( itptr["<<itptr<<"], miptr["<<miptr<<"], trptr["<<trptr<<"] ): my_MAPSIZE: " << my_MAPSIZE;
+
 }
 
 map::~map()
@@ -50,30 +60,15 @@ map::~map()
 
 vehicle* map::veh_at(int x, int y, int &part_num)
 {
- if (!inbounds(x, y))
+ // This function is called A LOT. Move as much out of here as possible.
+ if (!veh_in_active_range || !inbounds(x, y))
   return NULL;    // Out-of-bounds - null vehicle
- int nonant = int(x / SEEX) + int(y / SEEY) * my_MAPSIZE;
-
- x %= SEEX;
- y %= SEEY;
-
- // must check 3x3 map chunks, as vehicle part may span to neighbour chunk
- // we presume that vehicles don't intersect (they shouldn't by any means)
- for (int mx = -1; mx <= 1; mx++) {
-  for (int my = -1; my <= 1; my++) {
-   int nonant1 = nonant + mx + my * my_MAPSIZE;
-   if (nonant1 < 0 || nonant1 >= my_MAPSIZE * my_MAPSIZE)
-    continue; // out of grid
-   for (int i = 0; i < grid[nonant1]->vehicles.size(); i++) {
-    vehicle *veh = &(grid[nonant1]->vehicles[i]);
-    int part = veh->part_at (x - (veh->posx + mx * SEEX),
-                             y - (veh->posy + my * SEEY));
-    if (part >= 0) {
-     part_num = part;
-     return veh;
-    }
-   }
-  }
+ std::pair<int,int> point(x,y);
+ std::map< std::pair<int,int>, std::pair<vehicle*,int> >::iterator it;
+ if ((it = veh_cached_parts.find(point)) != veh_cached_parts.end())
+ {
+  part_num = it->second.second;
+  return it->second.first;
  }
  return NULL;
 }
@@ -83,6 +78,49 @@ vehicle* map::veh_at(int x, int y)
  int part = 0;
  vehicle *veh = veh_at(x, y, part);
  return veh;
+}
+
+void map::reset_vehicle_cache()
+{
+ dbg_veh(D_INFO) << "map::reset_vehicle_cache";
+
+ // Cache all vehicles
+ veh_cached_parts.clear();
+ veh_in_active_range = false;
+ for( std::set<vehicle*>::iterator veh = vehicle_list.begin(),
+   it_end = vehicle_list.end(); veh != it_end; ++veh ) {
+  update_vehicle_cache(*veh, true);
+ }
+}
+
+void map::update_vehicle_cache(vehicle * veh, bool brand_new)
+{
+ veh_in_active_range = true;
+ if(!brand_new){
+ // Existing must be cleared
+  std::map< std::pair<int,int>, std::pair<vehicle*,int> >::iterator it =
+             veh_cached_parts.begin(), end = veh_cached_parts.end(), tmp;
+  while( it != end ) {
+   if( it->second.first == veh ) {
+    tmp = it;
+    ++it;
+    veh_cached_parts.erase( tmp );
+   }else
+    ++it;
+  }
+ }
+ // Get parts
+ std::vector<vehicle_part> & parts = veh->parts;
+ const int gx = veh->global_x();
+ const int gy = veh->global_y();
+ int partid = 0;
+ for( std::vector<vehicle_part>::iterator it = parts.begin(),
+   end = parts.end(); it != end; ++it, ++partid ) {
+  const int px = gx + it->precalc_dx[0];
+  const int py = gy + it->precalc_dy[0];
+  veh_cached_parts.insert( std::make_pair( std::make_pair(px,py),
+                                        std::make_pair(veh,partid) ));
+ }
 }
 
 void map::board_vehicle(game *g, int x, int y, player *p)
@@ -105,13 +143,15 @@ void map::board_vehicle(game *g, int x, int y, player *p)
             veh->part_info(part).name);
   return;
  }
- if (veh->parts[seat_part].passenger) {
+ if (veh->parts[seat_part].has_flag(vehicle_part::passenger_flag)) {
   player *psg = veh->get_passenger (seat_part);
   debugmsg ("map::board_vehicle: passenger (%s) is already there",
             psg ? psg->name.c_str() : "<null>");
   return;
  }
- veh->parts[seat_part].passenger = 1;
+ veh->parts[seat_part].set_flag(vehicle_part::passenger_flag);
+ veh->parts[seat_part].passenger_id = 0; // Player is 0
+
  p->posx = x;
  p->posy = y;
  p->in_vehicle = true;
@@ -143,7 +183,7 @@ void map::unboard_vehicle(game *g, int x, int y)
  }
  psg->in_vehicle = false;
  psg->driving_recoil = 0;
- veh->parts[seat_part].passenger = 0;
+ veh->parts[seat_part].remove_flag(vehicle_part::passenger_flag);
  veh->skidding = true;
 }
 
@@ -155,7 +195,9 @@ void map::destroy_vehicle (vehicle *veh)
  }
  int sm = veh->smx + veh->smy * my_MAPSIZE;
  for (int i = 0; i < grid[sm]->vehicles.size(); i++) {
-  if (&(grid[sm]->vehicles[i]) == veh) {
+  if (grid[sm]->vehicles[i] == veh) {
+   vehicle_list.erase(veh);
+   reset_vehicle_cache();
    grid[sm]->vehicles.erase (grid[sm]->vehicles.begin() + i);
    return;
   }
@@ -194,8 +236,8 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
  // first, let's find our position in current vehicles vector
  int our_i = -1;
  for (int i = 0; i < grid[src_na]->vehicles.size(); i++) {
-  if (grid[src_na]->vehicles[i].posx == srcx &&
-      grid[src_na]->vehicles[i].posy == srcy) {
+  if (grid[src_na]->vehicles[i]->posx == srcx &&
+      grid[src_na]->vehicles[i]->posy == srcy) {
    our_i = i;
    break;
   }
@@ -205,7 +247,7 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
   return false;
  }
  // move the vehicle
- vehicle *veh = &(grid[src_na]->vehicles[our_i]);
+ vehicle *veh = grid[src_na]->vehicles[our_i];
  // don't let it go off grid
  if (!inbounds(x2, y2))
   veh->stop();
@@ -254,15 +296,17 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
  veh->posx = dstx;
  veh->posy = dsty;
  if (src_na != dst_na) {
-  vehicle veh1 = *veh;
-  veh1.smx = int(x2 / SEEX);
-  veh1.smy = int(y2 / SEEY);
+  vehicle * veh1 = veh;
+  veh1->smx = int(x2 / SEEX);
+  veh1->smy = int(y2 / SEEY);
   grid[dst_na]->vehicles.push_back (veh1);
   grid[src_na]->vehicles.erase (grid[src_na]->vehicles.begin() + our_i);
  }
 
  x += dx;
  y += dy;
+
+ update_vehicle_cache(veh);
 
  bool was_update = false;
  if (need_update &&
@@ -281,6 +325,7 @@ bool map::displace_vehicle (game *g, int &x, int &y, int dx, int dy, bool test=f
   g->update_map(upd_x, upd_y);
   was_update = true;
  }
+
  return (src_na != dst_na) || was_update;
 }
 
@@ -291,7 +336,7 @@ void map::vehmove(game *g)
   for (int j = 0; j < my_MAPSIZE; j++) {
    int sm = i + j * my_MAPSIZE;
    for (int v = 0; v < grid[sm]->vehicles.size(); v++) {
-    vehicle *veh = &(grid[sm]->vehicles[v]);
+    vehicle *veh = grid[sm]->vehicles[v];
     // velocity is ability to make more one-tile steps per turn
     veh->gain_moves (abs (veh->velocity));
    }
@@ -307,7 +352,7 @@ void map::vehmove(game *g)
     int sm = i + j * my_MAPSIZE;
 
     for (int v = 0; v < grid[sm]->vehicles.size(); v++) {
-     vehicle *veh = &(grid[sm]->vehicles[v]);
+     vehicle *veh = grid[sm]->vehicles[v];
      bool pl_ctrl = veh->player_in_control(&g->u);
      while (!sm_change && veh->moves > 0 && veh->velocity != 0) {
       int x = veh->posx + i * SEEX;
@@ -515,6 +560,7 @@ void map::vehmove(game *g)
   if (count > 10)
    break;
  } while (sm_change);
+
 }
 
 bool map::displace_water (int x, int y)
@@ -611,8 +657,11 @@ int map::move_cost_ter_only(int x, int y)
  return terlist[ter(x, y)].movecost;
 }
 
-bool map::trans(int x, int y)
+bool map::trans(int x, int y, char * trans_buf)
 {
+  if(trans_buf && trans_buf[x + (y * my_MAPSIZE * SEEX)] != -1)
+   return trans_buf[x + (y + my_MAPSIZE * SEEX)];
+
  // Control statement is a problem. Normally returning false on an out-of-bounds
  // is how we stop rays from going on forever.  Instead we'll have to include
  // this check in the ray loop.
@@ -628,9 +677,16 @@ bool map::trans(int x, int y)
   }
  } else
   tertr = terlist[ter(x, y)].flags & mfb(transparent);
- return tertr &&
-        (field_at(x, y).type == 0 ||	// Fields may obscure the view, too
-        fieldlist[field_at(x, y).type].transparent[field_at(x, y).density - 1]);
+ if( tertr )
+ {
+  field & f(field_at(x, y));
+  if(f.type == 0 || // Fields may obscure the view, too
+    fieldlist[f.type].transparent[f.density - 1]);
+  if(trans_buf) trans_buf[x + (y * my_MAPSIZE * SEEX)] = 1;
+  return true;
+ }
+ if(trans_buf) trans_buf[x + (y * my_MAPSIZE * SEEX)] = 0;
+ return false;
 }
 
 bool map::has_flag(t_flag flag, int x, int y)
@@ -1805,6 +1861,8 @@ void map::draw(game *g, WINDOW* w, point center)
  }
  int t = 0;
  int light = g->u.sight_range(g->light_level());
+ char trans_buf[my_MAPSIZE*SEEX][my_MAPSIZE*SEEY];
+ memset(trans_buf, -1, sizeof(trans_buf));
  for  (int realx = center.x - SEEX; realx <= center.x + SEEX; realx++) {
   for (int realy = center.y - SEEY; realy <= center.y + SEEY; realy++) {
    int dist = rl_dist(g->u.posx, g->u.posy, realx, realy);
@@ -1879,7 +1937,8 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
     case 4: sym = '&'; break;
     case 5: sym = '+'; break;
    }
-  } else if (fieldlist[field_at(x, y).type].sym != '%') {
+  } else if (fieldlist[field_at(x, y).type].sym != '%' ||
+             i_at(x, y).size() > 0) {
    sym = fieldlist[field_at(x, y).type].sym;
    drew_field = false;
   }
@@ -1916,7 +1975,7 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
 map::sees based off code by Steve Register [arns@arns.freeservers.com]
 http://roguebasin.roguelikedevelopment.org/index.php?title=Simple_Line_of_Sight
 */
-bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
+bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc, char * trans_buf)
 {
  int dx = Tx - Fx;
  int dy = Ty - Fy;
@@ -1951,7 +2010,7 @@ bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
      tc *= st;
      return true;
     }
-   } while ((trans(x, y)) && (INBOUNDS(x,y)));
+   } while ((trans(x, y, trans_buf)) && (INBOUNDS(x,y)));
   }
   return false;
  } else { // Same as above, for mostly-vertical lines
@@ -1971,7 +2030,7 @@ bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
      tc *= st;
      return true;
     }
-   } while ((trans(x, y)) && (INBOUNDS(x,y)));
+   } while ((trans(x, y, trans_buf)) && (INBOUNDS(x,y)));
   }
   return false;
  }
@@ -2195,6 +2254,8 @@ void map::load(game *g, int wx, int wy)
 
 void map::shift(game *g, int wx, int wy, int sx, int sy)
 {
+ dbg_veh(D_INFO) << "map::shift: cleared vehicle cache.";
+
 // Special case of 0-shift; refresh the map
  if (sx == 0 && sy == 0) {
   return; // Skip this?
@@ -2212,6 +2273,7 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
   g->u.posx -= sx * SEEX;
   g->u.posy -= sy * SEEY;
  }
+
 
 // Shift the map sx submaps to the right and sy submaps down.
 // sx and sy should never be bigger than +/-1.
@@ -2277,6 +2339,7 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
    }
   }
  }
+ reset_vehicle_cache();
 }
 
 // saven saves a single nonant.  worldx and worldy are used for the file
@@ -2288,12 +2351,21 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
 void map::saven(overmap *om, unsigned int turn, int worldx, int worldy,
                 int gridx, int gridy)
 {
+ dbg(D_INFO) << "map::saven(om[" << (void*)om << "], turn[" << turn <<"], worldx["<<worldx<<"], worldy["<<worldy<<"], gridx["<<gridx<<"], gridy["<<gridy<<"])";
+
  int n = gridx + gridy * my_MAPSIZE;
 
- if (grid[n]->ter[0][0] == t_null)
+ dbg(D_INFO) << "map::saven n: " << n;
+
+ if ( !grid[n] || grid[n]->ter[0][0] == t_null)
+ {
+  dbg(D_ERROR) << "map::saven grid NULL!";
   return;
+ }
  int abs_x = om->posx * OMAPX * 2 + worldx + gridx,
      abs_y = om->posy * OMAPY * 2 + worldy + gridy;
+
+ dbg(D_INFO) << "map::saven abs_x: " << abs_x << "  abs_y: " << abs_y;
 
  MAPBUFFER.add_submap(abs_x, abs_y, om->posz, grid[n]);
 }
@@ -2308,14 +2380,29 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
  int absx = g->cur_om.posx * OMAPX * 2 + worldx + gridx,
      absy = g->cur_om.posy * OMAPY * 2 + worldy + gridy,
      gridn = gridx + gridy * my_MAPSIZE;
+
+ dbg(D_INFO) << "map::loadn absx: " << absx << "  absy: " << absy
+            << "  gridn: " << gridn;
+
  submap *tmpsub = MAPBUFFER.lookup_submap(absx, absy, g->cur_om.posz);
  if (tmpsub) {
   grid[gridn] = tmpsub;
-  for (int i = 0; i < grid[gridn]->vehicles.size(); i++) {
-   grid[gridn]->vehicles[i].smx = gridx;
-   grid[gridn]->vehicles[i].smy = gridy;
+
+  // Update vehicle data
+  for( std::vector<vehicle*>::iterator it = tmpsub->vehicles.begin(),
+        end = tmpsub->vehicles.end(); it != end; ++it ) {
+
+   // Only add if not tracking already.
+   if( vehicle_list.find( *it ) == vehicle_list.end() ) {
+    // gridx/y not correct. TODO: Fix
+    (*it)->smx = gridx;
+    (*it)->smy = gridy;
+    vehicle_list.insert(*it);
+    update_vehicle_cache(*it);
+   }
   }
  } else { // It doesn't exist; we must generate it!
+  dbg(D_INFO|D_WARNING) << "map::loadn: Missing mapbuffer data. Regenerating.";
   map tmp_map(itypes, mapitems, traps);
 // overx, overy is where in the overmap we need to pull data from
 // Each overmap square is two nonants; to prevent overlap, generate only at
@@ -2326,8 +2413,6 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
    newmapx = worldx + gridx;
   if (worldy + gridy < 0)
    newmapy = worldy + gridy;
-  if (worldx + gridx < 0)
-   newmapx = worldx + gridx;
   tmp_map.generate(g, &(g->cur_om), newmapx, newmapy, int(g->turn));
   return false;
  }
@@ -2337,10 +2422,10 @@ bool map::loadn(game *g, int worldx, int worldy, int gridx, int gridy)
 void map::copy_grid(int to, int from)
 {
  grid[to] = grid[from];
- for (int i = 0; i < grid[to]->vehicles.size(); i++) {
-  int ind = grid[to]->vehicles.size() - 1;
-  grid[to]->vehicles[ind].smx = to % my_MAPSIZE;
-  grid[to]->vehicles[ind].smy = to / my_MAPSIZE;
+ for( std::vector<vehicle*>::iterator it = grid[to]->vehicles.begin(),
+       end = grid[to]->vehicles.end(); it != end; ++it ) {
+  (*it)->smx = to % my_MAPSIZE;
+  (*it)->smy = to / my_MAPSIZE;
  }
 }
 
