@@ -278,7 +278,8 @@ std::string item::info(bool showtext)
 
   it_comest* food = dynamic_cast<it_comest*>(type);
   dump << " Nutrition: " << int(food->nutr) << "\n Quench: " <<
-          int(food->quench) << "\n Enjoyability: " << int(food->fun);
+          int(food->quench) << "\n Enjoyability: " << int(food->fun) <<
+          "\n Healthiness: " << int(food->health);
 
  } else if (is_food_container()) {
 
@@ -424,7 +425,7 @@ std::string item::info(bool showtext)
   dump << "\n";
   it_style* style = dynamic_cast<it_style*>(type);
   for (int i = 0; i < style->moves.size(); i++) {
-   dump << default_technique_name(style->moves[i].tech) <<
+   dump << " " << default_technique_name(style->moves[i].tech) <<
            ". Requires Unarmed Skill of " << style->moves[i].level << "\n";
   }
 
@@ -433,7 +434,7 @@ std::string item::info(bool showtext)
   dump << "\n";
   for (int i = 1; i < NUM_TECHNIQUES; i++) {
    if (type->techniques & mfb(i))
-    dump << default_technique_name( technique_id(i) ) << "; ";
+    dump << " " << default_technique_name( technique_id(i) ) << "; ";
   }
 
  }

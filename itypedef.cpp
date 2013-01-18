@@ -466,7 +466,7 @@ A full medical kit, with bandages, anti-biotics, and rapid healing agents.\n\
 Used for healing large amounts of damage.");
 
 MED("vitamins",		75, 45,	c_cyan,		itm_null,
-	PLASTIC,  0,  3,  0, 20,  0,&iuse::none,	ADD_NULL, "\
+	PLASTIC,  0,  0,  0, 20,  0,&iuse::vitamins,	ADD_NULL, "\
 Take frequently to improve your immune system.");
 
 MED("aspirin",		85, 30,	c_cyan,		itm_null,

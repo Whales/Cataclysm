@@ -910,12 +910,15 @@ void game::update_weather()
    total += chances[i];
   }
  }
+  
  int choice = rng(0, total - 1);
  weather_type old_weather = weather;
  weather_type new_weather = WEATHER_CLEAR;
- while (choice >= chances[new_weather]) {
-  choice -= chances[new_weather];
-  new_weather = weather_type(int(new_weather) + 1);
+ if (total != 0) {
+  while (choice >= chances[new_weather]) {
+   choice -= chances[new_weather];
+   new_weather = weather_type(int(new_weather) + 1);
+  }
  }
 // Advance the weather timer
  int minutes = rng(weather_data[new_weather].mintime,
@@ -6616,8 +6619,10 @@ void game::update_map(int &x, int &y)
              cur_om.npcs[i].mapx, cur_om.npcs[i].mapy);
    temp = cur_om.npcs[i];
    if (temp.posx == -1 || temp.posy == -1) {
+/*
     debugmsg("Static NPC with no fine location data (%d:%d).",
              temp.posx, temp.posy);
+*/
     temp.posx = SEEX * 2 * (temp.mapx - levx) + rng(0 - SEEX, SEEX);
     temp.posy = SEEY * 2 * (temp.mapy - levy) + rng(0 - SEEY, SEEY);
    } else {

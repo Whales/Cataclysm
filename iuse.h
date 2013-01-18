@@ -14,6 +14,7 @@ class iuse
   void royal_jelly	(game *g, player *p, item *it, bool t);
   void bandage		(game *g, player *p, item *it, bool t);
   void firstaid		(game *g, player *p, item *it, bool t);
+  void vitamins		(game *g, player *p, item *it, bool t);
   void caff		(game *g, player *p, item *it, bool t);
   void alcohol		(game *g, player *p, item *it, bool t);
   void pkill_1		(game *g, player *p, item *it, bool t);

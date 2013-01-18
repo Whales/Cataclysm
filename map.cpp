@@ -1912,6 +1912,22 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
   mvwputch    (w, j, k, tercol, sym);
 }
 
+//WIP: faster map::sees
+bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
+{
+ int dx = abs(Tx - Fx);
+ int dy = abs(Ty - Fy);
+ if (dx == 0) { // Infinite slope, special case
+  tc = 0; // doesn't matter who even cares
+  for (int y = Fy; y <= Ty; y++) {
+   if (!trans(x, y))
+    return false;
+  }
+  return true;
+ }
+ for (int x = Fx; x <= Tx; x++) {
+  int Yhl = 
+
 /*
 map::sees based off code by Steve Register [arns@arns.freeservers.com]
 http://roguebasin.roguelikedevelopment.org/index.php?title=Simple_Line_of_Sight
@@ -1957,9 +1973,9 @@ bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
  } else { // Same as above, for mostly-vertical lines
   st = SGN(ax - (ay >> 1));
   for (tc = abs(ax - (ay >> 1)) * 2 + 1; tc >= -1; tc--) {
-  t = tc * st;
-  x = Fx;
-  y = Fy;
+   t = tc * st;
+   x = Fx;
+   y = Fy;
    do {
     if (t > 0) {
      x += sx;
@@ -2220,11 +2236,6 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
   for (int gridx = 0; gridx < my_MAPSIZE; gridx++) {
    if (sy >= 0) {
     for (int gridy = 0; gridy < my_MAPSIZE; gridy++) {
-/*
-     if (gridx < sx || gridy < sy) {
-      saven(&(g->cur_om), g->turn, wx, wy, gridx, gridy);
-     }
-*/
      if (gridx + sx < my_MAPSIZE && gridy + sy < my_MAPSIZE)
       copy_grid(gridx + gridy * my_MAPSIZE,
                 gridx + sx + (gridy + sy) * my_MAPSIZE);
@@ -2233,11 +2244,6 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
     }
    } else { // sy < 0; work through it backwards
     for (int gridy = my_MAPSIZE - 1; gridy >= 0; gridy--) {
-/*
-     if (gridx < sx || gridy - my_MAPSIZE >= sy) {
-      saven(&(g->cur_om), g->turn, wx, wy, gridx, gridy);
-     }
-*/
      if (gridx + sx < my_MAPSIZE && gridy + sy >= 0)
       copy_grid(gridx + gridy * my_MAPSIZE,
                 gridx + sx + (gridy + sy) * my_MAPSIZE);
@@ -2250,11 +2256,6 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
   for (int gridx = my_MAPSIZE - 1; gridx >= 0; gridx--) {
    if (sy >= 0) {
     for (int gridy = 0; gridy < my_MAPSIZE; gridy++) {
-/*
-     if (gridx - my_MAPSIZE >= sx || gridy < sy) {
-      saven(&(g->cur_om), g->turn, wx, wy, gridx, gridy);
-     }
-*/
      if (gridx + sx >= 0 && gridy + sy < my_MAPSIZE)
       copy_grid(gridx + gridy * my_MAPSIZE,
                 gridx + sx + (gridy + sy) * my_MAPSIZE);
@@ -2263,11 +2264,6 @@ void map::shift(game *g, int wx, int wy, int sx, int sy)
     }
    } else { // sy < 0; work through it backwards
     for (int gridy = my_MAPSIZE - 1; gridy >= 0; gridy--) {
-/*
-     if (gridx - my_MAPSIZE >= sx || gridy - my_MAPSIZE >= sy) {
-      saven(&(g->cur_om), g->turn, wx, wy, gridx, gridy);
-     }
-*/
      if (gridx + sx >= 0 && gridy + sy >= 0)
       copy_grid(gridx + gridy * my_MAPSIZE,
                 gridx + sx + (gridy + sy) * my_MAPSIZE);

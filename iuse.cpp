@@ -307,6 +307,22 @@ void iuse::firstaid(game *g, player *p, item *it, bool t)
  p->heal(healed, dam);
 }
 
+void iuse::vitamins(game *g, player *p, item *it, bool t)
+{
+ if (p->has_disease(DI_TOOK_VITAMINS)) {
+  if (p == &(g->u))
+   add_msg("You have the feeling that these vitamins won't do you any good.");
+  return;
+ }
+
+ p->add_disease(DI_TOOK_VITAMINS, 14400, g);
+
+ if (p->health <= -2)
+  p->health -= (p->health / 2);
+
+ p->health += 3;
+}
+
 // Aspirin
 void iuse::pkill_1(game *g, player *p, item *it, bool t)
 {
