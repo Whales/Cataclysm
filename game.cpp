@@ -568,9 +568,10 @@ bool game::do_turn()
 
  if (turn % 50 == 0) {	// Hunger, thirst, & fatigue up every 5 minutes
   if ((!u.has_trait(PF_LIGHTEATER) || !one_in(3)) &&
-      (!u.has_bionic(bio_recycler) || turn % 300 == 0))
+      (!u.has_bionic(bio_recycler) || turn % 300 == 0) &&
+      (!u.has_disease(DI_SLEEP) || turn % 100))
    u.hunger++;
-  if ((!u.has_bionic(bio_recycler) || turn % 100 == 0) &&
+  if (((!u.has_bionic(bio_recycler) && !u.has_disease(DI_SLEEP)) || turn % 100 == 0) &&
       (!u.has_trait(PF_PLANTSKIN) || !one_in(5)))
    u.thirst++;
   u.fatigue++;
@@ -681,7 +682,8 @@ void game::update_skills()
 //	7+	  64
  for (int i = 0; i < num_skill_types; i++) {
   int tmp = u.sklevel[i] > 7 ? 7 : u.sklevel[i];
-  if (u.sklevel[i] > 0 && turn % (8192 / int(pow(2, double(tmp - 1)))) == 0 &&
+  if (!u.has_disease(DI_SLEEP) && u.sklevel[i] > 0 &&
+       turn % (8192 / int(pow(2, double(tmp - 1)))) == 0 &&
       (( u.has_trait(PF_FORGETFUL) && one_in(3)) ||
        (!u.has_trait(PF_FORGETFUL) && one_in(4))   )) {
    if (u.has_bionic(bio_memory) && u.power_level > 0) {
