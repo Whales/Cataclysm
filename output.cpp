@@ -1,9 +1,4 @@
-
-#if (defined _WIN32 || defined WINDOWS)
-	#include "catacurse.h"
-#else
-	#include <curses.h>
-#endif
+#include "catacurse.h"
 
 #include <string>
 #include <vector>

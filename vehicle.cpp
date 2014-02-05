@@ -5,11 +5,8 @@
 #include "item.h"
 #include <sstream>
 #include <stdlib.h>
-#if (defined _WIN32 || defined WINDOWS)
-    #include "catacurse.h"
-#else
-    #include <curses.h>
-#endif
+
+#include "catacurse.h"
 
 vehicle::vehicle(game *ag, vhtype_id type_id): g(ag), type(type_id)
 {
