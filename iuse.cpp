@@ -311,7 +311,7 @@ void iuse::vitamins(game *g, player *p, item *it, bool t)
 {
  if (p->has_disease(DI_TOOK_VITAMINS)) {
   if (p == &(g->u))
-   add_msg("You have the feeling that these vitamins won't do you any good.");
+   g->add_msg("You have the feeling that these vitamins won't do you any good.");
   return;
  }
 
