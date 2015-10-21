@@ -1913,6 +1913,7 @@ void map::drawsq(WINDOW* w, player &u, int x, int y, bool invert,
 }
 
 //WIP: faster map::sees
+/*
 bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
 {
  int dx = abs(Tx - Fx);
@@ -1927,7 +1928,7 @@ bool map::sees(int Fx, int Fy, int Tx, int Ty, int range, int &tc)
  }
  for (int x = Fx; x <= Tx; x++) {
   int Yhl = 
-
+*/
 /*
 map::sees based off code by Steve Register [arns@arns.freeservers.com]
 http://roguebasin.roguelikedevelopment.org/index.php?title=Simple_Line_of_Sight
