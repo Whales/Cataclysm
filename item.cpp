@@ -279,7 +279,7 @@ std::string item::info(bool showtext)
   it_comest* food = dynamic_cast<it_comest*>(type);
   dump << " Nutrition: " << int(food->nutr) << "\n Quench: " <<
           int(food->quench) << "\n Enjoyability: " << int(food->fun) <<
-          "\n Healthiness: " << int(food->health);
+          "\n Healthiness: " << int(food->healthy);
 
  } else if (is_food_container()) {
 
