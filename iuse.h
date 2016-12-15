@@ -44,6 +44,7 @@ class iuse
   void dogfood		(game *g, player *p, item *it, bool t);
 
 // TOOLS
+  void flint		(game *g, player *p, item *it, bool t);
   void lighter		(game *g, player *p, item *it, bool t);
   void sew		(game *g, player *p, item *it, bool t);
   void scissors		(game *g, player *p, item *it, bool t);

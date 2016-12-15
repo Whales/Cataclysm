@@ -2852,6 +2852,11 @@ A lighter must be carried to use various drugs, like cigarettes, or to light\n\
 things like molotov cocktails.  You can also use a lighter to light nearby\n\
 items on fire.");
 
+TOOL("flint", 5, 5, '*', c_ltgray, STONE, MNULL,
+	1, 1, 2, 2, -1, 20, 20, 1, 0, AT_NULL, itm_null, &iuse::flint, 0, "\
+A small piece of flint. It can be used to start a fire if struck\n\
+against iron or steel.");
+
 TOOL("sewing kit",	30,120, ',', c_red,	PLASTIC,IRON,
     2,  0, -3,  0, -1,  50, 50, 1,  0, AT_NULL, itm_null, &iuse::sew, 0, "\
 Use a sewing kit on an article of clothing to attempt to repair or reinforce\n\
