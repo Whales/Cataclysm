@@ -1,11 +1,7 @@
 #ifndef _COLOR_H_
 #define _COLOR_H
 
-#if (defined _WIN32 || defined WINDOWS)
-	#include "catacurse.h"
-#else
-	#include <curses.h>
-#endif
+#include "curses.h"
 
 #ifndef _COLOR_LIST_
 #define _COLOR_LIST_

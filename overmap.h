@@ -8,12 +8,7 @@
 #include "output.h"
 #include <vector>
 
-#if (defined _WIN32 || defined WINDOWS)
-	#include "catacurse.h"
-#else
-	#include <curses.h>
-#endif
-
+#include "curses.h"
 
 class npc;
 struct settlement;
