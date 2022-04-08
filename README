@@ -22,7 +22,7 @@ Cataclysm is very different from most roguelikes in many ways.  Rather than
 being set in a vertical, linear dungeon, it is set in an unbounded, 3D world.
 This means that exploration plays a much bigger role than in most roguelikes,
 and the game is much less linear.
-Because the map is so huge, it is actually completely persistant between games.
+Because the map is so huge, it is actually completely persistent between games.
 If you die, and start a new character, your new game will be set in the same
 game world as your last.  Like in many roguelikes, you will be able to loot the
 dead bodies of previous characters; unlike most roguelikes, you will also be
