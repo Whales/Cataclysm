@@ -8,11 +8,7 @@
 #include "pldata.h"
 #include <stdlib.h>
 
-#if (defined _WIN32 || defined WINDOWS)
-	#include "catacurse.h"
-#else
-	#include <curses.h>
-#endif
+#include "catacurse.h"
 
 #ifndef SGN
 #define SGN(a) (((a)<0) ? -1 : 1)
